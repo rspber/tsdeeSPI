@@ -18,3 +18,17 @@ and subclass TFT_eeSPI, which contains the very essence, i.e. support for proces
 
 The next step will be to connect TFT_eeSPI with tsdesktop graphics by adopting all settings from tsdesktop.
 The work will be done until everything stops working and is no longer useful, forks are welcome.
+
+## Further Relations
+
+The first step has been done.
+
+Unfortunately, from a performance standpoint, this step was the most damaging, causing an estimated 1% to 5% performance penalty. Unfortunately, this cannot be avoided if you want to keep the appearance of the software in a civilized form.
+
+This is due to the weaknesses of processors combined with the imperfections of compilers, which cannot generate optimal code for procedures located in different C++ classes. More precisely, it is about the inline clause, which has no effect in such an arrangement.
+
+And it turns out that the processors we are dealing with here show a significant slowdown in code execution when, instead of executing simple instructions, a procedure is called (even one, and the efficiency of the entire process drops).
+
+But there is no other option, we have to come to terms with it to go farther. The next steps will not be so drastic.
+
+Finally, information for TFT_eSPI library enthusiasts: all examples from the library work, but it may not last long.
