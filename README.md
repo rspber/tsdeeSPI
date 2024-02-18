@@ -37,4 +37,11 @@ Finally, information for TFT_eSPI library enthusiasts: all examples from the lib
 
 It seems to still be working.
 
+Now tsdeeSPI consists of:
+
+* TFT_eSPI  :: top level class, entire TFT_eSPI interface is preserved
+* TFT_CHAR  :: character drawing class, and strings
+* TFT_GFX   :: basic graphics, rectangles, circles, triangles and similar
+* TFT_eeSPI :: low level procedures: processors and protocols
+
 Before the next step, the following will be tested: dma, sprites, wedges, smoots - just in case.
