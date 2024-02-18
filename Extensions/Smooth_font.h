@@ -12,9 +12,7 @@
   void     unloadFont( void );
   bool     getUnicodeIndex(uint16_t unicode, uint16_t *index);
 
-  virtual void drawGlyph(uint16_t code);
-
-  void     showFont(uint32_t td);
+  virtual void drawGlyph(wh_clip_t& clip, uint16_t code);
 
  // This is for the whole font
   typedef struct

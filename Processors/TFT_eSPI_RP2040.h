@@ -215,6 +215,7 @@
 // Define the WR (TFT Write) pin drive code
 ////////////////////////////////////////////////////////////////////////////////////////
 #if !defined (TFT_PARALLEL_8_BIT) && !defined (TFT_PARALLEL_16_BIT) // SPI
+  #include <SPI.h>
   #ifdef TFT_WR
     #define WR_L digitalWrite(TFT_WR, LOW)
     #define WR_H digitalWrite(TFT_WR, HIGH)

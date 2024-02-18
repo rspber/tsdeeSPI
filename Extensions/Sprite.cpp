@@ -444,8 +444,8 @@ bool TFT_eSprite::pushRotated(int16_t angle, uint32_t transp)
       if (transp != 0x00FFFFFF && tpcolor == rp) {
         if (pixel_count) {
           // TFT window is already clipped, so this is faster than pushImage()
-          _tft->setWindow(x - pixel_count, y, x - 1, y);
-          _tft->pushPixels(sline_buffer, pixel_count);
+          _tft->setWindow(x - pixel_count, y, pixel_count, 1);
+          _tft->pushPixels(sline_buffer, pixel_count, false);
           pixel_count = 0;
         }
       }
@@ -455,8 +455,8 @@ bool TFT_eSprite::pushRotated(int16_t angle, uint32_t transp)
     } while (++x < max_x && (xs += _cosra) < xe && (ys += _sinra) < ye);
     if (pixel_count) {
       // TFT window is already clipped, so this is faster than pushImage()
-      _tft->setWindow(x - pixel_count, y, x - 1, y);
-      _tft->pushPixels(sline_buffer, pixel_count);
+      _tft->setWindow(x - pixel_count, y, pixel_count, 1);
+      _tft->pushPixels(sline_buffer, pixel_count, false);
     }
   }
 
@@ -551,16 +551,16 @@ bool TFT_eSprite::getRotatedBounds(int16_t angle, int16_t *min_x, int16_t *min_y
   *max_y += _tft->_yPivot;
 
   // Return if bounding box is outside of TFT viewport
-  if (*min_x > _tft->_vpW) return false;
-  if (*min_y > _tft->_vpH) return false;
-  if (*max_x < _tft->_vpX) return false;
-  if (*max_y < _tft->_vpY) return false;
+  if (*min_x > _tft->_clip.x2) return false;
+  if (*min_y > _tft->_clip.y2) return false;
+  if (*max_x < _tft->_clip.x1) return false;
+  if (*max_y < _tft->_clip.y1) return false;
 
   // Clip bounding box to be within TFT viewport
-  if (*min_x < _tft->_vpX) *min_x = _tft->_vpX;
-  if (*min_y < _tft->_vpY) *min_y = _tft->_vpY;
-  if (*max_x > _tft->_vpW) *max_x = _tft->_vpW;
-  if (*max_y > _tft->_vpH) *max_y = _tft->_vpH;
+  if (*min_x < _tft->_clip.x1) *min_x = _tft->_clip.x1;
+  if (*min_y < _tft->_clip.y1) *min_y = _tft->_clip.y1;
+  if (*max_x > _tft->_clip.x2) *max_x = _tft->_clip.x2;
+  if (*max_y > _tft->_clip.y2) *max_y = _tft->_clip.y2;
 
   return true;
 }
@@ -808,7 +808,7 @@ bool TFT_eSprite::pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int
   if (!_created) return false;
 
   // Perform window boundary checks and crop if needed
-  setWindow(sx, sy, sx + sw - 1, sy + sh - 1);
+  setWindow(sx, sy, sw, sh);
 
   /* These global variables are now populated for the sprite
   _xs = x start coordinate
@@ -904,16 +904,16 @@ uint16_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
 {
   if (_vpOoB  || !_created) return 0xFF;
 
-  x+= _xDatum;
-  y+= _yDatum;
+  x+= _clip.xDatum;
+  y+= _clip.yDatum;
 
   // Range checking
-  if ((x < _vpX) || (y < _vpY) ||(x >= _vpW) || (y >= _vpH)) return 0xFF;
+  if ((x < _clip.x1) || (y < _clip.y1) ||(x >= _clip.x2) || (y >= _clip.y2)) return 0xFF;
 
   if (_bpp == 16)
   {
     // Return the pixel colour
-    return readPixel(x - _xDatum, y - _yDatum);
+    return readPixel(x - _clip.xDatum, y - _clip.yDatum);
   }
 
   if (_bpp == 8)
@@ -966,11 +966,11 @@ uint16_t TFT_eSprite::readPixel(int32_t x, int32_t y)
 {
   if (_vpOoB  || !_created) return 0xFFFF;
 
-  x+= _xDatum;
-  y+= _yDatum;
+  x+= _clip.xDatum;
+  y+= _clip.yDatum;
 
   // Range checking
-  if ((x < _vpX) || (y < _vpY) ||(x >= _vpW) || (y >= _vpH)) return 0xFFFF;
+  if ((x < _clip.x1) || (y < _clip.y1) ||(x >= _clip.x2) || (y >= _clip.y2)) return 0xFFFF;
 
   if (_bpp == 16)
   {
@@ -1033,27 +1033,28 @@ uint16_t TFT_eSprite::readPixel(int32_t x, int32_t y)
 ** Function name:           pushImage
 ** Description:             push image into a defined area of a sprite
 ***************************************************************************************/
-void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp)
+void  TFT_eSprite::pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp)
 {
   if (data == nullptr || !_created) return;
 
-  PI_CLIP;
+  block_t z;
+  if (!_clip.check_block(z, x0, y0, w, h)) return;
 
   if (_bpp == 16) // Plot a 16 bpp image into a 16 bpp Sprite
   {
     // Pointer within original image
-    uint8_t *ptro = (uint8_t *)data + ((dx + dy * w) << 1);
+    uint8_t *ptro = (uint8_t *)data + ((z.dx + z.dy * w) << 1);
     // Pointer within sprite image
-    uint8_t *ptrs = (uint8_t *)_img + ((x + y * _iwidth) << 1);
+    uint8_t *ptrs = (uint8_t *)_img + ((z.x + z.y * _iwidth) << 1);
 
     if(_swapBytes)
     {
-      while (dh--)
+      while (z.dh--)
       {
         // Fast copy with a 1 byte shift
-        memcpy(ptrs+1, ptro, (dw<<1) - 1);
+        memcpy(ptrs+1, ptro, (z.dw<<1) - 1);
         // Now correct just the even numbered bytes
-        for (int32_t xp = 0; xp < (dw<<1); xp+=2)
+        for (int32_t xp = 0; xp < (z.dw<<1); xp+=2)
         {
           ptrs[xp] = ptro[xp+1];;
         }
@@ -1063,9 +1064,9 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
     }
     else
     {
-      while (dh--)
+      while (z.dh--)
       {
-        memcpy(ptrs, ptro, dw<<1);
+        memcpy(ptrs, ptro, z.dw<<1);
         ptro += w << 1;
         ptrs += _iwidth << 1;
       }
@@ -1074,13 +1075,13 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
   else if (_bpp == 8 && sbpp == 8) // Plot a 8 bpp image into a 8 bpp Sprite
   {
     // Pointer within original image
-    uint8_t *ptro = (uint8_t *)data + (dx + dy * w);
+    uint8_t *ptro = (uint8_t *)data + (z.dx + z.dy * w);
     // Pointer within sprite image
-    uint8_t *ptrs = (uint8_t *)_img + (x + y * _iwidth);
+    uint8_t *ptrs = (uint8_t *)_img + (z.x + z.y * _iwidth);
 
-    while (dh--)
+    while (z.dh--)
     {
-      memcpy(ptrs, ptro, dw);
+      memcpy(ptrs, ptro, z.dw);
       ptro += w;
       ptrs += _iwidth;
     }
@@ -1089,11 +1090,11 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
   {
     uint16_t lastColor = 0;
     uint8_t  color8    = 0;
-    for (int32_t yp = dy; yp < dy + dh; yp++)
+    for (int32_t yp = z.dy; yp < z.dy + z.dh; yp++)
     {
-      int32_t xyw = x + y * _iwidth;
-      int32_t dxypw = dx + yp * w;
-      for (int32_t xp = dx; xp < dx + dw; xp++)
+      int32_t xyw = z.x + z.y * _iwidth;
+      int32_t dxypw = z.dx + yp * w;
+      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
       {
         uint16_t color = data[dxypw++];
         if (color != lastColor) {
@@ -1104,7 +1105,7 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
         lastColor = color;
         _img8[xyw++] = color8;
       }
-      y++;
+      z.y++;
     }
   }
   else if (_bpp == 4)
@@ -1116,34 +1117,34 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
     int sWidth = (_iwidth >> 1);
     uint8_t *ptr = (uint8_t *)data;
 
-    if ((x & 0x01) == 0 && (dx & 0x01) == 0 && (dw & 0x01) == 0)
+    if ((z.x & 0x01) == 0 && (z.dx & 0x01) == 0 && (z.dw & 0x01) == 0)
     {
-      x = (x >> 1) + y * sWidth;
-      dw = (dw >> 1);
-      dx = (dx >> 1) + dy * (w>>1);
-      while (dh--)
+      z.x = (z.x >> 1) + z.y * sWidth;
+      z.dw = (z.dw >> 1);
+      z.dx = (z.dx >> 1) + z.dy * (w>>1);
+      while (z.dh--)
       {
-        memcpy(_img4 + x, ptr + dx, dw);
-        dx += (w >> 1);
-        x += sWidth;
+        memcpy(_img4 + z.x, ptr + z.dx, z.dw);
+        z.dx += (w >> 1);
+        z.x += sWidth;
       }
     }
     else  // not optimized
     {
-      for (int32_t yp = dy; yp < dy + dh; yp++)
+      for (int32_t yp = z.dy; yp < z.dy + z.dh; yp++)
       {
-        int32_t ox = x;
-        for (int32_t xp = dx; xp < dx + dw; xp++)
+        int32_t ox = z.x;
+        for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
         {
           uint32_t color;
           if ((xp & 0x01) == 0)
             color = (ptr[((xp+yp*w)>>1)] & 0xF0) >> 4; // even index = bits 7 .. 4
           else
             color = ptr[((xp-1+yp*w)>>1)] & 0x0F;      // odd index = bits 3 .. 0.
-          drawPixel(ox, y, color);
+          drawPixel(ox, z.y, color);
           ox++;
         }
-        y++;
+        z.y++;
       }
     }
   }
@@ -1153,16 +1154,16 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
     // Plot a 1bpp image into a 1bpp Sprite
     uint32_t ww =  (w+7)>>3; // Width of source image line in bytes
     uint8_t *ptr = (uint8_t *)data;
-    for (int32_t yp = dy;  yp < dy + dh; yp++)
+    for (int32_t yp = z.dy;  yp < z.dy + z.dh; yp++)
     {
       uint32_t yw = yp * ww;              // Byte starting the line containing source pixel
-      int32_t ox = x;
-      for (int32_t xp = dx; xp < dx + dw; xp++)
+      int32_t ox = z.x;
+      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
       {
         uint16_t readPixel = (ptr[(xp>>3) + yw] & (0x80 >> (xp & 0x7)) );
-        drawPixel(ox++, y, readPixel);
+        drawPixel(ox++, z.y, readPixel);
       }
-      y++;
+      z.y++;
     }
   }
 }
@@ -1172,45 +1173,46 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
 ** Function name:           pushImage
 ** Description:             push 565 colour FLASH (PROGMEM) image into a defined area
 ***************************************************************************************/
-void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data)
+void  TFT_eSprite::pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data)
 {
 #ifdef ESP32
-  pushImage(x, y, w, h, (uint16_t*) data);
+  pushImage(x0, y0, w, h, (uint16_t*) data);
 #else
   // Partitioned memory FLASH processor
   if (data == nullptr || !_created) return;
 
-  PI_CLIP;
+  block_t z;
+  if (!_clip.check_block(z, x0, y0, w, h)) return;
 
   if (_bpp == 16) // Plot a 16 bpp image into a 16 bpp Sprite
   {
-    for (int32_t yp = dy; yp < dy + dh; yp++)
+    for (int32_t yp = z.dy; yp < z.dy + z.dh; yp++)
     {
-      int32_t ox = x;
-      for (int32_t xp = dx; xp < dx + dw; xp++)
+      int32_t ox = z.x;
+      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
       {
         uint16_t color = pgm_read_word(data + xp + yp * w);
         if(_swapBytes) color = color<<8 | color>>8;
-        _img[ox + y * _iwidth] = color;
+        _img[ox + z.y * _iwidth] = color;
         ox++;
       }
-      y++;
+      z.y++;
     }
   }
 
   else if (_bpp == 8) // Plot a 16 bpp image into a 8 bpp Sprite
   {
-    for (int32_t yp = dy; yp < dy + dh; yp++)
+    for (int32_t yp = z.dy; yp < z.dy + z.dh; yp++)
     {
-      int32_t ox = x;
-      for (int32_t xp = dx; xp < dx + dw; xp++)
+      int32_t ox = z.x;
+      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
       {
         uint16_t color = pgm_read_word(data + xp + yp * w);
         if(_swapBytes) color = color<<8 | color>>8;
-        _img8[ox + y * _iwidth] = (uint8_t)((color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3);
+        _img8[ox + z.y * _iwidth] = (uint8_t)((color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3);
         ox++;
       }
-      y++;
+      z.y++;
     }
   }
 
@@ -1224,26 +1226,26 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const u
 
   else // Plot a 1bpp image into a 1bpp Sprite
   {
-    x-= _xDatum;   // Remove offsets, drawPixel will add
-    y-= _yDatum;
+    z.x-= _clip.xDatum;   // Remove offsets, drawPixel will add
+    z.y-= _clip.yDatum;
     uint16_t bsw =  (w+7) >> 3; // Width in bytes of source image line
-    uint8_t *ptr = ((uint8_t*)data) + dy * bsw;
+    uint8_t *ptr = ((uint8_t*)data) + z.dy * bsw;
     
-    while (dh--) {
-      int32_t odx = dx;
-      int32_t ox  = x;
-      while (odx < dx + dw) {
+    while (z.dh--) {
+      int32_t odx = z.dx;
+      int32_t ox  = z.x;
+      while (odx < z.dx + z.dw) {
         uint8_t pbyte = pgm_read_byte(ptr + (odx>>3));
         uint8_t mask = 0x80 >> (odx & 7);
         while (mask) {
           uint8_t p = pbyte & mask;
           mask = mask >> 1;
-          drawPixel(ox++, y, p);
+          drawPixel(ox++, z.y, p);
           odx++;
         }
       }
       ptr += bsw;
-      y++;
+      z.y++;
     }
   }
 #endif // if ESP32 check
@@ -1255,8 +1257,11 @@ void  TFT_eSprite::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const u
 ** Description:             Set the bounds of a window in the sprite
 ***************************************************************************************/
 // Intentionally not constrained to viewport area, does not manage 1bpp rotations
-void TFT_eSprite::setWindow(int32_t x0, int32_t y0, int32_t x1, int32_t y1)
+void TFT_eSprite::setWindow(int32_t x0, int32_t y0, int32_t w0, int32_t h0)
 {
+  int32_t x1 = x0 + w0 - 1;
+  int32_t y1 = y0 + h0 - 1;
+
   if (x0 > x1) transpose(x0, x1);
   if (y0 > y1) transpose(y0, y1);
   
@@ -1523,13 +1528,13 @@ void TFT_eSprite::fillSprite(uint32_t color)
   if (!_created || _vpOoB) return;
 
   // Use memset if possible as it is super fast
-  if(_xDatum == 0 && _yDatum == 0  &&  _xWidth == width())
+  if(_clip.xDatum == 0 && _clip.yDatum == 0  &&  _xWidth == width())
   {
     if(_bpp == 16) {
       if ( (uint8_t)color == (uint8_t)(color>>8) ) {
         memset(_img,  (uint8_t)color, _iwidth * _yHeight * 2);
       }
-      else fillRect(_vpX, _vpY, _xWidth, _yHeight, color);
+      else fillRect(_clip.x1, _clip.y1, _xWidth, _yHeight, color);
     }
     else if (_bpp == 8)
     {
@@ -1547,7 +1552,7 @@ void TFT_eSprite::fillSprite(uint32_t color)
       else      memset(_img8, 0x00, (_bitwidth>>3) * _dheight + 1);
     }
   }
-  else fillRect(_vpX - _xDatum, _vpY - _yDatum, _xWidth, _yHeight, color);
+  else fillRect(_clip.x1 - _clip.xDatum, _clip.y1 - _clip.yDatum, _xWidth, _yHeight, color);
 }
 
 
@@ -1636,11 +1641,11 @@ void TFT_eSprite::drawPixel(int32_t x, int32_t y, uint32_t color)
 {
   if (!_created || _vpOoB) return;
 
-  x+= _xDatum;
-  y+= _yDatum;
+  x+= _clip.xDatum;
+  y+= _clip.yDatum;
 
   // Range checking
-  if ((x < _vpX) || (y < _vpY) ||(x >= _vpW) || (y >= _vpH)) return;
+  if ((x < _clip.x1) || (y < _clip.y1) ||(x >= _clip.x2) || (y >= _clip.y2)) return;
 
   if (_bpp == 16)
   {
@@ -1754,15 +1759,15 @@ void TFT_eSprite::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color)
 {
   if (!_created || _vpOoB) return;
 
-  x+= _xDatum;
-  y+= _yDatum;
+  x+= _clip.xDatum;
+  y+= _clip.yDatum;
 
   // Clipping
-  if ((x < _vpX) || (x >= _vpW) || (y >= _vpH)) return;
+  if ((x < _clip.x1) || (x >= _clip.x2) || (y >= _clip.y2)) return;
 
-  if (y < _vpY) { h += y - _vpY; y = _vpY; }
+  if (y < _clip.y1) { h += y - _clip.y1; y = _clip.y1; }
 
-  if ((y + h) > _vpH) h = _vpH - y;
+  if ((y + h) > _clip.y2) h = _clip.y2 - y;
 
   if (h < 1) return;
 
@@ -1797,8 +1802,8 @@ void TFT_eSprite::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color)
   }
   else
   {
-    x -= _xDatum; // Remove any offset as it will be added by drawPixel
-    y -= _yDatum;
+    x -= _clip.xDatum; // Remove any offset as it will be added by drawPixel
+    y -= _clip.yDatum;
     while (h--)
     {
       drawPixel(x, y++, color);
@@ -1815,15 +1820,15 @@ void TFT_eSprite::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color)
 {
   if (!_created || _vpOoB) return;
 
-  x+= _xDatum;
-  y+= _yDatum;
+  x+= _clip.xDatum;
+  y+= _clip.yDatum;
 
   // Clipping
-  if ((y < _vpY) || (x >= _vpW) || (y >= _vpH)) return;
+  if ((y < _clip.y1) || (x >= _clip.x2) || (y >= _clip.y2)) return;
 
-  if (x < _vpX) { w += x - _vpX; x = _vpX; }
+  if (x < _clip.x1) { w += x - _clip.x1; x = _clip.x1; }
 
-  if ((x + w) > _vpW) w = _vpW - x;
+  if ((x + w) > _clip.x2) w = _clip.x2 - x;
 
   if (w < 1) return;
 
@@ -1843,7 +1848,7 @@ void TFT_eSprite::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color)
     uint8_t c2 = (c | ((c << 4) & 0xF0));
     if ((x & 0x01) == 1)
     {
-      drawPixel(x - _xDatum, y - _yDatum, color);
+      drawPixel(x - _clip.xDatum, y - _clip.yDatum, color);
       x++; w--;
       if (w < 1)
         return;
@@ -1852,15 +1857,15 @@ void TFT_eSprite::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color)
     if (((w + x) & 0x01) == 1)
     {
       // handle the extra one at the other end
-      drawPixel(x - _xDatum + w - 1, y - _yDatum, color);
+      drawPixel(x - _clip.xDatum + w - 1, y - _clip.yDatum, color);
       w--;
       if (w < 1) return;
     }
     memset(_img4 + ((_iwidth * y + x) >> 1), c2, (w >> 1));
   }
   else {
-    x -= _xDatum; // Remove any offset as it will be added by drawPixel
-    y -= _yDatum;
+    x -= _clip.xDatum; // Remove any offset as it will be added by drawPixel
+    y -= _clip.yDatum;
 
     while (w--)
     {
@@ -1878,17 +1883,17 @@ void TFT_eSprite::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t 
 {
   if (!_created || _vpOoB) return;
 
-  x+= _xDatum;
-  y+= _yDatum;
+  x+= _clip.xDatum;
+  y+= _clip.yDatum;
 
   // Clipping
-  if ((x >= _vpW) || (y >= _vpH)) return;
+  if ((x >= _clip.x2) || (y >= _clip.y2)) return;
 
-  if (x < _vpX) { w += x - _vpX; x = _vpX; }
-  if (y < _vpY) { h += y - _vpY; y = _vpY; }
+  if (x < _clip.x1) { w += x - _clip.x1; x = _clip.x1; }
+  if (y < _clip.y1) { h += y - _clip.y1; y = _clip.y1; }
 
-  if ((x + w) > _vpW) w = _vpW - x;
-  if ((y + h) > _vpH) h = _vpH - y;
+  if ((x + w) > _clip.x2) w = _clip.x2 - x;
+  if ((y + h) > _clip.y2) h = _clip.y2 - y;
 
   if ((w < 1) || (h < 1)) return;
 
@@ -1939,7 +1944,7 @@ void TFT_eSprite::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t 
         if (w > 1)
           memset(_img4 + yp, c2, (w-1)>>1);
         // handle the rightmost pixel by calling drawPixel
-        drawPixel(x+w-1-_xDatum, y+h-_yDatum, c1);
+        drawPixel(x+w-1-_clip.xDatum, y+h-_clip.yDatum, c1);
         yp += (_iwidth >> 1);
       }
     }
@@ -1947,7 +1952,7 @@ void TFT_eSprite::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t 
     {
       yp = (yp + 1) >> 1;
       while (h--) {
-        drawPixel(x-_xDatum, y+h-_yDatum, color & 0x0F);
+        drawPixel(x-_clip.xDatum, y+h-_clip.yDatum, color & 0x0F);
         if (w > 1)
           memset(_img4 + yp, c2, (w-1)>>1);
         // same as above but you have a hangover on the left instead
@@ -1958,8 +1963,8 @@ void TFT_eSprite::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t 
     {
       yp = (yp + 1) >> 1;
       while (h--) {
-        drawPixel(x-_xDatum, y+h-_yDatum, color & 0x0F);
-        if (w > 1) drawPixel(x+w-1-_xDatum, y+h-_yDatum, color & 0x0F);
+        drawPixel(x-_clip.xDatum, y+h-_clip.yDatum, color & 0x0F);
+        if (w > 1) drawPixel(x+w-1-_clip.xDatum, y+h-_clip.yDatum, color & 0x0F);
         if (w > 2)
           memset(_img4 + yp, c2, (w-2)>>1);
         // maximal hacking, single pixels on left and right.
@@ -1969,8 +1974,8 @@ void TFT_eSprite::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t 
   }
   else
   {
-    x -= _xDatum;
-    y -= _yDatum;
+    x -= _clip.xDatum;
+    y -= _clip.yDatum;
     while (h--)
     {
       int32_t ww = w;
@@ -1990,8 +1995,8 @@ void TFT_eSprite::drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uin
 {
   if ( _vpOoB || !_created ) return;
 
-  if ((x >= _vpW - _xDatum) || // Clip right
-      (y >= _vpH - _yDatum))   // Clip bottom
+  if ((x >= _clip.x2 - _clip.xDatum) || // Clip right
+      (y >= _clip.y2 - _clip.yDatum))   // Clip bottom
     return;
 
   if (c < 32) return;
@@ -2002,8 +2007,8 @@ void TFT_eSprite::drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uin
 #endif
 //>>>>>>>>>>>>>>>>>>
 
-  if (((x + 6 * size - 1) < (_vpX - _xDatum)) || // Clip left
-      ((y + 8 * size - 1) < (_vpY - _yDatum)))   // Clip top
+  if (((x + 6 * size - 1) < (_clip.x1 - _clip.xDatum)) || // Clip left
+      ((y + 8 * size - 1) < (_clip.y1 - _clip.yDatum)))   // Clip top
     return;
 
   bool fillbg = (bg != color);
@@ -2079,8 +2084,8 @@ void TFT_eSprite::drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uin
       int8_t   xo = pgm_read_byte(&glyph->xOffset),
                yo = pgm_read_byte(&glyph->yOffset);
 
-      if (((x + xo + w * size - 1) < (_vpX - _xDatum)) || // Clip left
-          ((y + yo + h * size - 1) < (_vpY - _yDatum)))   // Clip top
+      if (((x + xo + w * size - 1) < (_clip.x1 - _clip.xDatum)) || // Clip left
+          ((y + yo + h * size - 1) < (_clip.y1 - _clip.yDatum)))   // Clip top
         return;
 
       uint8_t  *bitmap = (uint8_t *)pgm_read_dword(&gfxFont->bitmap);
@@ -2216,16 +2221,16 @@ int16_t TFT_eSprite::drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t fo
   }
 #endif
 
-  int32_t xd = x + _xDatum;
-  int32_t yd = y + _yDatum;
+  int32_t xd = x + _clip.xDatum;
+  int32_t yd = y + _clip.yDatum;
 
-  if ((xd + width * textsize < _vpX || xd >= _vpW) && (yd + height * textsize < _vpY || yd >= _vpH)) return width * textsize ;
+  if ((xd + width * textsize < _clip.x1 || xd >= _clip.x2) && (yd + height * textsize < _clip.y1 || yd >= _clip.y2)) return width * textsize ;
 
   int32_t w = width;
   int32_t pX      = 0;
   int32_t pY      = y;
   uint8_t line = 0;
-  bool clip = xd < _vpX || xd + width  * textsize >= _vpW || yd < _vpY || yd + height * textsize >= _vpH;
+  bool clip = xd < _clip.x1 || xd + width  * textsize >= _clip.x2 || yd < _clip.y1 || yd + height * textsize >= _clip.y2;
 
 #ifdef LOAD_FONT2 // chop out code if we do not need it
   if (font == 2) {
@@ -2310,7 +2315,7 @@ int16_t TFT_eSprite::drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t fo
           }
           while (line--) { // In this case the while(line--) is faster
             pc++; // This is faster than putting pc+=line before while()?
-            setWindow(px, py, px + ts, py + ts);
+            setWindow(px, py, ts + 1, ts + 1);
 
             if (ts) {
               tnp = np;
@@ -2337,7 +2342,7 @@ int16_t TFT_eSprite::drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t fo
       // so use faster drawing of characters and background using block write
       if (textcolor != textbgcolor && textsize == 1 && !clip && _bpp != 1)
       {
-        setWindow(xd, yd, xd + width - 1, yd + height - 1);
+        setWindow(xd, yd, width, height);
 
         // Maximum font size is equivalent to 180x180 pixels in area
         while (w > 0) {

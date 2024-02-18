@@ -21,7 +21,7 @@ The work will be done until everything stops working and is no longer useful, fo
 
 ## Further Relations
 
-The first step has been done.
+#### The first step has been done.
 
 Unfortunately, from a performance standpoint, this step was the most damaging, causing an estimated 1% to 5% performance penalty. Unfortunately, this cannot be avoided if you want to keep the appearance of the software in a civilized form.
 
@@ -32,3 +32,9 @@ And it turns out that the processors we are dealing with here show a significant
 But there is no other option, we have to come to terms with it to go farther. The next steps will not be so drastic.
 
 Finally, information for TFT_eSPI library enthusiasts: all examples from the library work, but it may not last long.
+
+#### Mega graphics code reorganization
+
+It seems to still be working.
+
+Before the next step, the following will be tested: dma, sprites, wedges, smoots - just in case.

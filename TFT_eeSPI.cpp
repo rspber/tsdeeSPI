@@ -47,26 +47,6 @@
   #define SPI_BUSY_CHECK
 #endif
 
-// Clipping macro for pushImage
-#define PI_CLIP                                        \
-  if (_vpOoB) return;                                  \
-  x+= _xDatum;                                         \
-  y+= _yDatum;                                         \
-                                                       \
-  if ((x >= _vpW) || (y >= _vpH)) return;              \
-                                                       \
-  int32_t dx = 0;                                      \
-  int32_t dy = 0;                                      \
-  int32_t dw = w;                                      \
-  int32_t dh = h;                                      \
-                                                       \
-  if (x < _vpX) { dx = _vpX - x; dw -= dx; x = _vpX; } \
-  if (y < _vpY) { dy = _vpY - y; dh -= dy; y = _vpY; } \
-                                                       \
-  if ((x + dw) > _vpW ) dw = _vpW - x;                 \
-  if ((y + dh) > _vpH ) dh = _vpH - y;                 \
-                                                       \
-  if (dw < 1 || dh < 1) return;
 
 /***************************************************************************************
 ** Function name:           Legacy - deprecated
@@ -186,8 +166,10 @@ inline void TFT_eeSPI::end_tft_read(void){
 ** Function name:           TFT_eeSPI
 ** Description:             Constructor , we must use hardware SPI pins
 ***************************************************************************************/
-TFT_eeSPI::TFT_eeSPI(int16_t w, int16_t h)
+TFT_eeSPI::TFT_eeSPI()
 {
+  _booted   = true;     // Default attributes
+
   rotation  = 0;
 
   locked = true;           // Transaction mutex lock flag to ensure begin/endTranaction pairing
@@ -388,6 +370,7 @@ void TFT_eeSPI::init(uint8_t tc)
   end_tft_write();
 
   setRotation(rotation);
+  setRotationSizes(rotation);
 
 #if defined (TFT_BL) && defined (TFT_BACKLIGHT_ON)
   pinMode(TFT_BL, OUTPUT);
@@ -421,7 +404,7 @@ void TFT_eeSPI::setRotation(uint8_t m)
   addr_col = 0xFFFF;
 
   // Reset the viewport to the whole screen
-  resetViewport();
+//  resetViewport();
 }
 
 
@@ -627,21 +610,15 @@ uint32_t TFT_eeSPI::readcommand32(uint8_t cmd_function, uint8_t index)
 ** Function name:           read pixel (for SPI Interface II i.e. IM [3:0] = "1101")
 ** Description:             Read 565 pixel colours from a pixel
 ***************************************************************************************/
-uint16_t TFT_eeSPI::readPixel(int32_t x0, int32_t y0)
+uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
 {
-  if (_vpOoB) return 0;
-
-  x0+= _xDatum;
-  y0+= _yDatum;
-
-  // Range checking
-  if ((x0 < _vpX) || (y0 < _vpY) ||(x0 >= _vpW) || (y0 >= _vpH)) return 0;
+  if (!clip.check_point(x, y)) return 0;
 
 #if defined(TFT_PARALLEL_8_BIT) || defined(RP2040_PIO_INTERFACE)
 
   if (!inTransaction) { CS_L; } // CS_L can be multi-statement
 
-  readAddrWindow(x0, y0, 1, 1);
+  readAddrWindow(x, y, 1, 1);
 
   // Set masked pins D0- D7 to input
   busDir(GPIO_DIR_MASK, INPUT);
@@ -696,7 +673,7 @@ uint16_t TFT_eeSPI::readPixel(int32_t x0, int32_t y0)
 
   begin_tft_read(); // Sets CS low
 
-  readAddrWindow(x0, y0, 1, 1);
+  readAddrWindow(x, y, 1, 1);
 
   #ifdef TFT_SDA_READ
     begin_SDA_Read();
@@ -752,17 +729,18 @@ uint16_t TFT_eeSPI::readPixel(int32_t x0, int32_t y0)
 ** Function name:           read rectangle (for SPI Interface II i.e. IM [3:0] = "1101")
 ** Description:             Read 565 pixel colours from a defined area
 ***************************************************************************************/
-void TFT_eeSPI::readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
+void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data)
 {
-  PI_CLIP ;
+  block_t z;
+  if (!clip.check_block(z, x0, y0, w, h)) return;
 
 #if defined(TFT_PARALLEL_8_BIT) || defined(RP2040_PIO_INTERFACE)
 
   CS_L;
 
-  readAddrWindow(x, y, dw, dh);
+  readAddrWindow(z.x, z.y, z.dw, z.dh);
 
-  data += dx + dy * w;
+  data += z.dx + z.dy * w;
 
   // Set masked pins D0- D7 to input
   busDir(GPIO_DIR_MASK, INPUT);
@@ -772,8 +750,8 @@ void TFT_eeSPI::readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
     readByte();
 
     // Fetch the 24 bit RGB value
-    while (dh--) {
-      int32_t lw = dw;
+    while (z.dh--) {
+      int32_t lw = z.dw;
       uint16_t* line = data;
       while (lw--) {
         // Assemble the RGB 16 bit colour
@@ -787,8 +765,8 @@ void TFT_eeSPI::readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 
   #elif  defined (SSD1963_DRIVER)
     // Fetch the 18 bit BRG pixels
-    while (dh--) {
-      int32_t lw = dw;
+    while (z.dh--) {
+      int32_t lw = z.dw;
       uint16_t* line = data;
       while (lw--) {
         uint16_t bgr = ((readByte() & 0xF8) >> 3);; // CS_L adds a small delay
@@ -807,8 +785,8 @@ void TFT_eeSPI::readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
     readByte();
 
     // Fetch the 16 bit BRG pixels
-    while (dh--) {
-      int32_t lw = dw;
+    while (z.dh--) {
+      int32_t lw = z.dw;
       uint16_t* line = data;
       while (lw--) {
       #ifdef ILI9486_DRIVER
@@ -843,9 +821,9 @@ void TFT_eeSPI::readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 
   begin_tft_read();
 
-  readAddrWindow(x, y, dw, dh);
+  readAddrWindow(z.x, z.y, z.dw, z.dh);
 
-  data += dx + dy * w;
+  data += z.dx + z.dy * w;
 
   #ifdef TFT_SDA_READ
     begin_SDA_Read();
@@ -855,8 +833,8 @@ void TFT_eeSPI::readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
   tft_Read_8();
 
   // Read window pixel 24 bit RGB values
-  while (dh--) {
-    int32_t lw = dw;
+  while (z.dh--) {
+    int32_t lw = z.dw;
     uint16_t* line = data;
     while (lw--) {
 
@@ -978,6 +956,10 @@ void  TFT_eeSPI::readRectRGB(int32_t x0, int32_t y0, int32_t w, int32_t h, uint8
 }
 
 
+/***************************************************************************************
+** Function name:           drawCharDefault
+** Description:             tsdeeSPI
+***************************************************************************************/
 void TFT_eeSPI::drawCharDefault(const uint8_t* font_offset, uint16_t color, uint16_t bg)
 {
     uint8_t column[6];
@@ -1002,11 +984,11 @@ void TFT_eeSPI::drawCharDefault(const uint8_t* font_offset, uint16_t color, uint
 ** Description:             define an area to receive a stream of pixels
 ***************************************************************************************/
 // Chip select is high at the end of this function
-void TFT_eeSPI::setAddrWindow(int32_t x0, int32_t y0, int32_t w, int32_t h)
+void TFT_eeSPI::setAddrWindow(int32_t x, int32_t y, int32_t w, int32_t h)
 {
   begin_tft_write();
 
-  setWindow(x0, y0, x0 + w - 1, y0 + h - 1);
+  setWindow(x, y, w, h);
 
   end_tft_write();
 }
@@ -1017,11 +999,14 @@ void TFT_eeSPI::setAddrWindow(int32_t x0, int32_t y0, int32_t w, int32_t h)
 ** Description:             define an area to receive a stream of pixels
 ***************************************************************************************/
 // Chip select stays low, call begin_tft_write first. Use setAddrWindow() from sketches
-void TFT_eeSPI::setWindow(int32_t x0, int32_t y0, int32_t x1, int32_t y1)
+void TFT_eeSPI::setWindow(int32_t x0, int32_t y0, int32_t w, int32_t h)
 {
   //begin_tft_write(); // Must be called before setWindow
   addr_row = 0xFFFF;
   addr_col = 0xFFFF;
+
+  int32_t x1 = x0 + w - 1;
+  int32_t y1 = y0 + h - 1;
 
 #if defined (ILI9225_DRIVER)
   if (rotation & 0x01) { transpose(x0, y0); transpose(x1, y1); }
@@ -1227,19 +1212,13 @@ void TFT_eeSPI::readAddrWindow(int32_t xs, int32_t ys, int32_t w, int32_t h)
 ** Function name:           drawPixel
 ** Description:             push a single pixel at an arbitrary position
 ***************************************************************************************/
-void TFT_eeSPI::drawPixel(int32_t x, int32_t y, uint32_t color)
+void TFT_eeSPI::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color)
 {
-  if (_vpOoB) return;
-
-  x+= _xDatum;
-  y+= _yDatum;
-
-  // Range checking
-  if ((x < _vpX) || (y < _vpY) ||(x >= _vpW) || (y >= _vpH)) return;
+  if (!clip.check_point(x, y)) return;
 
 #ifdef CGRAM_OFFSET
-  x+=colstart;
-  y+=rowstart;
+  x += colstart;
+  y += rowstart;
 #endif
 
 #if (defined (MULTI_TFT_SUPPORT) || defined (GC9A01_DRIVER)) && !defined (ILI9225_DRIVER)
@@ -1479,11 +1458,11 @@ void TFT_eeSPI::writeColor(uint16_t color, uint32_t len)
 ***************************************************************************************/
 // Assumed that setAddrWindow() has previously been called
 // len is number of bytes, not pixels
-void TFT_eeSPI::pushColors(uint8_t *data, uint32_t len)
+void TFT_eeSPI::pushColors(uint8_t *data, uint32_t len, bool swapBytes)
 {
   begin_tft_write();
 
-  pushPixels(data, len>>1);
+  pushPixels(data, len>>1, swapBytes);
 
   end_tft_write();
 }
@@ -1493,14 +1472,12 @@ void TFT_eeSPI::pushColors(uint8_t *data, uint32_t len)
 ** Function name:           pushColors
 ** Description:             push an array of pixels, for image drawing
 ***************************************************************************************/
-void TFT_eeSPI::pushColors(uint16_t *data, uint32_t len, bool swap)
+void TFT_eeSPI::pushColors(uint16_t *data, uint32_t len, bool swapBytes)
 {
   begin_tft_write();
-  if (swap) {swap = _swapBytes; _swapBytes = true; }
 
-  pushPixels(data, len);
+  pushPixels(data, len, swapBytes);
 
-  _swapBytes = swap; // Restore old value
   end_tft_write();
 }
 
@@ -1532,6 +1509,10 @@ void TFT_eeSPI::invertDisplay(bool i)
 
 
 
+/***************************************************************************************
+** Function name:           drawCharFaster
+** Description:             tsdeeSPI
+***************************************************************************************/
 void TFT_eeSPI::drawCharFaster(uint16_t width, uint16_t height, uint16_t textcolor, uint16_t textbgcolor, uint32_t flash_address)
 {
     int32_t w = width;
@@ -1556,6 +1537,10 @@ void TFT_eeSPI::drawCharFaster(uint16_t width, uint16_t height, uint16_t textcol
 }
 
 
+/***************************************************************************************
+** Function name:           drawRLEfont
+** Description:             tsdeeSPI
+***************************************************************************************/
 void TFT_eeSPI::drawRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, uint16_t height, uint16_t textcolor, int16_t textsize, uint32_t flash_address)
 {
     int32_t w = width;
@@ -1585,7 +1570,7 @@ void TFT_eeSPI::drawRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, 
           }
           while (line--) { // In this case the while(line--) is faster
             pc++; // This is faster than putting pc+=line before while()?
-            setWindow(px, py, px + ts, py + ts);
+            setWindow(px, py, ts + 1, ts + 1);
 
             if (ts) {
               tnp = np;
@@ -1613,13 +1598,14 @@ void TFT_eeSPI::drawRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, 
 ** Function name:           getSPIinstance
 ** Description:             Get the instance of the SPI class
 ***************************************************************************************/
+/*
 #if !defined (TFT_PARALLEL_8_BIT) && ! defined (RP2040_PIO_INTERFACE)
 SPIClass& TFT_eeSPI::getSPIinstance(void)
 {
   return spi;
 }
 #endif
-
+*/
 ////////////////////////////////////////////////////////////////////////////////////////
 #ifdef TOUCH_CS
   #include "Extensions/Touch.cpp"

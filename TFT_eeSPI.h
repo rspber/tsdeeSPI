@@ -22,9 +22,7 @@
   Last review/edit by Bodmer: 04/02/22
  ****************************************************/
 
-// Stop fonts etc being loaded multiple times
-#ifndef _TFT_eeSPIH_
-#define _TFT_eeSPIH_
+#pragma once
 
 #define TFT_ESPI_VERSION "2.5.0"
 
@@ -173,29 +171,32 @@
 **                         Section 8: Class member and support functions
 ***************************************************************************************/
 
+#include "aclip.h"
+
 // Class functions and variables
 class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has access to protected members
 
-  friend class TFT_eSPI;
+  friend class TFT_GFX;
+  friend class TFT_CHAR;
 
  //--------------------------------------- public ------------------------------------//
  public:
 
-  TFT_eeSPI(int16_t _W = TFT_WIDTH, int16_t _H = TFT_HEIGHT);
+  TFT_eeSPI();
 
   // init() and begin() are equivalent, begin() included for backwards compatibility
   // Sketch defined tab colour option is for ST7735 displays only
   void     init(uint8_t tc = TAB_COLOUR), begin(uint8_t tc = TAB_COLOUR);
 
-  virtual void     resetViewport(void) {}
+//  virtual void     resetViewport(void) {}
 
   // These are virtual so the TFT_eSprite class can override them with sprite specific functions
-  virtual void     drawPixel(int32_t x, int32_t y, uint32_t color);
+  void     drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color);
 
                    // Read the colour of a pixel at x,y and return value in 565 format
-  virtual uint16_t readPixel(int32_t x, int32_t y);
+  uint16_t readPixel(clip_t& clip, int32_t x, int32_t y);
 
-  virtual void     setWindow(int32_t xs, int32_t ys, int32_t xe, int32_t ye);   // Note: start + end coordinates
+  virtual void     setWindow(int32_t x, int32_t y, int32_t w, int32_t h);   // Note: start + end coordinates
 
                    // Push (aka write pixel) colours to the set window
   virtual void     pushColor(uint16_t color);
@@ -207,6 +208,8 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   void     setRotation(uint8_t r); // Set the display image orientation to 0, 1, 2 or 3
   uint8_t  getRotation(void);      // Read the current rotation
 
+  virtual void     setRotationSizes(uint8_t r) = 0;
+
   void     invertDisplay(bool i);  // Tell TFT to invert all displayed colours
 
 
@@ -215,14 +218,14 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
            // Push (aka write pixel) colours to the TFT (use setAddrWindow() first)
   void     pushColor(uint16_t color, uint32_t len),  // Deprecated, use pushBlock()
-           pushColors(uint16_t  *data, uint32_t len, bool swap = true), // With byte swap option
-           pushColors(uint8_t  *data, uint32_t len); // Deprecated, use pushPixels()
+           pushColors(uint16_t  *data, uint32_t len, bool swapBytes = true), // With byte swap option
+           pushColors(uint8_t  *data, uint32_t len, bool swapBytes); // Deprecated, use pushPixels()
 
            // Write a solid block of a single colour
   void     pushBlock(uint16_t color, uint32_t len);
 
            // Write a set of pixels stored in memory, use setSwapBytes(true/false) function to correct endianess
-  void     pushPixels(const void * data_in, uint32_t len);
+  void     pushPixels(const void * data_in, uint32_t len, bool swapBytes);
 
            // Support for half duplex (bi-directional SDA) SPI bus where MOSI must be switched to input
            #ifdef TFT_SDA_READ
@@ -235,7 +238,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
            // The next functions can be used as a pair to copy screen blocks (or horizontal/vertical lines) to another location
            // Read a block of pixels to a data buffer, buffer is 16 bit and the size must be at least w * h
-  void     readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
+  void     readRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
 
            // This next function has been used successfully to dump the TFT screen to a PC for documentation purposes
            // It reads a screen area and returns the 3 RGB 8 bit colour values of each pixel in the buffer
@@ -304,14 +307,14 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
            //
            // The function will wait for the last DMA to complete if it is called while a previous DMA is still
            // in progress, this simplifies the sketch and helps avoid "gotchas".
-  void     pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer = nullptr);
+  void     pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* data, uint16_t* buffer = nullptr);
 
 #if defined (ESP32) // ESP32 only at the moment
            // For case where pointer is a const and the image data must not be modified (clipped or byte swapped)
-  void     pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t const* data);
+  void     pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t const* data);
 #endif
            // Push a block of pixels into a window set up using setAddrWindow()
-  void     pushPixelsDMA(uint16_t* image, uint32_t len);
+  void     pushPixelsDMA(uint16_t* image, uint32_t len, bool swapBytes);
 
            // Check if the DMA is complete - use while(tft.dmaBusy); for a blocking wait
   bool     dmaBusy(void); // returns true if DMA is still in progress
@@ -327,9 +330,9 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
 
   // Global variables
-  static   SPIClass& getSPIinstance(void); // Get SPI class handle
+//  static   SPIClass& getSPIinstance(void); // Get SPI class handle
 
-  uint8_t             rotation;  // Display rotation (0-3)
+  uint8_t rotation;  // Display rotation (0-3)
 
  //--------------------------------------- private ------------------------------------//
  private:
@@ -389,23 +392,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
  //-------------------------------------- protected ----------------------------------//
  protected:
 
-  //int32_t  win_xe, win_ye;          // Window end coords - not needed
-
-  int32_t  _init_width, _init_height; // Display w/h as input, used by setRotation()
-  int32_t  _width, _height;           // Display w/h as modified by current rotation
   int32_t  addr_row, addr_col;        // Window position - used to minimise window commands
-
-  // Viewport variables
-  int32_t  _vpX, _vpY, _vpW, _vpH;    // Note: x start, y start, x end + 1, y end + 1
-  int32_t  _xDatum;
-  int32_t  _yDatum;
-  int32_t  _xWidth;
-  int32_t  _yHeight;
-  bool     _vpDatum;
-  bool     _vpOoB;
-
-
-  bool     _swapBytes; // Swap the byte order for TFT pushImage()
 
   bool     _booted;    // init() or begin() has already run once
 
@@ -447,5 +434,3 @@ transpose(T& a, T& b) { T t = a; a = b; b = t; }
 /***************************************************************************************
 **                         Section 10: Additional extension classes
 ***************************************************************************************/
-
-#endif // ends #ifndef _TFT_eeSPIH_

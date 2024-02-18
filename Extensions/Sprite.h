@@ -63,7 +63,7 @@ class TFT_eSprite : public TFT_eSPI {
 
            // Define a window to push 16 bit colour pixels into in a raster order
            // Colours are converted to the set Sprite colour bit depth
-           setWindow(int32_t x0, int32_t y0, int32_t x1, int32_t y1),
+           setWindow(int32_t x, int32_t y, int32_t w, int32_t h),
            // Push a color (aka singe pixel) to the sprite's set window area
            pushColor(uint16_t color),
            // Push len colors (pixels) to the sprite's set window area
@@ -108,7 +108,7 @@ class TFT_eSprite : public TFT_eSPI {
                             int16_t *min_x, int16_t *min_y, int16_t *max_x, int16_t *max_y);
 
            // Read the colour of a pixel at x,y and return value in 565 format 
-  uint16_t readPixel(int32_t x0, int32_t y0);
+  uint16_t readPixel(int32_t x0, int32_t y0) override;
 
            // return the numerical value of the pixel at x,y (used when scrolling)
            // 16bpp = colour, 8bpp = byte, 4bpp = colour index, 1bpp = 1 or 0
