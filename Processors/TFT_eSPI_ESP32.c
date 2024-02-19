@@ -8,7 +8,6 @@
 
 // Select the SPI port to use, ESP32 has 2 options
 #if !defined (TFT_PARALLEL_8_BIT)
-  #include <SPI.h>
   #ifdef CONFIG_IDF_TARGET_ESP32
     #ifdef USE_HSPI_PORT
       SPIClass spi = SPIClass(HSPI);
@@ -643,7 +642,7 @@ void TFT_eeSPI::pushPixelsDMA(uint16_t* image, uint32_t len, bool swapBytes)
 ** Description:             Push image to a window (w*h must be less than 65536)
 ***************************************************************************************/
 // Fixed const data assumed, will NOT clip or swap bytes
-void TFT_eeSPI::pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t const* image)
+void TFT_eeSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t const* image)
 {
   if ((w == 0) || (h == 0) || (!DMA_Enabled)) return;
 

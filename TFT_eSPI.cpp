@@ -418,6 +418,16 @@ void TFT_eSPI::pushMaskedImage(int32_t x, int32_t y, int32_t w, int32_t h, uint1
 
 
 /***************************************************************************************
+** Function name:           pushImageDMA
+** Description:             tsdeeSPI
+***************************************************************************************/
+void TFT_eSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer)
+{
+  pushImageDMA(_clip, x, y, w, h, _swapBytes, data, buffer);
+}
+
+
+/***************************************************************************************
 ** Function name:           setSwapBytes
 ** Description:             Used by 16 bit pushImage() to swap byte order in colours
 ***************************************************************************************/

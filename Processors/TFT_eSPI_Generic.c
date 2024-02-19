@@ -258,6 +258,6 @@ bool TFT_eeSPI::initDMA(void)
 void TFT_eeSPI::deInitDMA(void)
 bool TFT_eeSPI::dmaBusy(void)
 void TFT_eeSPI::pushPixelsDMA(uint16_t* image, uint32_t len)
-void TFT_eeSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* image)
+void TFT_eeSPI::pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* image)
 
 */

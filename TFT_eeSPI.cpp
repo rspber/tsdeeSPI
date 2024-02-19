@@ -370,7 +370,6 @@ void TFT_eeSPI::init(uint8_t tc)
   end_tft_write();
 
   setRotation(rotation);
-  setRotationSizes(rotation);
 
 #if defined (TFT_BL) && defined (TFT_BACKLIGHT_ON)
   pinMode(TFT_BL, OUTPUT);
@@ -396,6 +395,8 @@ void TFT_eeSPI::setRotation(uint8_t m)
 
 #include "drivers_rotation.hh"
 
+  setRotationSizes(m);
+
   delayMicroseconds(10);
 
   end_tft_write();
@@ -404,7 +405,7 @@ void TFT_eeSPI::setRotation(uint8_t m)
   addr_col = 0xFFFF;
 
   // Reset the viewport to the whole screen
-//  resetViewport();
+  resetViewport();
 }
 
 

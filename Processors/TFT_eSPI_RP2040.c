@@ -647,24 +647,14 @@ void TFT_eeSPI::pushPixelsDMA(uint16_t* image, uint32_t len, bool swapBytes)
 ** Description:             Push image to a window
 ***************************************************************************************/
 // This will clip to the viewport
-void TFT_eeSPI::pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* image, uint16_t* buffer)
+void TFT_eeSPI::pushImageDMA(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t* image, uint16_t* buffer)
 {
-  if ((x >= clip.x2) || (y >= clip.y2) || (!DMA_Enabled)) return;
+  if (!DMA_Enabled) return;
 
-  int32_t dx = 0;
-  int32_t dy = 0;
-  int32_t dw = w;
-  int32_t dh = h;
+  block_t z;
+  if (!clip.check_block(z, x0, y0, w, h)) return;
 
-  if (x < clip.x1) { dx = clip.x1 - x; dw -= dx; x = clip.x1; }
-  if (y < clip.y1) { dy = clip.y1 - y; dh -= dy; y = clip.y1; }
-
-  if ((x + dw) > clip.x2 ) dw = clip.x2 - x;
-  if ((y + dh) > clip.y2 ) dh = clip.y2 - y;
-
-  if (dw < 1 || dh < 1) return;
-
-  uint32_t len = dw*dh;
+  uint32_t len = z.dw*z.dh;
 
   if (buffer == nullptr) {
     buffer = image;
@@ -672,9 +662,9 @@ void TFT_eeSPI::pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int3
   }
 
   // If image is clipped, copy pixels into a contiguous block
-  if ( (dw != w) || (dh != h) ) {
-    for (int32_t yb = 0; yb < dh; yb++) {
-      memmove((uint8_t*) (buffer + yb * dw), (uint8_t*) (image + dx + w * (yb + dy)), dw << 1);
+  if ( (z.dw != w) || (z.dh != h) ) {
+    for (int32_t yb = 0; yb < z.dh; yb++) {
+      memmove((uint8_t*) (buffer + yb * z.dw), (uint8_t*) (image + z.dx + w * (yb + z.dy)), z.dw << 1);
     }
   }
   // else, if a buffer pointer has been provided copy whole image to the buffer
@@ -684,7 +674,7 @@ void TFT_eeSPI::pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int3
 
   dmaWait(); // In case we did not wait earlier
 
-  setAddrWindow(x, y, dw, dh);
+  setAddrWindow(z.x, z.y, z.dw, z.dh);
 
   channel_config_set_bswap(&dma_tx_config, !swapBytes);
 

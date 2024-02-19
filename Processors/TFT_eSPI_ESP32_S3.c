@@ -697,24 +697,14 @@ void TFT_eeSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
 ** Description:             Push image to a window (w*h must be less than 65536)
 ***************************************************************************************/
 // This will clip and also swap bytes if setSwapBytes(true) was called by sketch
-void TFT_eeSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* image, uint16_t* buffer)
+void TFT_eeSPI::pushImageDMA(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t* image, uint16_t* buffer)
 {
-  if ((x >= _vpW) || (y >= _vpH) || (!DMA_Enabled)) return;
+  if (!DMA_Enabled) return;
 
-  int32_t dx = 0;
-  int32_t dy = 0;
-  int32_t dw = w;
-  int32_t dh = h;
+  block_t z;
+  if (!clip.check_block(z, x0, y0, w, h)) return;
 
-  if (x < _vpX) { dx = _vpX - x; dw -= dx; x = _vpX; }
-  if (y < _vpY) { dy = _vpY - y; dh -= dy; y = _vpY; }
-
-  if ((x + dw) > _vpW ) dw = _vpW - x;
-  if ((y + dh) > _vpH ) dh = _vpH - y;
-
-  if (dw < 1 || dh < 1) return;
-
-  uint32_t len = dw*dh;
+  uint32_t len = z.dw*z.dh;
 
   if (buffer == nullptr) {
     buffer = image;
@@ -722,18 +712,18 @@ void TFT_eeSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, bool sw
   }
 
   // If image is clipped, copy pixels into a contiguous block
-  if ( (dw != w) || (dh != h) ) {
+  if ( (z.dw != w) || (z.dh != h) ) {
     if(swapBytes) {
-      for (int32_t yb = 0; yb < dh; yb++) {
-        for (int32_t xb = 0; xb < dw; xb++) {
-          uint32_t src = xb + dx + w * (yb + dy);
-          (buffer[xb + yb * dw] = image[src] << 8 | image[src] >> 8);
+      for (int32_t yb = 0; yb < z.dh; yb++) {
+        for (int32_t xb = 0; xb < z.dw; xb++) {
+          uint32_t src = xb + z.dx + w * (yb + z.dy);
+          (buffer[xb + yb * z.dw] = image[src] << 8 | image[src] >> 8);
         }
       }
     }
     else {
-      for (int32_t yb = 0; yb < dh; yb++) {
-        memcpy((uint8_t*) (buffer + yb * dw), (uint8_t*) (image + dx + w * (yb + dy)), dw << 1);
+      for (int32_t yb = 0; yb < z.dh; yb++) {
+        memcpy((uint8_t*) (buffer + yb * z.dw), (uint8_t*) (image + z.dx + w * (yb + z.dy)), z.dw << 1);
       }
     }
   }
@@ -749,7 +739,7 @@ void TFT_eeSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, bool sw
 
   if (spiBusyCheck) dmaWait(); // In case we did not wait earlier
 
-  setAddrWindow(x, y, dw, dh);
+  setAddrWindow(z.x, z.y, z.dw, z.dh);
 
   esp_err_t ret;
   static spi_transaction_t trans;
