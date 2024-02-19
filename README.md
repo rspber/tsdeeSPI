@@ -45,3 +45,11 @@ Now tsdeeSPI consists of:
 * TFT_eeSPI :: low level procedures: processors and protocols
 
 Before the next step, the following will be tested: dma, sprites, wedges, smoots - just in case.
+
+#### Tests show that the last step has been achieved
+
+Tests show that practically nothing works except SPI.
+But there are some reasons to continue, for example smooth fonts work.
+Sprites don't work, but that's maybe for the better, at least I'll find out how they work when I run them.
+Since it will take some time, I decided to upgrade to the current version first.
+Because if it stays in this state, it may happen that I won't be able to finish it before it is automatically archived and deleted by github.
