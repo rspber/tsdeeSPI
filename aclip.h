@@ -20,7 +20,7 @@ struct ein_clip {
 
   void set(int32_t  x1, int32_t  y1, int32_t  x2, int32_t  y2);
 
-  bool check_point(const int32_t x, const int32_t y);
+  bool check_point(int32_t& x, int32_t& y);
 
   bool check_block(block_t& z, const int32_t x, const int32_t y, const int32_t w, const int32_t h);
 

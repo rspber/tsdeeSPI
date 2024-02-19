@@ -9,10 +9,10 @@ void ein_clip::set(int32_t x1, int32_t  y1, int32_t  x2, int32_t  y2)
   this->y2 = y2;
 }
 
-bool ein_clip::check_point(const int32_t x0, const int32_t y0)
+bool ein_clip::check_point(int32_t& x, int32_t& y)
 {
-  int32_t x = x0 + xDatum;
-  int32_t y = y0 + yDatum;
+  x += xDatum;
+  y += yDatum;
 
   if (x >= x2 || y >= y2) return false;
   if (x < x1 || y < y1) return false;
