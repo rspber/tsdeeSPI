@@ -53,3 +53,7 @@ But there are some reasons to continue, for example smooth fonts work.
 Sprites don't work, but that's maybe for the better, at least I'll find out how they work when I run them.
 Since it will take some time, I decided to upgrade to the current version first.
 Because if it stays in this state, it may happen that I won't be able to finish it before it is automatically archived and deleted by github.
+
+#### After upgrage to 2.5.34
+
+Parallel 8-bit works constantly and well not because of the upgrade, I forgot to set the pins.
