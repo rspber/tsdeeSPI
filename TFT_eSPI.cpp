@@ -805,7 +805,7 @@ void TFT_eSPI::fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, i
 void TFT_eSPI::drawSpot(float ax, float ay, float r, uint32_t fg_color, uint32_t bg_color)
 {
   // Filled circle can be created by the wide line function with zero line length
-  drawWedgeLine( ax, ay, ax, ay, r, r, fg_color, bg_color);
+  drawWedgeLine(_clip, ax, ay, ax, ay, r, r, fg_color, bg_color);
 }
 
 /***************************************************************************************
@@ -814,7 +814,7 @@ void TFT_eSPI::drawSpot(float ax, float ay, float r, uint32_t fg_color, uint32_t
 ***************************************************************************************/
 void TFT_eSPI::drawWideLine(float ax, float ay, float bx, float by, float wd, uint32_t fg_color, uint32_t bg_color)
 {
-  drawWedgeLine( ax, ay, bx, by, wd/2.0, wd/2.0, fg_color, bg_color);
+  drawWedgeLine(_clip, ax, ay, bx, by, wd/2.0, wd/2.0, fg_color, bg_color);
 }
 
 /***************************************************************************************
