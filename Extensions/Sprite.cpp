@@ -24,7 +24,7 @@ TFT_eSprite::TFT_eSprite(TFT_eSPI *tft)
   _swapBytes = false;   // Do not swap pushImage colour bytes by default
 
   _created = false;
-  _vpOoB   = true;
+  _clip.vpOoB   = true;
 
   _xs = 0;  // window bounds for pushColor
   _ys = 0;
@@ -88,8 +88,6 @@ void* TFT_eSprite::createSprite(int16_t w, int16_t h, uint8_t frames)
     _img8_2 = _img8 + (w * h + 1);
   }
 
-  if ( (_bpp == 4) && (_colorMap == nullptr)) createPalette(default_4bit_palette);
-
   // This is to make it clear what pointer size is expected to be used
   // but casting in the user sketch is needed due to the use of void*
   if ( (_bpp == 1) && (frames > 1) )
@@ -101,6 +99,8 @@ void* TFT_eSprite::createSprite(int16_t w, int16_t h, uint8_t frames)
   if (_img8)
   {
     _created = true;
+    if ( (_bpp == 4) && (_colorMap == nullptr)) createPalette(default_4bit_palette);
+
     rotation = 0;
     setViewport(0, 0, _dwidth, _dheight);
     setPivot(_iwidth/2, _iheight/2);
@@ -223,10 +223,7 @@ void* TFT_eSprite::callocSprite(int16_t w, int16_t h, uint8_t frames)
 ***************************************************************************************/
 void TFT_eSprite::createPalette(uint16_t colorMap[], uint8_t colors)
 {
-  if (_colorMap != nullptr)
-  {
-    free(_colorMap);
-  }
+  if (!_created) return;
 
   if (colorMap == nullptr)
   {
@@ -236,7 +233,7 @@ void TFT_eSprite::createPalette(uint16_t colorMap[], uint8_t colors)
   }
 
   // Allocate and clear memory for 16 color map
-  _colorMap = (uint16_t *)calloc(16, sizeof(uint16_t));
+  if (_colorMap == nullptr) _colorMap = (uint16_t *)calloc(16, sizeof(uint16_t));
 
   if (colors > 16) colors = 16;
 
@@ -254,6 +251,8 @@ void TFT_eSprite::createPalette(uint16_t colorMap[], uint8_t colors)
 ***************************************************************************************/
 void TFT_eSprite::createPalette(const uint16_t colorMap[], uint8_t colors)
 {
+  if (!_created) return;
+
   if (colorMap == nullptr)
   {
     // Create a color map using the default FLASH map
@@ -261,7 +260,7 @@ void TFT_eSprite::createPalette(const uint16_t colorMap[], uint8_t colors)
   }
 
   // Allocate and clear memory for 16 color map
-  _colorMap = (uint16_t *)calloc(16, sizeof(uint16_t));
+  if (_colorMap == nullptr) _colorMap = (uint16_t *)calloc(16, sizeof(uint16_t));
 
   if (colors > 16) colors = 16;
 
@@ -310,13 +309,9 @@ void* TFT_eSprite::setColorDepth(int8_t b)
   else if ( b > 1 ) _bpp = 4;
   else _bpp = 1;
 
-  // Can't change an existing sprite's colour depth so delete it
-  if (_created) free(_img8_1);
-
-  // If it existed, re-create the sprite with the new colour depth
-  if (_created)
-  {
-    _created = false;
+  // Can't change an existing sprite's colour depth so delete and create a new one
+  if (_created) {
+    deleteSprite();
     return createSprite(_dwidth, _dheight);
   }
 
@@ -380,7 +375,7 @@ void TFT_eSprite::deleteSprite(void)
   if (_colorMap != nullptr)
   {
     free(_colorMap);
-	_colorMap = nullptr;
+    _colorMap = nullptr;
   }
 
   if (_created)
@@ -388,7 +383,7 @@ void TFT_eSprite::deleteSprite(void)
     free(_img8_1);
     _img8 = nullptr;
     _created = false;
-    _vpOoB   = true;  // TFT_eSPI class write() uses this to check for valid sprite
+    _clip.vpOoB   = true;  // TFT_eSPI class write() uses this to check for valid sprite
   }
 }
 
@@ -400,7 +395,7 @@ void TFT_eSprite::deleteSprite(void)
 #define FP_SCALE 10
 bool TFT_eSprite::pushRotated(int16_t angle, uint32_t transp)
 {
-  if ( !_created || _tft->_vpOoB) return false;
+  if ( !_created || _tft->_clip.vpOoB) return false;
 
   // Bounding box parameters
   int16_t min_x;
@@ -902,7 +897,7 @@ bool TFT_eSprite::pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int
 ***************************************************************************************/
 uint16_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
 {
-  if (_vpOoB  || !_created) return 0xFF;
+  if (_clip.vpOoB  || !_created) return 0xFF;
 
   x+= _clip.xDatum;
   y+= _clip.yDatum;
@@ -964,7 +959,7 @@ uint16_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
 ***************************************************************************************/
 uint16_t TFT_eSprite::readPixel(int32_t x, int32_t y)
 {
-  if (_vpOoB  || !_created) return 0xFFFF;
+  if (_clip.vpOoB  || !_created) return 0xFFFF;
 
   x+= _clip.xDatum;
   y+= _clip.yDatum;
@@ -1525,7 +1520,7 @@ void TFT_eSprite::scroll(int16_t dx, int16_t dy)
 ***************************************************************************************/
 void TFT_eSprite::fillSprite(uint32_t color)
 {
-  if (!_created || _vpOoB) return;
+  if (!_created || _clip.vpOoB) return;
 
   // Use memset if possible as it is super fast
   if(_clip.xDatum == 0 && _clip.yDatum == 0  &&  _xWidth == width())
@@ -1639,7 +1634,7 @@ uint8_t TFT_eSprite::getRotation(void)
 ***************************************************************************************/
 void TFT_eSprite::drawPixel(int32_t x, int32_t y, uint32_t color)
 {
-  if (!_created || _vpOoB) return;
+  if (!_created || _clip.vpOoB) return;
 
   x+= _clip.xDatum;
   y+= _clip.yDatum;
@@ -1699,7 +1694,7 @@ void TFT_eSprite::drawPixel(int32_t x, int32_t y, uint32_t color)
 ***************************************************************************************/
 void TFT_eSprite::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color)
 {
-  if (!_created || _vpOoB) return;
+  if (!_created || _clip.vpOoB) return;
 
   //_xDatum and _yDatum Not added here, it is added by drawPixel & drawFastxLine
 
@@ -1757,7 +1752,7 @@ void TFT_eSprite::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint3
 ***************************************************************************************/
 void TFT_eSprite::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color)
 {
-  if (!_created || _vpOoB) return;
+  if (!_created || _clip.vpOoB) return;
 
   x+= _clip.xDatum;
   y+= _clip.yDatum;
@@ -1818,7 +1813,7 @@ void TFT_eSprite::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color)
 ***************************************************************************************/
 void TFT_eSprite::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color)
 {
-  if (!_created || _vpOoB) return;
+  if (!_created || _clip.vpOoB) return;
 
   x+= _clip.xDatum;
   y+= _clip.yDatum;
@@ -1881,7 +1876,7 @@ void TFT_eSprite::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color)
 ***************************************************************************************/
 void TFT_eSprite::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color)
 {
-  if (!_created || _vpOoB) return;
+  if (!_created || _clip.vpOoB) return;
 
   x+= _clip.xDatum;
   y+= _clip.yDatum;
@@ -1993,11 +1988,7 @@ void TFT_eSprite::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t 
 ***************************************************************************************/
 void TFT_eSprite::drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size)
 {
-  if ( _vpOoB || !_created ) return;
-
-  if ((x >= _clip.x2 - _clip.xDatum) || // Clip right
-      (y >= _clip.y2 - _clip.yDatum))   // Clip bottom
-    return;
+  if ( _clip.vpOoB || !_created ) return;
 
   if (c < 32) return;
 #ifdef LOAD_GLCD
@@ -2006,6 +1997,10 @@ void TFT_eSprite::drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uin
   if(!gfxFont) { // 'Classic' built-in font
 #endif
 //>>>>>>>>>>>>>>>>>>
+
+  if ((x >= _clip.x2 - _clip.xDatum) || // Clip right
+      (y >= _clip.y2 - _clip.yDatum))   // Clip bottom
+    return;
 
   if (((x + 6 * size - 1) < (_clip.x1 - _clip.xDatum)) || // Clip left
       ((y + 8 * size - 1) < (_clip.y1 - _clip.yDatum)))   // Clip top
@@ -2157,7 +2152,7 @@ int16_t TFT_eSprite::drawChar(uint16_t uniCode, int32_t x, int32_t y)
   // Any UTF-8 decoding must be done before calling drawChar()
 int16_t TFT_eSprite::drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font)
 {
-  if (_vpOoB || !uniCode) return 0;
+  if (_clip.vpOoB || !uniCode) return 0;
 
   if (font==1) {
 #ifdef LOAD_GLCD

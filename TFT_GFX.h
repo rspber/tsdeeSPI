@@ -24,7 +24,7 @@
 
 #pragma once
 
-#define TFT_ESPI_VERSION "2.5.0"
+#define TFT_ESPI_VERSION "2.5.34"
 
 #include "TFT_eeSPI.h"
 
@@ -110,11 +110,11 @@ public:
            // By default the arc is drawn with square ends unless the "roundEnds" parameter is included and set true
            // Angle = 0 is at 6 o'clock position, 90 at 9 o'clock etc. The angles must be in range 0-360 or they will be clipped to these limits
            // The start angle may be larger than the end angle. Arcs are always drawn clockwise from the start angle.
-  void     drawSmoothArc(wh_clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t startAngle, int32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds = false);
+  void     drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds = false);
            // As per "drawSmoothArc" except the ends of the arc are NOT anti-aliased, this facilitates dynamic arc length changes with
            // arc segments and ensures clean segment joints.
            // The sides of the arc are anti-aliased by default. If smoothArc is false sides will NOT be anti-aliased
-  void     drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t startAngle, int32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool smoothArc = true);
+  void     drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool smoothArc = true);
 
            // Draw an anti-aliased filled circle at x, y with radius r
            // Note: The thickness of line is 3 pixels to reduce the visible "braiding" effect of anti-aliasing narrow lines
@@ -143,7 +143,7 @@ public:
 
            // Draw an anti-aliased wide line from ax,ay to bx,by with different width at each end aw, bw and with radiused ends
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
-  void     drawWedgeLine(wh_clip_t& clip, float ax, float ay, float bx, float by, float aw, float bw, uint32_t fg_color, uint32_t bg_color = 0x00FFFFFF);
+  void     drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by, float aw, float bw, uint32_t fg_color, uint32_t bg_color = 0x00FFFFFF);
 
 
            // Draw bitmap
@@ -208,4 +208,26 @@ public:
   uint8_t  tabcolor,                   // ST7735 screen protector "tab" colour (now invalid)
            colstart = 0, rowstart = 0; // Screen display area to CGRAM area coordinate offsets
 
+/***************************************************************************************
+**                         Section 9: TFT_eSPI class conditional extensions
+***************************************************************************************/
+
 }; // End of class TFT_GFX
+
+// Fast alphaBlend
+template <typename A, typename F, typename B> static inline uint16_t
+fastBlend(A alpha, F fgc, B bgc)
+{
+  // Split out and blend 5 bit red and blue channels
+  uint32_t rxb = bgc & 0xF81F;
+  rxb += ((fgc & 0xF81F) - rxb) * (alpha >> 2) >> 6;
+  // Split out and blend 6 bit green channel
+  uint32_t xgx = bgc & 0x07E0;
+  xgx += ((fgc & 0x07E0) - xgx) * alpha >> 8;
+  // Recombine channels
+  return (rxb & 0xF81F) | (xgx & 0x07E0);
+}
+
+/***************************************************************************************
+**                         Section 10: Additional extension classes
+***************************************************************************************/

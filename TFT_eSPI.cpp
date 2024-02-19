@@ -52,7 +52,7 @@ void TFT_eSPI::setViewport(int32_t x, int32_t y, int32_t w, int32_t h, bool vpDa
 
   // Full size default viewport
   _vpDatum = false; // Datum is at top left corner of screen (true = top left of viewport)
-  _vpOoB   = false; // Out of Bounds flag (true is all of viewport is off screen)
+  _clip.vpOoB   = false; // Out of Bounds flag (true is all of viewport is off screen)
   _clip.x1 = 0;         // Viewport top left corner x coordinate
   _clip.y1 = 0;         // Viewport top left corner y coordinate
   _clip.x2 = width();   // Equivalent of TFT width  (Nb: viewport right edge coord + 1)
@@ -75,7 +75,7 @@ void TFT_eSPI::setViewport(int32_t x, int32_t y, int32_t w, int32_t h, bool vpDa
     _clip.yDatum = 0;
     _xWidth  = width();
     _yHeight = height();
-    _vpOoB = true;      // Set Out of Bounds flag to inhibit all drawing
+    _clip.vpOoB = true;      // Set Out of Bounds flag to inhibit all drawing
     return;
   }
 
@@ -108,24 +108,8 @@ void TFT_eSPI::setViewport(int32_t x, int32_t y, int32_t w, int32_t h, bool vpDa
 // Note: Setting w and h to 1 will check if coordinate x,y is in area
 bool TFT_eSPI::checkViewport(int32_t x, int32_t y, int32_t w, int32_t h)
 {
-  if (_vpOoB) return false;
-  x+= _clip.xDatum;
-  y+= _clip.yDatum;
-
-  if ((x >= _clip.x2) || (y >= _clip.y2)) return false;
-
-  int32_t dx = 0;
-  int32_t dy = 0;
-  int32_t dw = w;
-  int32_t dh = h;
-
-  if (x < _clip.x1) { dx = _clip.x1 - x; dw -= dx; x = _clip.x1; }
-  if (y < _clip.y1) { dy = _clip.y1 - y; dh -= dy; y = _clip.y1; }
-
-  if ((x + dw) > _clip.x2 ) dw = _clip.x2 - x;
-  if ((y + dh) > _clip.y2 ) dh = _clip.y2 - y;
-
-  if (dw < 1 || dh < 1) return false;
+  block_t z;
+  if (!_clip.check_block(z, x, y, w, h)) return false;
 
   return true;
 }
@@ -138,7 +122,7 @@ void TFT_eSPI::resetViewport(void)
 {
   // Reset viewport to the whole screen (or sprite) area
   _vpDatum = false;
-  _vpOoB   = false;
+  _clip.vpOoB  = false;
   _clip.xDatum = 0;
   _clip.yDatum = 0;
   _clip.x1 = 0;
@@ -306,7 +290,6 @@ int32_t TFT_eSPI::getOriginY(void)
 ***************************************************************************************/
 uint16_t TFT_eSPI::readPixel(int32_t x0, int32_t y0)
 {
-  if (_vpOoB) return 0;
   return readPixel(_clip, x0, y0);
 }
 
@@ -317,7 +300,6 @@ uint16_t TFT_eSPI::readPixel(int32_t x0, int32_t y0)
 ***************************************************************************************/
 void TFT_eSPI::readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
 {
-  if (_vpOoB) return;
   readRect(_clip, x, y, w, h, data);
 }
 
@@ -338,7 +320,6 @@ void TFT_eSPI::pushRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *da
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
 {
-  if (_vpOoB) return;
   pushImage(_clip, x, y, w, h, _swapBytes, data);
 }
 
@@ -348,7 +329,6 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transp)
 {
-  if (_vpOoB) return;
   pushImage(_clip, x, y, w, h, _swapBytes, data, transp);
 }
 
@@ -359,7 +339,6 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data)
 {
-  if (_vpOoB) return;
   pushImage(_clip, x, y, w, h, _swapBytes, data);
 }
 
@@ -369,7 +348,6 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, uint16_t transp)
 {
-  if (_vpOoB) return;
   pushImage(_clip, x, y, w, h, _swapBytes, data, transp);
 }
 
@@ -379,7 +357,6 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8,  uint16_t *cmap)
 {
-  if (_vpOoB) return;
   pushImage(_clip, x, y, w, h, bitmap_fg, bitmap_bg, data, bpp8, cmap);
 }
 
@@ -390,7 +367,6 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, bool bpp8,  uint16_t *cmap)
 {
-  if (_vpOoB) return;
   pushImage(_clip, x, y, w, h, bitmap_fg, bitmap_bg, data, bpp8, cmap);
 }
 
@@ -401,7 +377,6 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *da
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, uint8_t transp, bool bpp8, uint16_t *cmap)
 {
-  if (_vpOoB) return;
   pushImage(_clip, x, y, w, h, bitmap_fg, bitmap_bg, data, transp, bpp8, cmap);
 }
 
@@ -412,7 +387,6 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *da
 // Can be used with a 16bpp sprite and a 1bpp sprite for the mask
 void TFT_eSPI::pushMaskedImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask)
 {
-  if (_vpOoB) return;
   pushMaskedImage(_clip, x, y, w, h, _swapBytes, img, mask);
 }
 
@@ -719,7 +693,6 @@ int16_t TFT_eSPI::fontHeight(void)
 ***************************************************************************************/
 void TFT_eSPI::drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size)
 {
-  if (_vpOoB) return;
   drawChar(_clip, x, y, c, color, bg, size);
 }
 
@@ -730,7 +703,6 @@ void TFT_eSPI::drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32
 ***************************************************************************************/
 void TFT_eSPI::drawPixel(int32_t x, int32_t y, uint32_t color)
 {
-  if (_vpOoB) return;
   drawPixel(_clip, x, y, color);
 }
 
@@ -740,7 +712,6 @@ void TFT_eSPI::drawPixel(int32_t x, int32_t y, uint32_t color)
 ***************************************************************************************/
 void TFT_eSPI::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color)
 {
-  if (_vpOoB) return;
   drawLine(_clip, x0, y0, x1, y1, color);
 }
 
@@ -749,7 +720,7 @@ void TFT_eSPI::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t
 ** Function name:           drawSmoothArc
 ** Description:             Draw a smooth arc clockwise from 6 o'clock
 ***************************************************************************************/
-void TFT_eSPI::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t startAngle, int32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds)
+void TFT_eSPI::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds)
 // Centre at x,y
 // r = arc outer radius, ir = arc inner radius. Inclusive so arc thickness = r - ir + 1
 // Angles in range 0-360
@@ -757,7 +728,6 @@ void TFT_eSPI::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, int32_
 // anti-aliased roundEnd is optional, default is anti-aliased straight end
 // Note: rounded ends extend the arc angle so can overlap, user sketch to manage this.
 {
-  if (_vpOoB) return;
   drawSmoothArc(_clip, x, y, r, ir, startAngle, endAngle, fg_color, bg_color, roundEnds);
 }
 
@@ -772,11 +742,10 @@ void TFT_eSPI::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, int32_
 // smooth is optional, default is true, smooth=false means no antialiasing
 // Note: Arc ends are not anti-aliased (use drawSmoothArc instead for that)
 void TFT_eSPI::drawArc(int32_t x, int32_t y, int32_t r, int32_t ir,
-                       int32_t startAngle, int32_t endAngle,
+                       uint32_t startAngle, uint32_t endAngle,
                        uint32_t fg_color, uint32_t bg_color,
                        bool smooth)
 {
-  if (_vpOoB) return;
   drawArc(_clip, x, y, r, ir, startAngle, endAngle, fg_color, bg_color, smooth);
 }
 
@@ -787,7 +756,6 @@ void TFT_eSPI::drawArc(int32_t x, int32_t y, int32_t r, int32_t ir,
 // To have effective anti-aliasing the circle will be 3 pixels thick
 void TFT_eSPI::drawSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t fg_color, uint32_t bg_color)
 {
-  if (_vpOoB) return;
   drawSmoothCircle(_clip, x, y, r, fg_color, bg_color);
 }
 
@@ -797,7 +765,6 @@ void TFT_eSPI::drawSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t fg_col
 ***************************************************************************************/
 void TFT_eSPI::fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color, uint32_t bg_color)
 {
-  if (_vpOoB) return;
   fillSmoothCircle(_clip, x, y, r, color, bg_color);
 }
 
@@ -818,7 +785,6 @@ void TFT_eSPI::fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color,
 //   0x8 | 0x4
 void TFT_eSPI::drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, uint32_t fg_color, uint32_t bg_color, uint8_t quadrants)
 {
-  if (_vpOoB) return;
   drawSmoothRoundRect(_clip, x, y, r, ir, w, h, fg_color, bg_color, quadrants);
 }
 
@@ -828,7 +794,6 @@ void TFT_eSPI::drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, 
 ***************************************************************************************/
 void TFT_eSPI::fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color, uint32_t bg_color)
 {
-  if (_vpOoB) return;
   fillSmoothRoundRect(_clip, x, y, w, h, r, color, bg_color);
 }
 
@@ -840,7 +805,6 @@ void TFT_eSPI::fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, i
 void TFT_eSPI::drawSpot(float ax, float ay, float r, uint32_t fg_color, uint32_t bg_color)
 {
   // Filled circle can be created by the wide line function with zero line length
-  if (_vpOoB) return;
   drawWedgeLine( ax, ay, ax, ay, r, r, fg_color, bg_color);
 }
 
@@ -850,7 +814,6 @@ void TFT_eSPI::drawSpot(float ax, float ay, float r, uint32_t fg_color, uint32_t
 ***************************************************************************************/
 void TFT_eSPI::drawWideLine(float ax, float ay, float bx, float by, float wd, uint32_t fg_color, uint32_t bg_color)
 {
-  if (_vpOoB) return;
   drawWedgeLine( ax, ay, bx, by, wd/2.0, wd/2.0, fg_color, bg_color);
 }
 
@@ -860,7 +823,6 @@ void TFT_eSPI::drawWideLine(float ax, float ay, float bx, float by, float wd, ui
 ***************************************************************************************/
 void TFT_eSPI::drawWedgeLine(float ax, float ay, float bx, float by, float ar, float br, uint32_t fg_color, uint32_t bg_color)
 {
-  if (_vpOoB) return;
   drawWedgeLine(_clip, ax, ay, bx, by, ar, br, fg_color, bg_color);
 }
 
@@ -871,7 +833,6 @@ void TFT_eSPI::drawWedgeLine(float ax, float ay, float bx, float by, float ar, f
 ***************************************************************************************/
 void TFT_eSPI::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color)
 {
-  if (_vpOoB) return;
   drawFastVLine(_clip, x, y, h, color);
 }
 
@@ -882,7 +843,6 @@ void TFT_eSPI::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color)
 ***************************************************************************************/
 void TFT_eSPI::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color)
 {
-  if (_vpOoB) return;
   drawFastHLine(_clip, x, y, w, color);
 }
 
@@ -893,7 +853,6 @@ void TFT_eSPI::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color)
 ***************************************************************************************/
 void TFT_eSPI::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color)
 {
-  if (_vpOoB) return;
   fillRect(_clip, x, y, w, h, color);
 }
 
@@ -904,7 +863,6 @@ void TFT_eSPI::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t col
 ***************************************************************************************/
 void TFT_eSPI::fillRectVGradient(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color1, uint32_t color2)
 {
-  if (_vpOoB) return;
   fillRectVGradient(_clip, x, y, w, h, color1, color2);
 }
 
@@ -915,7 +873,6 @@ void TFT_eSPI::fillRectVGradient(int32_t x, int32_t y, int32_t w, int32_t h, uin
 ***************************************************************************************/
 void TFT_eSPI::fillRectHGradient(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color1, uint32_t color2)
 {
-  if (_vpOoB) return;
   fillRectHGradient(_clip, x, y, w, h, color1, color2);
 }
 
@@ -994,7 +951,7 @@ size_t TFT_eSPI::write(const uint8_t *buf, size_t len)
 ***************************************************************************************/
 size_t TFT_eSPI::write(uint8_t utf8)
 {
-  if (_vpOoB) return 1;
+  if (_clip.vpOoB) return 1;
   return write(_clip, utf8);
 }
 
@@ -1013,7 +970,6 @@ int16_t TFT_eSPI::drawChar(uint16_t uniCode, int32_t x, int32_t y)
   // Any UTF-8 decoding must be done before calling drawChar()
 int16_t TFT_eSPI::drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font)
 {
-  if (_vpOoB) return 0;
   return drawChar(_clip, uniCode, x, y, font);
 }
 
@@ -1175,10 +1131,12 @@ void TFT_eSPI::getSetup(setup_t &tft_settings)
   #ifdef SPI_READ_FREQUENCY
     tft_settings.tft_rd_freq = SPI_READ_FREQUENCY/100000;
   #endif
-  #ifdef TFT_SPI_PORT
-    tft_settings.port = TFT_SPI_PORT;
-  #else
-    tft_settings.port = 255;
+  #ifndef GENERIC_PROCESSOR
+    #ifdef TFT_SPI_PORT
+      tft_settings.port = TFT_SPI_PORT;
+    #else
+      tft_settings.port = 255;
+    #endif
   #endif
   #ifdef RP2040_PIO_SPI
     tft_settings.interface = 0x10;

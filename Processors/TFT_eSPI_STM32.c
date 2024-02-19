@@ -586,6 +586,8 @@ bool TFT_eeSPI::initDMA(bool ctrl_cs)
     HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);  // Enable DMA end interrupt handler
   #elif (TFT_SPI_PORT == 2)
     HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);  // Enable DMA end interrupt handler
+  #elif (TFT_SPI_PORT == 3)
+    HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   #endif
 
   __HAL_LINKDMA(&spiHal, hdmatx, dmaHal);   // Attach DMA engine to SPI peripheral

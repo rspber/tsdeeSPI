@@ -74,7 +74,6 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
   end_tft_write();
 }
 
-
 /***************************************************************************************
 ** Function name:           pushImage
 ** Description:             plot 16 bit sprite or image with 1 colour being transparent
@@ -672,12 +671,12 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 
 /***************************************************************************************
 ** Function name:           pushMaskedImage
-** Description:             Render a 16 bit colour image with a 1bpp mask
+** Description:             Render a 16 bit colour image to TFT with a 1bpp mask
 ***************************************************************************************/
 // Can be used with a 16bpp sprite and a 1bpp sprite for the mask
 void TFT_GFX::pushMaskedImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t *img, uint8_t *mask)
 {
-//  if (clip._vpOoB) return;
+  if (clip.vpOoB) return;
   if (w < 1 || h < 1) return;
 
   // To simplify mask handling the window clipping is done by the pushImage function
@@ -742,7 +741,7 @@ void TFT_GFX::pushMaskedImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int
         xp += clearCount;
         clearCount = 0;
         pushImage(clip, x + xp, y, setCount, 1, swapBytes, iptr + xp);      // pushImage handles clipping
-        //pushImageDMA(x + xp, y, setCount, 1, iptr + xp);
+        if (mptr >= eptr) break;
         xp += setCount;
       }
     } while (setCount || mptr < eptr);
@@ -1337,7 +1336,7 @@ void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bit
 // an efficient FastH/V Line draw routine for line segments of 2 pixels or more
 void TFT_GFX::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color)
 {
-//  if (clip._vpOoB) return;
+  if (clip.vpOoB) return;
 
   //begin_tft_write();       // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1406,7 +1405,6 @@ constexpr float LoAlphaTheshold  = 1.0/32.0;
 constexpr float HiAlphaTheshold  = 1.0 - LoAlphaTheshold;
 constexpr float deg2rad      = 3.14159265359/180.0;
 
-
 /***************************************************************************************
 ** Function name:           drawPixel (alpha blended)
 ** Description:             Draw a pixel blended with the screen or bg pixel colour
@@ -1414,7 +1412,7 @@ constexpr float deg2rad      = 3.14159265359/180.0;
 uint16_t TFT_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color, uint8_t alpha, uint32_t bg_color)
 {
   if (bg_color == 0x00FFFFFF) bg_color = readPixel(clip, x, y);
-  color = alphaBlend(alpha, color, bg_color);
+  color = fastBlend(alpha, color, bg_color);
   drawPixel(clip, x, y, color);
   return color;
 }
@@ -1424,7 +1422,7 @@ uint16_t TFT_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color, 
 ** Function name:           drawSmoothArc
 ** Description:             Draw a smooth arc clockwise from 6 o'clock
 ***************************************************************************************/
-void TFT_GFX::drawSmoothArc(wh_clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t startAngle, int32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds)
+void TFT_GFX::drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds)
 // Centre at x,y
 // r = arc outer radius, ir = arc inner radius. Inclusive so arc thickness = r - ir + 1
 // Angles in range 0-360
@@ -1479,14 +1477,13 @@ void TFT_GFX::drawSmoothArc(wh_clip_t& clip, int32_t x, int32_t y, int32_t r, in
   end_tft_write();
 }
 
-
 /***************************************************************************************
 ** Function name:           sqrt_fraction (private function)
 ** Description:             Smooth graphics support function for alpha derivation
 ***************************************************************************************/
 // Compute the fixed point square root of an integer and
 // return the 8 MS bits of fractional part.
-// Quicker than sqrt() for processors that do not have and FPU (e.g. RP2040)
+// Quicker than sqrt() for processors that do not have an FPU (e.g. RP2040)
 inline uint8_t TFT_GFX::sqrt_fraction(uint32_t num) {
   if (num > (0x40000000)) return 0;
   uint32_t bsh = 0x00004000;
@@ -1520,39 +1517,35 @@ inline uint8_t TFT_GFX::sqrt_fraction(uint32_t num) {
 // smooth is optional, default is true, smooth=false means no antialiasing
 // Note: Arc ends are not anti-aliased (use drawSmoothArc instead for that)
 void TFT_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
-                       int32_t startAngle, int32_t endAngle,
+                       uint32_t startAngle, uint32_t endAngle,
                        uint32_t fg_color, uint32_t bg_color,
                        bool smooth)
 {
-  if (endAngle < startAngle) {
-    // Arc sweeps through 6 o'clock so draw in two parts
-    drawArc(clip, x, y, r, ir, startAngle, 360, fg_color, bg_color, smooth);
-    startAngle = 0;
-  }
-
-//  if (clip._vpOoB) return;
+  if (endAngle   > 360)   endAngle = 360;
+  if (startAngle > 360) startAngle = 360;
+  if (clip.vpOoB) return;
   if (startAngle == endAngle) return;
   if (r < ir) transpose(r, ir);  // Required that r > ir
   if (r <= 0 || ir < 0) return;  // Invalid r, ir can be zero (circle sector)
-  if (startAngle < 0) startAngle = 0;
-  if (endAngle > 360) endAngle = 360;
 
+  if (endAngle < startAngle) {
+    // Arc sweeps through 6 o'clock so draw in two parts
+    if (startAngle < 360) drawArc(clip, x, y, r, ir, startAngle, 360, fg_color, bg_color, smooth);
+    if (endAngle == 0) return;
+    startAngle = 0;
+  }
   inTransaction = true;
 
-  int32_t xs = 0;       // x start position for quadrant scan
-  uint8_t alpha = 0;    // alpha value for blending pixels
+  int32_t xs = 0;        // x start position for quadrant scan
+  uint8_t alpha = 0;     // alpha value for blending pixels
 
   uint32_t r2 = r * r;   // Outer arc radius^2
-  if (smooth) r++;      // Outer AA zone radius
+  if (smooth) r++;       // Outer AA zone radius
   uint32_t r1 = r * r;   // Outer AA radius^2
-  int16_t w  = r - ir;  // Width of arc (r - ir + 1)
+  int16_t w  = r - ir;   // Width of arc (r - ir + 1)
   uint32_t r3 = ir * ir; // Inner arc radius^2
-  if (smooth) ir--;     // Inner AA zone radius
+  if (smooth) ir--;      // Inner AA zone radius
   uint32_t r4 = ir * ir; // Inner AA radius^2
-
-  // Float variants of adjusted inner and outer arc radii
-  //float irf = ir;
-  //float rf  = r;
 
   //     1 | 2
   //    ---¦---    Arc quadrant index
@@ -1629,45 +1622,39 @@ void TFT_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
 
       // If in outer zone calculate alpha
       if (hyp > r2) {
-        //alpha = (uint8_t)((rf - sqrtf(hyp)) * 255);
         alpha = ~sqrt_fraction(hyp); // Outer AA zone
       }
       // If within arc fill zone, get line start and lengths for each quadrant
       else if (hyp >= r3) {
-        do {
-          // Calculate U16.16 slope
-          slope = ((r - cy) << 16)/(r - cx);
-          if (slope <= startSlope[0] && slope >= endSlope[0]) { // slope hi -> lo
-            xst[0] = cx; // Bottom left line end
-            len[0]++;
-          }
-          if (slope >= startSlope[1] && slope <= endSlope[1]) { // slope lo -> hi
-            xst[1] = cx; // Top left line end
-            len[1]++;
-          }
-          if (slope <= startSlope[2] && slope >= endSlope[2]) { // slope hi -> lo
-            xst[2] = cx; // Bottom right line start
-            len[2]++;
-          }
-          if (slope <= endSlope[3] && slope >= startSlope[3]) { // slope lo -> hi
-            xst[3] = cx; // Top right line start
-            len[3]++;
-          }
-          cx++;
-        } while ((r - cx) * (r - cx) + dy2 >= r3 && cx < r);
-        cx--;
+        // Calculate U16.16 slope
+        slope = ((r - cy) << 16)/(r - cx);
+        if (slope <= startSlope[0] && slope >= endSlope[0]) { // slope hi -> lo
+          xst[0] = cx; // Bottom left line end
+          len[0]++;
+        }
+        if (slope >= startSlope[1] && slope <= endSlope[1]) { // slope lo -> hi
+          xst[1] = cx; // Top left line end
+          len[1]++;
+        }
+        if (slope <= startSlope[2] && slope >= endSlope[2]) { // slope hi -> lo
+          xst[2] = cx; // Bottom right line start
+          len[2]++;
+        }
+        if (slope <= endSlope[3] && slope >= startSlope[3]) { // slope lo -> hi
+          xst[3] = cx; // Top right line start
+          len[3]++;
+        }
         continue; // Next x
       }
       else {
         if (hyp <= r4) break;  // Skip inner pixels
-        //alpha = (uint8_t)((sqrtf(hyp) - irf) * 255.0);
         alpha = sqrt_fraction(hyp); // Inner AA zone
       }
 
       if (alpha < 16) continue;  // Skip low alpha pixels
 
       // If background is read it must be done in each quadrant
-      uint16_t pcol = alphaBlend(alpha, fg_color, bg_color);
+      uint16_t pcol = fastBlend(alpha, fg_color, bg_color);
       // Check if an AA pixels need to be drawn
       slope = ((r - cy)<<16)/(r - cx);
       if (slope <= startSlope[0] && slope >= endSlope[0]) // BL
@@ -1732,19 +1719,12 @@ void TFT_GFX::fillSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, ui
       int32_t hyp2 = (r - cx) * (r - cx) + dy2;
       if (hyp2 <= r1) break;
       if (hyp2 >= r2) continue;
-//*
+
       uint8_t alpha = ~sqrt_fraction(hyp2);
       if (alpha > 246) break;
       xs = cx;
       if (alpha < 9) continue;
-      //*/
-/*
-      float alphaf = (float)r - sqrtf(hyp2);
-      if (alphaf > HiAlphaTheshold) break;
-      xs = cx;
-      if (alphaf < LoAlphaTheshold) continue;
-      uint8_t alpha = alphaf * 255;
-//*/
+
       if (bg_color == 0x00FFFFFF) {
         drawPixel(clip, x + cx - r, y + cy - r, color, alpha, bg_color);
         drawPixel(clip, x - cx + r, y + cy - r, color, alpha, bg_color);
@@ -1782,9 +1762,9 @@ void TFT_GFX::fillSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, ui
 //   0x8 | 0x4
 void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, uint32_t fg_color, uint32_t bg_color, uint8_t quadrants)
 {
-//  if (clip._vpOoB) return;
+  if (clip.vpOoB) return;
   if (r < ir) transpose(r, ir); // Required that r > ir
-  if (r <= 0 || ir < 0) return;  // Invalid
+  if (r <= 0 || ir < 0) return; // Invalid
 
   w -= 2*r;
   h -= 2*r;
@@ -1796,13 +1776,7 @@ void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r,
 
   x += r;
   y += r;
-/*
-  float alphaGain = 1.0;
-  if (w != 0 || h != 0) {
-    if (r - ir < 2) alphaGain = 1.5; // Boost brightness for thin lines
-    if (r - ir < 1) alphaGain = 1.7;
-  }
-*/
+
   uint16_t t = r - ir + 1;
   int32_t xs = 0;
   int32_t cx = 0;
@@ -1815,8 +1789,6 @@ void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r,
   ir--;
   int32_t r4 = ir * ir; // Inner AA zone radius^2
 
-  //float irf = ir;
-  //float rf  = r;
   uint8_t alpha = 0;
 
   // Scan top left quadrant x y r ir fg_color  bg_color
@@ -1837,8 +1809,7 @@ void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r,
 
       // If in outer zone calculate alpha
       if (hyp > r2) {
-        alpha = ~sqrt_fraction(hyp);
-        //alpha = (uint8_t)((rf - sqrtf(hyp)) * 255); // Outer AA zone
+        alpha = ~sqrt_fraction(hyp); // Outer AA zone
       }
       // If within arc fill zone, get line lengths for each quadrant
       else if (hyp >= r3) {
@@ -1848,14 +1819,13 @@ void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r,
       }
       else {
         if (hyp <= r4) break;  // Skip inner pixels
-        //alpha = (uint8_t)((sqrtf(hyp) - irf) * 255); // Inner AA zone
-        alpha = sqrt_fraction(hyp);
+        alpha = sqrt_fraction(hyp); // Inner AA zone
       }
 
       if (alpha < 16) continue;  // Skip low alpha pixels
 
       // If background is read it must be done in each quadrant - TODO
-      uint16_t pcol = alphaBlend(alpha, fg_color, bg_color);
+      uint16_t pcol = fastBlend(alpha, fg_color, bg_color);
       if (quadrants & 0x8) drawPixel(clip, x + cx - r, y - cy + r + h, pcol);     // BL
       if (quadrants & 0x1) drawPixel(clip, x + cx - r, y + cy - r, pcol);         // TL
       if (quadrants & 0x2) drawPixel(clip, x - cx + r + w, y + cy - r, pcol);     // TR
@@ -1920,13 +1890,7 @@ void TFT_GFX::fillSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w,
       if (alpha > 246) break;
       xs = cx;
       if (alpha < 9) continue;
-/*
-      float alphaf = (float)r - sqrtf(hyp2);
-      if (alphaf > HiAlphaTheshold) break;
-      xs = cx;
-      if (alphaf < LoAlphaTheshold) continue;
-      uint8_t alpha = alphaf * 255;
-*/
+
       drawPixel(clip, x + cx - r, y + cy - r, color, alpha, bg_color);
       drawPixel(clip, x - cx + r + w, y + cy - r, color, alpha, bg_color);
       drawPixel(clip, x - cx + r + w, y - cy + r + h, color, alpha, bg_color);
@@ -1943,7 +1907,7 @@ void TFT_GFX::fillSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w,
 ** Function name:           drawWedgeLine - background colour specified or pixel read
 ** Description:             draw an anti-aliased line with different width radiused ends
 ***************************************************************************************/
-void TFT_GFX::drawWedgeLine(wh_clip_t& clip, float ax, float ay, float bx, float by, float ar, float br, uint32_t fg_color, uint32_t bg_color)
+void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by, float ar, float br, uint32_t fg_color, uint32_t bg_color)
 {
   if ( (ar < 0.0) || (br < 0.0) )return;
   if ( (fabsf(ax - bx) < 0.01f) && (fabsf(ay - by) < 0.01f) ) bx += 0.01f;  // Avoid divide by zero
@@ -1984,16 +1948,26 @@ void TFT_GFX::drawWedgeLine(wh_clip_t& clip, float ax, float ay, float bx, float
       // Track edge to minimise calculations
       if (!endX) { endX = true; xs = xp; }
       if (alpha > HiAlphaTheshold) {
-        if (swin) { setWindow(xp, yp, clip.width-xp, 1); swin = false; }
-        pushColor(fg_color);
+        #ifdef GC9A01_DRIVER
+          drawPixel(clip, xp, yp, fg_color);
+        #else
+          if (swin) { setWindow(xp, yp, x1-xp+1, 1); swin = false; }
+          pushColor(fg_color);
+        #endif
         continue;
       }
       //Blend color with background and plot
       if (bg_color == 0x00FFFFFF) {
         bg = readPixel(clip, xp, yp); swin = true;
       }
-      if (swin) { setWindow(xp, yp, clip.width-xp, 1); swin = false; }
-      pushColor(alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
+      #ifdef GC9A01_DRIVER
+        uint16_t pcol = fastBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg);
+        drawPixel(clip, xp, yp, pcol);
+        swin = swin;
+      #else
+        if (swin) { setWindow(xp, yp, x1-xp+1, 1); swin = false; }
+        pushColor(fastBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
+      #endif
     }
   }
 
@@ -2012,16 +1986,26 @@ void TFT_GFX::drawWedgeLine(wh_clip_t& clip, float ax, float ay, float bx, float
       // Track line boundary
       if (!endX) { endX = true; xs = xp; }
       if (alpha > HiAlphaTheshold) {
-        if (swin) { setWindow(xp, yp, clip.width-xp, 1); swin = false; }
-        pushColor(fg_color);
+        #ifdef GC9A01_DRIVER
+          drawPixel(clip, xp, yp, fg_color);
+        #else
+          if (swin) { setWindow(xp, yp, x1-xp+1, yp); swin = false; }
+          pushColor(fg_color);
+        #endif
         continue;
       }
       //Blend colour with background and plot
       if (bg_color == 0x00FFFFFF) {
         bg = readPixel(clip, xp, yp); swin = true;
       }
-      if (swin) { setWindow(xp, yp, clip.width-xp, 1); swin = false; }
-      pushColor(alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
+      #ifdef GC9A01_DRIVER
+        uint16_t pcol = fastBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg);
+        drawPixel(xp, yp, pcol);
+        swin = swin;
+      #else
+        if (swin) { setWindow(xp, yp, x1-xp+1, yp); swin = false; }
+        pushColor(fastBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
+      #endif
     }
   }
 
@@ -2049,7 +2033,7 @@ inline float TFT_GFX::wedgeLineDistance(float xpax, float ypay, float bax, float
 void TFT_GFX::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, uint32_t color)
 {
   int32_t w = 1;
-  if (!clip.clipRectNoDatum(x, y, w, h)) return;
+  if (!clip.clipRect(x, y, w, h)) return;
 
   begin_tft_write();
 
@@ -2068,7 +2052,7 @@ void TFT_GFX::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, uint3
 void TFT_GFX::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, uint32_t color)
 {
   int32_t h = 1;
-  if (!clip.clipRectNoDatum(x, y, w, h)) return;
+  if (!clip.clipRect(x, y, w, h)) return;
 
   begin_tft_write();
 
@@ -2086,7 +2070,7 @@ void TFT_GFX::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, uint3
 ***************************************************************************************/
 void TFT_GFX::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color)
 {
-  if (!clip.clipRectNoDatum(x, y, w, h)) return;
+  if (!clip.clipRect(x, y, w, h)) return;
 
   begin_tft_write();
 
@@ -2115,7 +2099,7 @@ void TFT_GFX::fillRectVGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, i
   while (h--) {
     drawFastHLine(clip, x, y++, w, color);
     alpha += delta;
-    color = alphaBlend((uint8_t)alpha, color1, color2);
+    color = fastBlend((uint8_t)alpha, color1, color2);
   }
 
   end_nin_write();
@@ -2139,7 +2123,7 @@ void TFT_GFX::fillRectHGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, i
   while (w--) {
     drawFastVLine(clip, x++, y, h, color);
     alpha += delta;
-    color = alphaBlend((uint8_t)alpha, color1, color2);
+    color = fastBlend((uint8_t)alpha, color1, color2);
   }
 
   end_nin_write();
@@ -2259,9 +2243,9 @@ uint32_t TFT_GFX::alphaBlend24(uint8_t alpha, uint32_t fgc, uint32_t bgc, uint8_
   uint32_t rxx = bgc & 0xFF0000;
   rxx += ((fgc & 0xFF0000) - rxx) * alpha >> 8;
   uint32_t xgx = bgc & 0x00FF00;
-  xgx += ((fgc & 0xFF0000) - xgx) * alpha >> 8;
+  xgx += ((fgc & 0x00FF00) - xgx) * alpha >> 8;
   uint32_t xxb = bgc & 0x0000FF;
-  xxb += ((fgc & 0xFF0000) - xxb) * alpha >> 8;
+  xxb += ((fgc & 0x0000FF) - xxb) * alpha >> 8;
   return (rxx & 0xFF0000) | (xgx & 0x00FF00) | (xxb & 0x0000FF);
 }
 

@@ -50,26 +50,26 @@ class TFT_eSprite : public TFT_eSPI {
   uint16_t getPaletteColor(uint8_t index);
 
            // Set foreground and background colours for 1 bit per pixel Sprite
-  void     setBitmapColor(uint16_t fg, uint16_t bg);
+  void     setBitmapColor(uint16_t fg, uint16_t bg); // override;
 
            // Draw a single pixel at x,y
-  void     drawPixel(int32_t x, int32_t y, uint32_t color);
+  void     drawPixel(int32_t x, int32_t y, uint32_t color) override;
 
            // Draw a single character in the GLCD or GFXFF font
-  void     drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size),
+  void     drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size) override,
 
            // Fill Sprite with a colour
            fillSprite(uint32_t color),
 
            // Define a window to push 16 bit colour pixels into in a raster order
            // Colours are converted to the set Sprite colour bit depth
-           setWindow(int32_t x, int32_t y, int32_t w, int32_t h),
+           setWindow(int32_t x, int32_t y, int32_t w, int32_t h) override,
            // Push a color (aka singe pixel) to the sprite's set window area
-           pushColor(uint16_t color),
+           pushColor(uint16_t color) override,
            // Push len colors (pixels) to the sprite's set window area
            pushColor(uint16_t color, uint32_t len),
            // Push a pixel pre-formatted as a 1, 4, 8 or 16 bit colour (avoids conversion overhead)
-           writeColor(uint16_t color),
+           writeColor(uint16_t color), // override,
 
            // Set the scroll zone, top left corner at x,y with defined width and height
            // The colour (optional, black is default) is used to fill the gap after the scroll
@@ -80,18 +80,18 @@ class TFT_eSprite : public TFT_eSPI {
            scroll(int16_t dx, int16_t dy = 0),
 
            // Draw lines
-           drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color),
-           drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color),
-           drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color),
+           drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color) override,
+           drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color) override,
+           drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color) override,
 
            // Fill a rectangular area with a color (aka draw a filled rectangle)
-           fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color);
+           fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color) override;
 
            // Set the coordinate rotation of the Sprite (for 1bpp Sprites only)
            // Note: this uses coordinate rotation and is primarily for ePaper which does not support
            // CGRAM rotation (like TFT drivers do) within the displays internal hardware
-  void     setRotation(uint8_t rotation);
-  uint8_t  getRotation(void);
+  void     setRotation(uint8_t rotation); // override;
+  uint8_t  getRotation(void); // override;
 
            // Push a rotated copy of Sprite to TFT with optional transparent colour
   bool     pushRotated(int16_t angle, uint32_t transp = 0x00FFFFFF);
@@ -115,8 +115,8 @@ class TFT_eSprite : public TFT_eSPI {
   uint16_t readPixelValue(int32_t x, int32_t y);
 
            // Write an image (colour bitmap) to the sprite.
-  void     pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp = 0);
-  void     pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data);
+  void     pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp = 0); // override;
+  void     pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data); // override;
 
            // Push the sprite to the TFT screen, this fn calls pushImage() in the TFT class.
            // Optionally a "transparent" colour can be defined, pixels of that colour will not be rendered
@@ -131,12 +131,12 @@ class TFT_eSprite : public TFT_eSPI {
   bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, uint16_t transparent);
 
            // Draw a single character in the selected font
-  int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font),
-           drawChar(uint16_t uniCode, int32_t x, int32_t y);
+  int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font) override,
+           drawChar(uint16_t uniCode, int32_t x, int32_t y) override;
 
            // Return the width and height of the sprite
-  int16_t  width(void),
-           height(void);
+  int16_t  width(void) override,
+           height(void) override;
 
            // Functions associated with anti-aliased fonts
            // Draw a single unicode character using the loaded font
@@ -156,8 +156,8 @@ class TFT_eSprite : public TFT_eSPI {
   void*    callocSprite(int16_t width, int16_t height, uint8_t frames = 1);
 
            // Override the non-inlined TFT_eSPI functions
-  void     begin_nin_write(void) { ; }
-  void     end_nin_write(void) { ; }
+  void     begin_nin_write(void) override { ; }
+  void     end_nin_write(void) override { ; }
 
  protected:
 

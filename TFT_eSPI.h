@@ -26,7 +26,7 @@
 #ifndef _TFT_eSPIH_
 #define _TFT_eSPIH_
 
-#define TFT_ESPI_VERSION "2.5.0"
+#define TFT_ESPI_VERSION "2.5.34"
 
 #include "TFT_CHAR.h"
 
@@ -120,7 +120,9 @@ uint32_t setup_id;   // ID available to use in a user setup
 int32_t esp;         // Processor code
 uint8_t trans;       // SPI transaction support
 uint8_t serial;      // Serial (SPI) or parallel
+#ifndef GENERIC_PROCESSOR
 uint8_t  port;       // SPI port
+#endif
 uint8_t overlap;     // ESP8266 overlap mode
 uint8_t interface;   // Interface type
 
@@ -252,12 +254,12 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            // By default the arc is drawn with square ends unless the "roundEnds" parameter is included and set true
            // Angle = 0 is at 6 o'clock position, 90 at 9 o'clock etc. The angles must be in range 0-360 or they will be clipped to these limits
            // The start angle may be larger than the end angle. Arcs are always drawn clockwise from the start angle.
-  void     drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t startAngle, int32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds = false);
+  void     drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds = false);
 
            // As per "drawSmoothArc" except the ends of the arc are NOT anti-aliased, this facilitates dynamic arc length changes with
            // arc segments and ensures clean segment joints. 
            // The sides of the arc are anti-aliased by default. If smoothArc is false sides will NOT be anti-aliased
-  void     drawArc(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t startAngle, int32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool smoothArc = true);
+  void     drawArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool smoothArc = true);
 
            // Draw an anti-aliased filled circle at x, y with radius r
            // Note: The thickness of line is 3 pixels to reduce the visible "braiding" effect of anti-aliasing narrow lines
@@ -367,7 +369,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            textWidth(const char *string),                   // Returns pixel width of string in current font
            textWidth(const String& string, uint8_t font),   // As above for String types
            textWidth(const String& string),
-           fontHeight(void);                                // Returns pixel width of string in current font
+           fontHeight(void);                                // Returns pixel height of current font
 
            // Support function to UTF8 decode and draw characters piped through print stream
   size_t   write(uint8_t utf8) override;
@@ -455,7 +457,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   int32_t  _xWidth;
   int32_t  _yHeight;
   bool     _vpDatum;
-  bool     _vpOoB;
+//  bool     _vpOoB;
 
   bool     _swapBytes; // Swap the byte order for TFT pushImage()
 

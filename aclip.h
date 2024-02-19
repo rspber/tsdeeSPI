@@ -11,6 +11,8 @@ struct co_block {
 typedef co_block block_t;
 
 struct ein_clip {
+  bool     vpOoB;
+
   int32_t  x1, y1, x2, y2;    // Note: x start, y start, x end + 1, y end + 1
 
   int32_t  xDatum;

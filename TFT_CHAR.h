@@ -24,7 +24,7 @@
 
 #pragma once
 
-#define TFT_ESPI_VERSION "2.5.0"
+#define TFT_ESPI_VERSION "2.5.34"
 
 #include "TFT_GFX.h"
 
@@ -253,7 +253,7 @@ class TFT_CHAR : public TFT_GFX { friend class TFT_eSprite;
 #endif
 
   int16_t  textWidth(const char *string, uint8_t font),     // Returns pixel width of string in specified font
-           fontHeight(int16_t font);                        // Returns pixel height of string in specified font
+           fontHeight(int16_t font);                        // Returns pixel height of specified font
 
            // Used by library and Smooth font class to extract Unicode point codes from a UTF8 encoded string
   uint16_t decodeUTF8(uint8_t *buf, uint16_t *index, uint16_t remaining),

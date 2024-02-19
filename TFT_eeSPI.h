@@ -24,7 +24,7 @@
 
 #pragma once
 
-#define TFT_ESPI_VERSION "2.5.0"
+#define TFT_ESPI_VERSION "2.5.34"
 
 // Bit level feature flags
 // Bit 0 set: viewport capability
@@ -37,7 +37,9 @@
 //Standard support
 #include <Arduino.h>
 #include <Print.h>
-#include <SPI.h>
+#if !defined (TFT_PARALLEL_8_BIT) && !defined (RP2040_PIO_INTERFACE)
+  #include <SPI.h>
+#endif
 
 /***************************************************************************************
 **                         Section 2: Load library and processor specific header files
@@ -114,6 +116,7 @@
   #include "Processors/TFT_eSPI_RP2040.h"
 #else
   #include "Processors/TFT_eSPI_Generic.h"
+  #define GENERIC_PROCESSOR
 #endif
 
 /***************************************************************************************
@@ -149,6 +152,17 @@
 
 #ifndef SPI_BUSY_CHECK
   #define SPI_BUSY_CHECK
+#endif
+
+// If half duplex SDA mode is defined then MISO pin should be -1
+#ifdef TFT_SDA_READ
+  #ifdef TFT_MISO
+    #if TFT_MISO != -1
+      #undef TFT_MISO
+      #define TFT_MISO -1
+      #warning TFT_MISO set to -1
+    #endif
+  #endif
 #endif
 
 /***************************************************************************************
@@ -243,15 +257,16 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
            // This next function has been used successfully to dump the TFT screen to a PC for documentation purposes
            // It reads a screen area and returns the 3 RGB 8 bit colour values of each pixel in the buffer
            // Set w and h to 1 to read 1 pixel's colour. The data buffer must be at least w * h * 3 bytes
-  void     readRectRGB(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data);
+  void     readRectRGB(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data);
 
    // Low level read/write
   void     spiwrite(uint8_t);        // legacy support only
-#ifndef RM68120_DRIVER
-  void     writecommand(uint8_t c);  // Send a command, function resets DC/RS high ready for data
+#ifdef RM68120_DRIVER
+  void     writecommand(uint16_t c);                 // Send a 16 bit command, function resets DC/RS high ready for data
+  void     writeRegister8(uint16_t c, uint8_t d);    // Write 8 bit data data to 16 bit command register
+  void     writeRegister16(uint16_t c, uint16_t d);  // Write 16 bit data data to 16 bit command register
 #else
-  void     writecommand(uint16_t c); // Send a command, function resets DC/RS high ready for data
-  void     writeRegister(uint16_t c, uint8_t d); // Write data to 16 bit command register
+  void     writecommand(uint8_t c);  // Send an 8 bit command, function resets DC/RS high ready for data
 #endif
   void     writedata(uint8_t d);     // Send data with DC/RS set high
 
@@ -330,7 +345,9 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
 
   // Global variables
-//  static   SPIClass& getSPIinstance(void); // Get SPI class handle
+#if !defined (TFT_PARALLEL_8_BIT) && !defined (RP2040_PIO_INTERFACE)
+  static   SPIClass& getSPIinstance(void); // Get SPI class handle
+#endif
 
   uint8_t rotation;  // Display rotation (0-3)
 
