@@ -12,11 +12,11 @@ And why TFT_eSPI, someone may ask?
 Because it is the only library I know of on the network that supports typical microprocessors in communication with TFT in such a comprehensive and optimal/fast way.
 So it won't be a waste of time to work with her a bit.
 
-First, processor and protocol support should be separated from graphics.
+First, processors and protocols support should be separated from graphics.
 For this reason, the TFT_eSPI library was divided into two classes, TFT_eSPI with the interface as it was, i.e. serving everything that was
 and subclass TFT_eeSPI, which contains the very essence, i.e. support for processors and protocols.
 
-The next step will be to connect TFT_eeSPI with tsdesktop graphics by adopting all settings from tsdesktop.
+The next step will be to connect TFT_eeSPI (and maybe more) with tsdesktop by adopting all settings from tsdesktop.
 The work will be done until everything stops working and is no longer useful, forks are welcome.
 
 ## Further Relations
@@ -31,11 +31,7 @@ And it turns out that the processors we are dealing with here show a significant
 
 But there is no other option, we have to come to terms with it to go farther. The next steps will not be so drastic.
 
-Finally, information for TFT_eSPI library enthusiasts: all examples from the library work, but it may not last long.
-
 #### Mega graphics code reorganization
-
-It seems to still be working.
 
 Now tsdeeSPI consists of:
 
@@ -44,12 +40,11 @@ Now tsdeeSPI consists of:
 * TFT_GFX   :: basic graphics, rectangles, circles, triangles and similar
 * TFT_eeSPI :: low level procedures: processors and protocols
 
-Before the next step, the following will be tested: dma, sprites, wedges, smoots - just in case.
+Before the next step, all tests will be done, mainly sprites and dma.
 
 #### Tests show that the last step has been achieved
 
-Tests show that practically nothing works except SPI.
-But there are some reasons to continue, for example smooth fonts work.
+Tests show that sprites don't work, but smooth fonts, for example, work.
 Sprites don't work, but that's maybe for the better, at least I'll find out how they work when I run them.
 Since it will take some time, I decided to upgrade to the current version first.
 Because if it stays in this state, it may happen that I won't be able to finish it before it is automatically archived and deleted by github.
