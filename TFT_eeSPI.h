@@ -205,10 +205,10 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   virtual void     resetViewport(void) {}
 
   // These are virtual so the TFT_eSprite class can override them with sprite specific functions
-  void     drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color);
+  virtual void     drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color);
 
                    // Read the colour of a pixel at x,y and return value in 565 format
-  uint16_t readPixel(clip_t& clip, int32_t x, int32_t y);
+  virtual uint16_t readPixel(clip_t& clip, int32_t x, int32_t y);
 
   virtual void     setWindow(int32_t x, int32_t y, int32_t w, int32_t h);   // Note: start + end coordinates
 

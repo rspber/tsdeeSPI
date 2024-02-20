@@ -52,3 +52,10 @@ Because if it stays in this state, it may happen that I won't be able to finish 
 #### After upgrage to 2.5.34
 
 Parallel 8-bit works constantly and well not because of the upgrade, I forgot to set the pins.
+
+#### Sprites finally work
+
+https://youtube.com/shorts/jzjth5kYvA4
+
+https://youtube.com/shorts/384EAuhF-gA   ha ha ha
+

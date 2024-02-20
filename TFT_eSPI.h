@@ -180,20 +180,20 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 
   TFT_eSPI(int16_t _W = TFT_WIDTH, int16_t _H = TFT_HEIGHT);
 
-  virtual void     drawPixel(int32_t x, int32_t y, uint32_t color);
+  void             drawPixel(int32_t x, int32_t y, uint32_t color);
 
                    // Read the colour of a pixel at x,y and return value in 565 format
-  virtual uint16_t readPixel(int32_t x, int32_t y);
+  uint16_t         readPixel(int32_t x, int32_t y);
 
   // These are virtual so the TFT_eSprite class can override them with sprite specific functions
-  virtual void
+  void
                    drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size),
                    drawLine(int32_t xs, int32_t ys, int32_t xe, int32_t ye, uint32_t color),
                    drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color),
                    drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color),
                    fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color);
 
-  virtual int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font),
+  int16_t          drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font),
                    drawChar(uint16_t uniCode, int32_t x, int32_t y),
                    height(void),
                    width(void);

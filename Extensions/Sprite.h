@@ -53,10 +53,10 @@ class TFT_eSprite : public TFT_eSPI {
   void     setBitmapColor(uint16_t fg, uint16_t bg); // override;
 
            // Draw a single pixel at x,y
-  void     drawPixel(int32_t x, int32_t y, uint32_t color) override;
+  void     drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color) override;
 
            // Draw a single character in the GLCD or GFXFF font
-  void     drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size) override,
+  void     drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size) override,
 
            // Fill Sprite with a colour
            fillSprite(uint32_t color),
@@ -80,12 +80,12 @@ class TFT_eSprite : public TFT_eSPI {
            scroll(int16_t dx, int16_t dy = 0),
 
            // Draw lines
-           drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color) override,
-           drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color) override,
-           drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color) override,
+           drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color) override,
+           drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, uint32_t color) override,
+           drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, uint32_t color) override,
 
            // Fill a rectangular area with a color (aka draw a filled rectangle)
-           fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color) override;
+           fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color) override;
 
            // Set the coordinate rotation of the Sprite (for 1bpp Sprites only)
            // Note: this uses coordinate rotation and is primarily for ePaper which does not support
@@ -108,14 +108,14 @@ class TFT_eSprite : public TFT_eSPI {
                             int16_t *min_x, int16_t *min_y, int16_t *max_x, int16_t *max_y);
 
            // Read the colour of a pixel at x,y and return value in 565 format 
-  uint16_t readPixel(int32_t x0, int32_t y0) override;
+  uint16_t readPixel(clip_t& clip, int32_t x0, int32_t y0) override;
 
            // return the numerical value of the pixel at x,y (used when scrolling)
            // 16bpp = colour, 8bpp = byte, 4bpp = colour index, 1bpp = 1 or 0
   uint16_t readPixelValue(int32_t x, int32_t y);
 
            // Write an image (colour bitmap) to the sprite.
-  void     pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp = 0); // override;
+  void     pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp = 0);// override;
   void     pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data); // override;
 
            // Push the sprite to the TFT screen, this fn calls pushImage() in the TFT class.
@@ -131,22 +131,24 @@ class TFT_eSprite : public TFT_eSPI {
   bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, uint16_t transparent);
 
            // Draw a single character in the selected font
-  int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font) override,
-           drawChar(uint16_t uniCode, int32_t x, int32_t y) override;
+  int16_t  drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t y, uint8_t font) override;
 
            // Return the width and height of the sprite
-  int16_t  width(void) override,
-           height(void) override;
+  int16_t  width(void), // override,
+           height(void); // override;
 
            // Functions associated with anti-aliased fonts
            // Draw a single unicode character using the loaded font
-  void     drawGlyph(uint16_t code);
+  void     drawGlyph(clip_t& clip, uint16_t code);
            // Print string to sprite using loaded font at cursor position
   void     printToSprite(String string);
            // Print char array to sprite using loaded font at cursor position
   void     printToSprite(char *cbuffer, uint16_t len);
            // Print indexed glyph to sprite using loaded font at x,y
   int16_t  printToSprite(int16_t x, int16_t y, uint16_t index);
+
+  using TFT_eSPI::drawPixel;
+  using TFT_eSPI::drawLine;
 
  private:
 
