@@ -59,3 +59,4 @@ https://youtube.com/shorts/jzjth5kYvA4
 
 https://youtube.com/shorts/384EAuhF-gA   ha ha ha
 
+https://youtube.com/shorts/YY17d5BoMTI   and after commit 17

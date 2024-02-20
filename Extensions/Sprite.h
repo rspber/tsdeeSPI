@@ -149,7 +149,7 @@ class TFT_eSprite : public TFT_eSPI {
 
            // Functions associated with anti-aliased fonts
            // Draw a single unicode character using the loaded font
-  void     drawGlyph(clip_t& clip, uint16_t code);
+  void     drawGlyph(wh_clip_t& clip, uint16_t code) override;
            // Print string to sprite using loaded font at cursor position
   void     printToSprite(String string);
            // Print char array to sprite using loaded font at cursor position

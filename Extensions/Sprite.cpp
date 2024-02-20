@@ -2417,7 +2417,7 @@ int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t
 ** Description:             Write a character to the sprite cursor position
 ***************************************************************************************/
 //
-void TFT_eSprite::drawGlyph(clip_t& clip, uint16_t code)
+void TFT_eSprite::drawGlyph(wh_clip_t& clip, uint16_t code)
 {
   uint16_t fg = textcolor;
   uint16_t bg = textbgcolor;
