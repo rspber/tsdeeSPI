@@ -1,3 +1,13 @@
+/*
+  Sprites adaptation to tsdeeSPI
+
+  Copyright (c) 2024, rspber (https://github.com/rspber)
+
+  Based on: TFT_eSPI
+
+  Originally notes below:
+*/
+
 /**************************************************************************************
 // The following class creates Sprites in RAM, graphics can then be drawn in the Sprite
 // and rendered quickly onto the TFT screen. The class inherits the graphics functions

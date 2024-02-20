@@ -1,3 +1,11 @@
+/*
+  TFT_eSPI :: showFont adaptation to tsdeeSPI
+
+  Copyright (c) 2024, rspber (https://github.com/rspber)
+
+  Isolated from Smooth_font.cpp
+
+*/
 
 /***************************************************************************************
 ** Function name:           showFont
