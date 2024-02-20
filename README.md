@@ -55,7 +55,7 @@ Because if it stays in this state, it may happen that I won't be able to finish 
 
 https://youtube.com/shorts/GlNkY607GvU TFT_eSPI
 
-https://youtube.com/shorts/U2gYiz7Yhps tsdeeSPI
+https://youtube.com/shorts/l6Hl1xy5LeI tsdeeSPI
 
 * rp2040 8-bit parallel ILI9488 320x480
 
