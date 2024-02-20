@@ -55,8 +55,12 @@ Parallel 8-bit works constantly and well not because of the upgrade, I forgot to
 
 #### Sprites finally work
 
-https://youtube.com/shorts/jzjth5kYvA4
+* ESP32 SPI ILI9341 240x320 40Mhz
 
-https://youtube.com/shorts/384EAuhF-gA   ha ha ha
+https://youtube.com/shorts/GlNkY607GvU TFT_eSPI
+https://youtube.com/shorts/U2gYiz7Yhps tsdeeSPI
 
-https://youtube.com/shorts/YY17d5BoMTI   and after commit 17
+* rp2040 8-bit parallel ILI9488 320x480
+
+https://youtube.com/shorts/jzjth5kYvA4 TFT_eSPI
+https://youtube.com/shorts/YY17d5BoMTI tsdeeSPI
