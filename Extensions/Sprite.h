@@ -149,6 +149,10 @@ class TFT_eSprite : public TFT_eSPI {
 
   using TFT_eSPI::drawPixel;
   using TFT_eSPI::drawLine;
+  using TFT_eSPI::drawChar;
+  using TFT_eSPI::drawFastVLine;
+  using TFT_eSPI::drawFastHLine;
+  using TFT_eSPI::fillRect;
 
  private:
 
