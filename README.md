@@ -53,7 +53,7 @@ Because if it stays in this state, it may happen that I won't be able to finish 
 
 * ESP32 SPI ILI9341 240x320 40Mhz
 
-https://youtube.com/shorts/GlNkY607GvU TFT_eSPI
+https://youtube.com/shorts/JJ1OKqgW7Co TFT_eSPI
 
 https://youtube.com/shorts/l6Hl1xy5LeI tsdeeSPI
 
