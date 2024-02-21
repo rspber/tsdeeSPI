@@ -426,6 +426,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   using TFT_GFX::pushImage;
   using TFT_GFX::pushMaskedImage;
   using TFT_GFX::pushImageDMA;
+  using TFT_GFX::pushPixelsDMA;
 
   using TFT_CHAR::textWidth;
   using TFT_CHAR::fontHeight;
