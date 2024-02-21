@@ -62,3 +62,5 @@ https://youtube.com/shorts/dqPDFML9xew tsdeeSPI
 https://youtube.com/shorts/jzjth5kYvA4 TFT_eSPI
 
 https://youtube.com/shorts/YY17d5BoMTI tsdeeSPI
+
+#### Sprite and DMA tested, I think these tests are enough.
