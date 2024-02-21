@@ -64,3 +64,38 @@ https://youtube.com/shorts/jzjth5kYvA4 TFT_eSPI
 https://youtube.com/shorts/YY17d5BoMTI tsdeeSPI
 
 #### Sprite and DMA tested, I think these tests are enough.
+
+Let's try to draw up a short plan, what to do next:
+
+1. Successively reducing redundant code that was only used to achieve better library performance.
+
+  Tests show that this has little impact and the readability of the code decreases.
+
+2. Switching to RGB color, adding the ability to display 256K colors.
+
+3. Share drivers definition (init and rotation) here and in tsdesktop.
+
+  Of the classes defining rotation in tsdesktop, only the instructions will remain, as in TFT_eSPI, there will be less code and it will be included by #include. However, the code defining init and rotation will be taken from tsdesktop, because it is more concise and readable there. The following instructions will be added to TFT_eeSPI: sendCmd, sendCmdByte and sendCmdData to understand this.
+  Also init for ILI9341 and ST7789 will be taken from tsdesktop because there is correct.
+
+4. Share TFT_GFX and TSD_GFX
+
+  drawEllipse(because there is correct) and draw...Gradient...percentage will be taken from tsdesktop.
+
+5. Adopting setup definition from tsdesktop.
+
+  - Adopting Touch definitions/rotation from tsdesktop.
+
+6. Adding tsdesktop/tsdesktop support and tsdesktop examples,
+
+  - Adding tsdesktop chars drawing
+
+7. Adding tsdesktop protocols to support lacking rp2040 processors enchacements (reading by pio and touch by pio)
+
+Other notes:
+
+1. All changes will be successively applied in tsdesktop (and TFT_eSPI_light to maintain compilation in pico-sdk mainly).
+
+2. Due to the fact that the support for processors and protocols in tsdesktop and TFT_eSPI_light was built based on TFT_eSPI and is only fragmentary: It may happen that the tsdesktop and TFT_eSPI_light projects will be reduced to pico-sdk only and will be based on tsdeeSPI.
+
+3. In order to maintain 100% compatibility with the TFT_eSPI library, a branch or a separate project will be created in which only those changes that do not conflict with the currently operating TFT_eSPI library will be implemented.
