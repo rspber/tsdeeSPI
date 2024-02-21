@@ -402,6 +402,17 @@ void TFT_eSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t
 
 
 /***************************************************************************************
+** Function name:           pushPixelsDMA
+** Description:             tsdeeSPI
+***************************************************************************************/
+           // Push a block of pixels into a window set up using setAddrWindow()
+void TFT_eSPI::pushPixelsDMA(uint16_t* image, uint32_t len)
+{
+  pushPixelsDMA(image, len, _swapBytes);
+}
+
+
+/***************************************************************************************
 ** Function name:           setSwapBytes
 ** Description:             Used by 16 bit pushImage() to swap byte order in colours
 ***************************************************************************************/

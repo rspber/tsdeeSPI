@@ -343,6 +343,8 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            // in progress, this simplifies the sketch and helps avoid "gotchas".
   void     pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer = nullptr);
 
+           // Push a block of pixels into a window set up using setAddrWindow()
+  void     pushPixelsDMA(uint16_t* image, uint32_t len);
 
   // Text rendering - value returned is the pixel width of the rendered text
   int16_t  drawNumber(long intNumber, int32_t x, int32_t y, uint8_t font), // Draw integer using specified font number
