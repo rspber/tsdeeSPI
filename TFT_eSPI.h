@@ -217,6 +217,9 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   void     frameViewport(uint16_t color, int32_t w);
   void     resetViewport(void) override;
 
+           // Write a set of pixels stored in memory, use setSwapBytes(true/false) function to correct endianess
+  void     pushPixels(const void * data_in, uint32_t len);
+
            // The next functions can be used as a pair to copy screen blocks (or horizontal/vertical lines) to another location
            // Read a block of pixels to a data buffer, buffer is 16 bit and the size must be at least w * h
   void     readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
@@ -426,6 +429,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   using TFT_GFX::pushImage;
   using TFT_GFX::pushMaskedImage;
   using TFT_GFX::pushImageDMA;
+  using TFT_GFX::pushPixels;
   using TFT_GFX::pushPixelsDMA;
 
   using TFT_CHAR::textWidth;

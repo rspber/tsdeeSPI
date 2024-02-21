@@ -400,12 +400,22 @@ void TFT_eSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t
   pushImageDMA(_clip, x, y, w, h, _swapBytes, data, buffer);
 }
 
+/***************************************************************************************
+** Function name:           pushPixels
+** Description:             tsdeeSPI
+***************************************************************************************/
+// Write a set of pixels stored in memory, use setSwapBytes(true/false) function to correct endianess
+void TFT_eSPI::pushPixels(const void * data_in, uint32_t len)
+{
+  pushPixels(data_in, len, _swapBytes);
+}
+
 
 /***************************************************************************************
 ** Function name:           pushPixelsDMA
 ** Description:             tsdeeSPI
 ***************************************************************************************/
-           // Push a block of pixels into a window set up using setAddrWindow()
+// Push a block of pixels into a window set up using setAddrWindow()
 void TFT_eSPI::pushPixelsDMA(uint16_t* image, uint32_t len)
 {
   pushPixelsDMA(image, len, _swapBytes);
