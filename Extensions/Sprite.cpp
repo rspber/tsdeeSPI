@@ -34,7 +34,8 @@ TFT_eSprite::TFT_eSprite(TFT_eSPI *tft)
   _swapBytes = false;   // Do not swap pushImage colour bytes by default
 
   _created = false;
-  _clip.vpOoB   = true;
+  _clip.x1 = 1;
+  _clip.x2 = 0;
 
   _xs = 0;  // window bounds for pushColor
   _ys = 0;
@@ -393,7 +394,8 @@ void TFT_eSprite::deleteSprite(void)
     free(_img8_1);
     _img8 = nullptr;
     _created = false;
-    _clip.vpOoB   = true;  // TFT_eSPI class write() uses this to check for valid sprite
+    _clip.x1 = 1;
+    _clip.x2 = 0;
   }
 }
 
@@ -405,7 +407,7 @@ void TFT_eSprite::deleteSprite(void)
 #define FP_SCALE 10
 bool TFT_eSprite::pushRotated(int16_t angle, uint32_t transp)
 {
-  if ( !_created || _tft->_clip.vpOoB) return false;
+  if ( !_created) return false;
 
   // Bounding box parameters
   int16_t min_x;
@@ -907,7 +909,7 @@ bool TFT_eSprite::pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int
 ***************************************************************************************/
 uint16_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
 {
-  if (_clip.vpOoB  || !_created) return 0xFF;
+  if (!_created) return 0xFF;
 
   x+= _clip.xDatum;
   y+= _clip.yDatum;
@@ -969,7 +971,7 @@ uint16_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
 ***************************************************************************************/
 uint16_t TFT_eSprite::readPixel(clip_t& clip, int32_t x, int32_t y)
 {
-  if (clip.vpOoB  || !_created) return 0xFFFF;
+  if (!_created) return 0xFFFF;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
@@ -1530,7 +1532,7 @@ void TFT_eSprite::scroll(int16_t dx, int16_t dy)
 ***************************************************************************************/
 void TFT_eSprite::fillSprite(uint32_t color)
 {
-  if (!_created || _clip.vpOoB) return;
+  if (!_created) return;
 
   // Use memset if possible as it is super fast
   if(_clip.xDatum == 0 && _clip.yDatum == 0  &&  _xWidth == width())
@@ -1644,7 +1646,7 @@ uint8_t TFT_eSprite::getRotation(void)
 ***************************************************************************************/
 void TFT_eSprite::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color)
 {
-  if (!_created || clip.vpOoB) return;
+  if (!_created) return;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
@@ -1704,7 +1706,7 @@ void TFT_eSprite::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color)
 ***************************************************************************************/
 void TFT_eSprite::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color)
 {
-  if (!_created || clip.vpOoB) return;
+  if (!_created) return;
 
   //_xDatum and _yDatum Not added here, it is added by drawPixel & drawFastxLine
 
@@ -1762,7 +1764,7 @@ void TFT_eSprite::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int
 ***************************************************************************************/
 void TFT_eSprite::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, uint32_t color)
 {
-  if (!_created || clip.vpOoB) return;
+  if (!_created) return;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
@@ -1823,7 +1825,7 @@ void TFT_eSprite::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, u
 ***************************************************************************************/
 void TFT_eSprite::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, uint32_t color)
 {
-  if (!_created || clip.vpOoB) return;
+  if (!_created) return;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
@@ -1886,7 +1888,7 @@ void TFT_eSprite::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, u
 ***************************************************************************************/
 void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color)
 {
-  if (!_created || clip.vpOoB) return;
+  if (!_created) return;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
@@ -1998,7 +2000,7 @@ void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_
 ***************************************************************************************/
 void TFT_eSprite::drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size)
 {
-  if ( clip.vpOoB || !_created ) return;
+  if ( !_created ) return;
 
   if (c < 32) return;
 #ifdef LOAD_GLCD
@@ -2156,7 +2158,7 @@ void TFT_eSprite::drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint3
   // Any UTF-8 decoding must be done before calling drawChar()
 int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t y, uint8_t font)
 {
-  if (clip.vpOoB || !uniCode) return 0;
+  if (!uniCode) return 0;
 
   if (font==1) {
 #ifdef LOAD_GLCD

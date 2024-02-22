@@ -676,7 +676,6 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 // Can be used with a 16bpp sprite and a 1bpp sprite for the mask
 void TFT_GFX::pushMaskedImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t *img, uint8_t *mask)
 {
-  if (clip.vpOoB) return;
   if (w < 1 || h < 1) return;
 
   // To simplify mask handling the window clipping is done by the pushImage function
@@ -1336,8 +1335,6 @@ void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bit
 // an efficient FastH/V Line draw routine for line segments of 2 pixels or more
 void TFT_GFX::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color)
 {
-  if (clip.vpOoB) return;
-
   //begin_tft_write();       // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
 
@@ -1523,7 +1520,6 @@ void TFT_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
 {
   if (endAngle   > 360)   endAngle = 360;
   if (startAngle > 360) startAngle = 360;
-  if (clip.vpOoB) return;
   if (startAngle == endAngle) return;
   if (r < ir) transpose(r, ir);  // Required that r > ir
   if (r <= 0 || ir < 0) return;  // Invalid r, ir can be zero (circle sector)
@@ -1762,7 +1758,6 @@ void TFT_GFX::fillSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, ui
 //   0x8 | 0x4
 void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, uint32_t fg_color, uint32_t bg_color, uint8_t quadrants)
 {
-  if (clip.vpOoB) return;
   if (r < ir) transpose(r, ir); // Required that r > ir
   if (r <= 0 || ir < 0) return; // Invalid
 

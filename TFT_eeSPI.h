@@ -210,7 +210,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
                    // Read the colour of a pixel at x,y and return value in 565 format
   virtual uint16_t readPixel(clip_t& clip, int32_t x, int32_t y);
 
-  virtual void     setWindow(int32_t x, int32_t y, int32_t w, int32_t h);   // Note: start + end coordinates
+  virtual void     setWindow(int32_t x, int32_t y, int32_t w, int32_t h);   // Note: start + width and height
 
                    // Push (aka write pixel) colours to the set window
   virtual void     pushColor(uint16_t color);

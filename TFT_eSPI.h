@@ -464,7 +464,6 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   int32_t  _xWidth;
   int32_t  _yHeight;
   bool     _vpDatum;
-//  bool     _vpOoB;
 
   bool     _swapBytes; // Swap the byte order for TFT pushImage()
 

@@ -52,7 +52,6 @@ void TFT_eSPI::setViewport(int32_t x, int32_t y, int32_t w, int32_t h, bool vpDa
 
   // Full size default viewport
   _vpDatum = false; // Datum is at top left corner of screen (true = top left of viewport)
-  _clip.vpOoB   = false; // Out of Bounds flag (true is all of viewport is off screen)
   _clip.x1 = 0;         // Viewport top left corner x coordinate
   _clip.y1 = 0;         // Viewport top left corner y coordinate
   _clip.x2 = width();   // Equivalent of TFT width  (Nb: viewport right edge coord + 1)
@@ -66,18 +65,6 @@ void TFT_eSPI::setViewport(int32_t x, int32_t y, int32_t w, int32_t h, bool vpDa
 
   //Serial.print(" x=");Serial.print( x);Serial.print(", y=");Serial.print( y);
   //Serial.print(", w=");Serial.print(w);Serial.print(", h=");Serial.println(h);
-
-  // Check if viewport is entirely out of bounds
-  if (w < 1 || h < 1)
-  {
-    // Set default values and Out of Bounds flag in case of error
-    _clip.xDatum = 0;
-    _clip.yDatum = 0;
-    _xWidth  = width();
-    _yHeight = height();
-    _clip.vpOoB = true;      // Set Out of Bounds flag to inhibit all drawing
-    return;
-  }
 
   if (!vpDatum)
   {
@@ -122,7 +109,6 @@ void TFT_eSPI::resetViewport(void)
 {
   // Reset viewport to the whole screen (or sprite) area
   _vpDatum = false;
-  _clip.vpOoB  = false;
   _clip.xDatum = 0;
   _clip.yDatum = 0;
   _clip.x1 = 0;
@@ -972,7 +958,6 @@ size_t TFT_eSPI::write(const uint8_t *buf, size_t len)
 ***************************************************************************************/
 size_t TFT_eSPI::write(uint8_t utf8)
 {
-  if (_clip.vpOoB) return 1;
   return write(_clip, utf8);
 }
 
