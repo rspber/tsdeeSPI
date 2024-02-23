@@ -36,7 +36,7 @@ But there is no other option, we have to come to terms with it to go farther. Th
 Now tsdeeSPI consists of:
 
 * TFT_eSPI  :: top level class, entire TFT_eSPI interface is preserved
-* TFT_CHAR  :: character drawing class, and strings
+* TFT_CHAR  :: character drawing class
 * TFT_GFX   :: basic graphics, rectangles, circles, triangles and similar
 * TFT_eeSPI :: low level procedures: processors and protocols
 

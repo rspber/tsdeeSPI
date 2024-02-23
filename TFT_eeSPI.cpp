@@ -1593,7 +1593,7 @@ void TFT_eeSPI::invertDisplay(bool i)
 ** Function name:           drawCharFaster
 ** Description:             tsdeeSPI
 ***************************************************************************************/
-void TFT_eeSPI::drawCharFaster(uint16_t width, uint16_t height, uint16_t textcolor, uint16_t textbgcolor, uint32_t flash_address)
+void TFT_eeSPI::drawCharFont2Faster(uint16_t width, uint16_t height, uint16_t textcolor, uint16_t textbgcolor, uint32_t flash_address)
 {
     int32_t w = width;
     w = w + 6; // Should be + 7 but we need to compensate for width increment
@@ -1618,10 +1618,10 @@ void TFT_eeSPI::drawCharFaster(uint16_t width, uint16_t height, uint16_t textcol
 
 
 /***************************************************************************************
-** Function name:           drawRLEfont
+** Function name:           drawCharRLEfont
 ** Description:             tsdeeSPI
 ***************************************************************************************/
-void TFT_eeSPI::drawRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, uint16_t height, uint16_t textcolor, int16_t textsize, uint32_t flash_address)
+void TFT_eeSPI::drawCharRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, uint16_t height, int16_t textsize, uint16_t textcolor, uint32_t flash_address)
 {
     int32_t w = width;
     w *= height; // Now w is total number of pixels in the character
@@ -1630,8 +1630,6 @@ void TFT_eeSPI::drawRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, 
       int32_t pc = 0; // Pixel count
       uint8_t np = textsize * textsize; // Number of pixels in a drawn pixel
 
-      uint8_t tnp = 0; // Temporary copy of np for while loop
-      uint8_t ts = textsize - 1; // Temporary copy of textsize
       // 16 bit pixel count so maximum font size is equivalent to 180x180 pixels in area
       // w is total number of pixels to plot to fill character block
       while (pc < w) {
@@ -1640,7 +1638,7 @@ void TFT_eeSPI::drawRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, 
         if (line & 0x80) {
           line &= 0x7F;
           line++;
-          if (ts) {
+          if (textsize > 1) {
             px = xd + textsize * (pc % width); // Keep these px and py calculations outside the loop as they are slow
             py = yd + textsize * (pc / width);
           }
@@ -1650,13 +1648,14 @@ void TFT_eeSPI::drawRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, 
           }
           while (line--) { // In this case the while(line--) is faster
             pc++; // This is faster than putting pc+=line before while()?
-            setWindow(px, py, ts + 1, ts + 1);
+            setWindow(px, py, textsize, textsize);
 
-            if (ts) {
-              tnp = np;
-              while (tnp--) {tft_Write_16(textcolor);}
+            if (textsize > 1) {
+              int16_t j = np;
+              while (j--) {tft_Write_16(textcolor);}
             }
             else {tft_Write_16(textcolor);}
+
             px += textsize;
 
             if (px >= (xd + width * textsize)) {
@@ -1671,7 +1670,6 @@ void TFT_eeSPI::drawRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, 
         }
       }
 }
-
 
 
 /***************************************************************************************

@@ -367,34 +367,34 @@ bool TFT_CHAR::getUnicodeIndex(uint16_t unicode, uint16_t *index)
 ** Description:             Write a character to the TFT cursor position
 *************************************************************************************x*/
 // Expects file to be open
-void TFT_CHAR::drawGlyph(wh_clip_t& clip, uint16_t code)
+void TFT_CHAR::drawGlyph(wh_clip_t& clip, cursor_t& cursor, uint16_t code, uint32_t textcolor, uint32_t textbgcolor)
 {
   uint16_t fg = textcolor;
   uint16_t bg = textbgcolor;
 
   // Check if cursor has moved
-  if (last_cursor_x != cursor_x)
+  if (_last_cursor_x != cursor.x)
   {
-    bg_cursor_x = cursor_x;
-    last_cursor_x = cursor_x;
+    _bg_cursor_x = cursor.x;
+    _last_cursor_x = cursor.x;
   }
 
   if (code < 0x21)
   {
     if (code == 0x20) {
-      if (_fillbg) fillRect(clip, bg_cursor_x, cursor_y, (cursor_x + gFont.spaceWidth) - bg_cursor_x, gFont.yAdvance, bg);
-      cursor_x += gFont.spaceWidth;
-      bg_cursor_x = cursor_x;
-      last_cursor_x = cursor_x;
+      if (_fillbg) fillRect(clip, _bg_cursor_x, cursor.y, (cursor.x + gFont.spaceWidth) - _bg_cursor_x, gFont.yAdvance, bg);
+      cursor.x += gFont.spaceWidth;
+      _bg_cursor_x = cursor.x;
+      _last_cursor_x = cursor.x;
       return;
     }
 
     if (code == '\n') {
-      cursor_x = 0;
-      bg_cursor_x = 0;
-      last_cursor_x = 0;
-      cursor_y += gFont.yAdvance;
-      if (textwrapY && (cursor_y >= clip.height)) cursor_y = 0;
+      cursor.x = 0;
+      _bg_cursor_x = 0;
+      _last_cursor_x = 0;
+      cursor.y += gFont.yAdvance;
+      if (_textwrapY && (cursor.y >= clip.height)) cursor.y = 0;
       return;
     }
   }
@@ -405,14 +405,14 @@ void TFT_CHAR::drawGlyph(wh_clip_t& clip, uint16_t code)
   if (found)
   {
 
-    if (textwrapX && (cursor_x + gWidth[gNum] + gdX[gNum] > clip.width))
+    if (_textwrapX && (cursor.x + gWidth[gNum] + gdX[gNum] > clip.width))
     {
-      cursor_y += gFont.yAdvance;
-      cursor_x = 0;
-      bg_cursor_x = 0;
+      cursor.y += gFont.yAdvance;
+      cursor.x = 0;
+      _bg_cursor_x = 0;
     }
-    if (textwrapY && ((cursor_y + gFont.yAdvance) >= clip.height)) cursor_y = 0;
-    if (cursor_x == 0) cursor_x -= gdX[gNum];
+    if (_textwrapY && ((cursor.y + gFont.yAdvance) >= clip.height)) cursor.y = 0;
+    if (cursor.x == 0) cursor.x -= gdX[gNum];
 
     uint8_t* pbuffer = nullptr;
     const uint8_t* gPtr = (const uint8_t*) gFont.gArray;
@@ -425,8 +425,8 @@ void TFT_CHAR::drawGlyph(wh_clip_t& clip, uint16_t code)
     }
 #endif
 
-    int16_t cy = cursor_y + gFont.maxAscent - gdY[gNum];
-    int16_t cx = cursor_x + gdX[gNum];
+    int16_t cy = cursor.y + gFont.maxAscent - gdY[gNum];
+    int16_t cx = cursor.x + gdX[gNum];
 
     //  if (cx > width() && bg_cursor_x > width()) return;
     //  if (cursor_y > height()) return;
@@ -445,12 +445,12 @@ void TFT_CHAR::drawGlyph(wh_clip_t& clip, uint16_t code)
 
     // Fill area above glyph
     if (_fillbg) {
-      fillwidth  = (cursor_x + gxAdvance[gNum]) - bg_cursor_x;
+      fillwidth  = (cursor.x + gxAdvance[gNum]) - _bg_cursor_x;
       if (fillwidth > 0) {
         fillheight = gFont.maxAscent - gdY[gNum];
         // Could be negative
         if (fillheight > 0) {
-          fillRect(clip, bg_cursor_x, cursor_y, fillwidth, fillheight, textbgcolor);
+          fillRect(clip, _bg_cursor_x, cursor.y, fillwidth, fillheight, textbgcolor);
         }
       }
       else {
@@ -459,12 +459,12 @@ void TFT_CHAR::drawGlyph(wh_clip_t& clip, uint16_t code)
       }
 
       // Fill any area to left of glyph                              
-      if (bg_cursor_x < cx) fillRect(clip, bg_cursor_x, cy, cx - bg_cursor_x, gHeight[gNum], textbgcolor);
+      if (_bg_cursor_x < cx) fillRect(clip, _bg_cursor_x, cy, cx - _bg_cursor_x, gHeight[gNum], textbgcolor);
       // Set x position in glyph area where background starts
-      if (bg_cursor_x > cx) bx = bg_cursor_x - cx;
+      if (_bg_cursor_x > cx) bx = _bg_cursor_x - cx;
       // Fill any area to right of glyph
-      if (cx + gWidth[gNum] < cursor_x + gxAdvance[gNum]) {
-        fillRect(clip, cx + gWidth[gNum], cy, (cursor_x + gxAdvance[gNum]) - (cx + gWidth[gNum]), gHeight[gNum], textbgcolor);
+      if (cx + gWidth[gNum] < cursor.x + gxAdvance[gNum]) {
+        fillRect(clip, cx + gWidth[gNum], cy, (cursor.x + gxAdvance[gNum]) - (cx + gWidth[gNum]), gHeight[gNum], textbgcolor);
       }
     }
 
@@ -531,23 +531,23 @@ void TFT_CHAR::drawGlyph(wh_clip_t& clip, uint16_t code)
 
     // Fill area below glyph
     if (fillwidth > 0) {
-      fillheight = (cursor_y + gFont.yAdvance) - (cy + gHeight[gNum]);
+      fillheight = (cursor.y + gFont.yAdvance) - (cy + gHeight[gNum]);
       if (fillheight > 0) {
-        fillRect(clip, bg_cursor_x, cy + gHeight[gNum], fillwidth, fillheight, textbgcolor);
+        fillRect(clip, _bg_cursor_x, cy + gHeight[gNum], fillwidth, fillheight, textbgcolor);
       }
     }
 
     if (pbuffer) free(pbuffer);
-    cursor_x += gxAdvance[gNum];
+    cursor.x += gxAdvance[gNum];
     endWrite();
   }
   else
   {
     // Point code not in font so draw a rectangle and move on cursor
-    drawRect(clip, cursor_x, cursor_y + gFont.maxAscent - gFont.ascent, gFont.spaceWidth, gFont.ascent, fg);
-    cursor_x += gFont.spaceWidth + 1;
+    drawRect(clip, cursor.x, cursor.y + gFont.maxAscent - gFont.ascent, gFont.spaceWidth, gFont.ascent, fg);
+    cursor.x += gFont.spaceWidth + 1;
   }
-  bg_cursor_x = cursor_x;
-  last_cursor_x = cursor_x;
+  _bg_cursor_x = cursor.x;
+  _last_cursor_x = cursor.x;
 }
 

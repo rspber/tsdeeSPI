@@ -69,8 +69,8 @@ void* TFT_eSprite::createSprite(int16_t w, int16_t h, uint8_t frames)
   _iwidth  = _dwidth  = _bitwidth = w;
   _iheight = _dheight = h;
 
-  cursor_x = 0;
-  cursor_y = 0;
+  _cursor.x = 0;
+  _cursor.y = 0;
 
   // Default scroll rectangle and gap fill colour
   _sx = 0;
@@ -348,8 +348,8 @@ int8_t TFT_eSprite::getColorDepth(void)
 void TFT_eSprite::setBitmapColor(uint16_t c, uint16_t b)
 {
   if (c == b) b = ~c;
-  _tft->bitmap_fg = c;
-  _tft->bitmap_bg = b;
+  _tft->_bitmap_fg = c;
+  _tft->_bitmap_bg = b;
 }
 
 
@@ -1031,8 +1031,8 @@ uint16_t TFT_eSprite::readPixel(clip_t& clip, int32_t x, int32_t y)
 
   uint16_t color = (_img8[(x + y * _bitwidth)>>3] << (x & 0x7)) & 0x80;
 
-  if (color) return _tft->bitmap_fg;
-  else       return _tft->bitmap_bg;
+  if (color) return _tft->_bitmap_fg;
+  else       return _tft->_bitmap_bg;
 }
 
 
@@ -1264,18 +1264,18 @@ void  TFT_eSprite::pushImage(int32_t x0, int32_t y0, int32_t w, int32_t h, const
 ** Description:             Set the bounds of a window in the sprite
 ***************************************************************************************/
 // Intentionally not constrained to viewport area, does not manage 1bpp rotations
-void TFT_eSprite::setWindow(int32_t x0, int32_t y0, int32_t w0, int32_t h0)
+void TFT_eSprite::setWindow(int32_t x1, int32_t y1, int32_t w, int32_t h)
 {
-  int32_t x1 = x0 + w0 - 1;
-  int32_t y1 = y0 + h0 - 1;
+  int32_t x2 = x1 + w - 1;
+  int32_t y2 = y1 + h - 1;
 
-  if (x0 > x1) transpose(x0, x1);
-  if (y0 > y1) transpose(y0, y1);
+  if (x1 > x2) transpose(x1, x2);
+  if (y1 > y2) transpose(y1, y2);
   
-  int32_t w = width();
-  int32_t h = height();
+  int32_t xover = width();
+  int32_t yover = height();
 
-  if ((x0 >= w) || (x1 < 0) || (y0 >= h) || (y1 < 0))
+  if ((x1 >= xover) || (x2 < 0) || (y1 >= yover) || (y2 < 0))
   { // Point to that extra "off screen" pixel
     _xs = 0;
     _ys = _dheight;
@@ -1284,15 +1284,10 @@ void TFT_eSprite::setWindow(int32_t x0, int32_t y0, int32_t w0, int32_t h0)
   }
   else
   {
-    if (x0 < 0) x0 = 0;
-    if (x1 >= w) x1 = w - 1;
-    if (y0 < 0) y0 = 0;
-    if (y1 >= h) y1 = h - 1;
-
-    _xs = x0;
-    _ys = y0;
-    _xe = x1;
-    _ye = y1;
+    _xs = x1 >= 0 ? x1 : 0;
+    _ys = y1 >= 0 ? y1 : 0;
+    _xe = x2 < xover ? x2 : xover - 1;
+    _ye = y2 < yover ? y2 : yover - 1;
   }
 
   _xptr = _xs;
@@ -1998,7 +1993,7 @@ void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_
 ** Function name:           drawChar
 ** Description:             draw a single character in the Adafruit GLCD or freefont
 ***************************************************************************************/
-void TFT_eSprite::drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size)
+void TFT_eSprite::drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t c, uint32_t color, uint32_t bg)
 {
   if ( !_created ) return;
 
@@ -2006,42 +2001,44 @@ void TFT_eSprite::drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint3
 #ifdef LOAD_GLCD
 //>>>>>>>>>>>>>>>>>>
 #ifdef LOAD_GFXFF
-  if(!gfxFont) { // 'Classic' built-in font
+  if (!font.gfxFont) { // 'Classic' built-in font
 #endif
 //>>>>>>>>>>>>>>>>>>
 
-  if ((x >= clip.x2 - clip.xDatum) || // Clip right
-      (y >= clip.y2 - clip.yDatum))   // Clip bottom
+  int32_t xd = cursor.x + clip.xDatum;
+  int32_t yd = cursor.y + clip.yDatum;
+
+  if ((xd >= clip.x2) || // Clip right
+      (yd >= clip.y2))   // Clip bottom
     return;
 
-  if (((x + 6 * size - 1) < (clip.x1 - clip.xDatum)) || // Clip left
-      ((y + 8 * size - 1) < (clip.y1 - clip.yDatum)))   // Clip top
+  if ((xd + 6 * font.size - 1 < clip.x1) || // Clip left
+      (yd + 8 * font.size - 1 < clip.y1))   // Clip top
     return;
 
   bool fillbg = (bg != color);
 
-  if ((size==1) && fillbg)
-  {
+  if (font.size == 1 && fillbg) {
     uint8_t column[6];
     uint8_t mask = 0x1;
 
-    for (int8_t i = 0; i < 5; i++ ) column[i] = pgm_read_byte(font + (c * 5) + i);
+    for (int8_t i = 0; i < 5; i++ ) column[i] = pgm_read_byte(glcdfont + (c * 5) + i);
     column[5] = 0;
 
     int8_t j, k;
     for (j = 0; j < 8; j++) {
       for (k = 0; k < 5; k++ ) {
         if (column[k] & mask) {
-          drawPixel(clip, x + k, y + j, color);
+          drawPixel(clip, cursor.x + k, cursor.y + j, color);
         }
         else {
-          drawPixel(clip, x + k, y + j, bg);
+          drawPixel(clip, cursor.x + k, cursor.y + j, bg);
         }
       }
 
       mask <<= 1;
 
-      drawPixel(clip, x + k, y + j, bg);
+      drawPixel(clip, cursor.x + k, cursor.y + j, bg);
     }
   }
   else
@@ -2051,19 +2048,19 @@ void TFT_eSprite::drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint3
       if (i == 5)
         line = 0x0;
       else
-        line = pgm_read_byte(font + (c * 5) + i);
+        line = pgm_read_byte(glcdfont + (c * 5) + i);
 
-      if (size == 1) // default size
+      if (font.size == 1) // default size
       {
         for (int8_t j = 0; j < 8; j++) {
-          if (line & 0x1) drawPixel(clip, x + i, y + j, color);
+          if (line & 0x1) drawPixel(clip, cursor.x + i, cursor.y + j, color);
           line >>= 1;
         }
       }
       else {  // big size
         for (int8_t j = 0; j < 8; j++) {
-          if (line & 0x1) fillRect(clip, x + (i * size), y + (j * size), size, size, color);
-          else if (fillbg) fillRect(clip, x + i * size, y + j * size, size, size, bg);
+          if (line & 0x1) fillRect(clip, cursor.x + (i * font.size), cursor.y + (j * font.size), font.size, font.size, color);
+          else if (fillbg) fillRect(clip, cursor.x + i * font.size, cursor.y + j * font.size, font.size, font.size, bg);
           line >>= 1;
         }
       }
@@ -2079,30 +2076,30 @@ void TFT_eSprite::drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint3
 
 #ifdef LOAD_GFXFF
     // Filter out bad characters not present in font
-    if ((c >= pgm_read_word(&gfxFont->first)) && (c <= pgm_read_word(&gfxFont->last )))
+    if ((c >= pgm_read_word(&font.gfxFont->first)) && (c <= pgm_read_word(&font.gfxFont->last )))
     {
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-      c -= pgm_read_word(&gfxFont->first);
-      GFXglyph *glyph  = &(((GFXglyph *)pgm_read_dword(&gfxFont->glyph))[c]);
+      c -= pgm_read_word(&font.gfxFont->first);
+      GFXglyph *glyph  = &(((GFXglyph *)pgm_read_dword(&font.gfxFont->glyph))[c]);
 
       uint8_t  w  = pgm_read_byte(&glyph->width),
                h  = pgm_read_byte(&glyph->height);
       int8_t   xo = pgm_read_byte(&glyph->xOffset),
                yo = pgm_read_byte(&glyph->yOffset);
 
-      if (((x + xo + w * size - 1) < (clip.x1 - clip.xDatum)) || // Clip left
-          ((y + yo + h * size - 1) < (clip.y1 - clip.yDatum)))   // Clip top
+      if ((cursor.x + xo + w * font.size - 1 + clip.xDatum < clip.x1) || // Clip left
+          (cursor.y + yo + h * font.size - 1 + clip.yDatum < clip.y1))   // Clip top
         return;
 
-      uint8_t  *bitmap = (uint8_t *)pgm_read_dword(&gfxFont->bitmap);
+      uint8_t  *bitmap = (uint8_t *)pgm_read_dword(&font.gfxFont->bitmap);
       uint32_t bo = pgm_read_word(&glyph->bitmapOffset);
 
       uint8_t  xx, yy, bits=0, bit=0;
       //uint8_t  xa = pgm_read_byte(&glyph->xAdvance);
       int16_t  xo16 = 0, yo16 = 0;
 
-      if(size > 1) {
+      if(font.size > 1) {
         xo16 = xo;
         yo16 = yo;
       }
@@ -2117,8 +2114,8 @@ void TFT_eSprite::drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint3
           if(bits & bit) hpc++;
           else {
             if (hpc) {
-              if(size == 1) drawFastHLine(clip, x+xo+xx-hpc, y+yo+yy, hpc, color);
-              else fillRect(clip, x+(xo16+xx-hpc)*size, y+(yo16+yy)*size, size*hpc, size, color);
+              if(font.size == 1) drawFastHLine(clip, cursor.x+xo+xx-hpc, cursor.y+yo+yy, hpc, color);
+              else fillRect(clip, cursor.x+(xo16+xx-hpc)*font.size, cursor.y+(yo16+yy)*font.size, font.size*hpc, font.size, color);
               hpc=0;
             }
           }
@@ -2126,29 +2123,86 @@ void TFT_eSprite::drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint3
         }
         // Draw pixels for this line as we are about to increment yy
         if (hpc) {
-          if(size == 1) drawFastHLine(clip, x+xo+xx-hpc, y+yo+yy, hpc, color);
-          else fillRect(clip, x+(xo16+xx-hpc)*size, y+(yo16+yy)*size, size*hpc, size, color);
+          if(font.size == 1) drawFastHLine(clip, cursor.x+xo+xx-hpc, cursor.y+yo+yy, hpc, color);
+          else fillRect(clip, cursor.x+(xo16+xx-hpc)*font.size, cursor.y+(yo16+yy)*font.size, font.size*hpc, font.size, color);
           hpc=0;
         }
       }
     }
 #endif
-
-
-#ifdef LOAD_GLCD
-  #ifdef LOAD_GFXFF
-  } // End classic vs custom font
-  #endif
-#else
-  #ifndef LOAD_GFXFF
-    color = color;
-    bg = bg;
-    size = size;
-  #endif
-#endif
-
+  }
 }
 
+void TFT_eSprite::drawCharRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, uint16_t height, int16_t textsize, uint16_t textcolor, uint32_t flash_address)
+{
+    int32_t w = width;
+    w *= height; // Now w is total number of pixels in the character
+
+      int32_t px = 0, py = pY; // To hold character block start and end column and row values
+      int32_t pc = 0; // Pixel count
+      int16_t np = textsize * textsize; // Number of pixels in a drawn pixel
+
+      // 16 bit pixel count so maximum font size is equivalent to 180x180 pixels in area
+      // w is total number of pixels to plot to fill character block
+      while (pc < w) {
+        uint8_t line = pgm_read_byte((uint8_t *)flash_address);
+        flash_address++;
+        if (line & 0x80) {
+          line &= 0x7F;
+          line++;
+          if (textsize > 1) {
+            px = xd + textsize * (pc % width); // Keep these px and py calculations outside the loop as they are slow
+            py = yd + textsize * (pc / width);
+          }
+          else {
+            px = xd + pc % width; // Keep these px and py calculations outside the loop as they are slow
+            py = yd + pc / width;
+          }
+          while (line--) { // In this case the while(line--) is faster
+            pc++; // This is faster than putting pc+=line before while()?
+            setWindow(px, py, textsize, textsize);
+
+            if (textsize > 1) {
+              int16_t j = np;
+              while (j--) writeColor(textcolor);
+            }
+            else writeColor(textcolor);
+
+            px += textsize;
+
+            if (px >= xd + width * textsize) {
+              px = xd;
+              py += textsize;
+            }
+          }
+        }
+        else {
+          line++;
+          pc += line;
+        }
+      }
+}
+
+
+void TFT_eSprite::drawCharRLE_1(int32_t width, int32_t height, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address)
+{
+        int32_t w = width;
+        w *= height; // Now w is total number of pixels in the character
+
+        // Maximum font size is equivalent to 180x180 pixels in area
+        while (w > 0) {
+          uint8_t line = pgm_read_byte((uint8_t *)flash_address++); // 8 bytes smaller when incrementing here
+          if (line & 0x80) {
+            line &= 0x7F;
+            line++; w -= line;
+            while (line--) writeColor(textcolor);
+          }
+          else {
+            line++; w -= line;
+            while (line--) writeColor(textbgcolor);
+          }
+        }
+}
 
 /***************************************************************************************
 ** Function name:           drawChar
@@ -2156,15 +2210,15 @@ void TFT_eSprite::drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint3
 ***************************************************************************************/
   // TODO: Rationalise with TFT_eSPI
   // Any UTF-8 decoding must be done before calling drawChar()
-int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t y, uint8_t font)
+int16_t TFT_eSprite::drawChar(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t uniCode, uint32_t textcolor, uint32_t textbgcolor)
 {
   if (!uniCode) return 0;
 
-  if (font==1) {
+  if (font.font == 1) {
 #ifdef LOAD_GLCD
   #ifndef LOAD_GFXFF
-    drawChar(x, y, uniCode, textcolor, textbgcolor, textsize);
-    return 6 * textsize;
+    drawChar_GLCD_GFXFF(clip, cursor, font, uniCode, textcolor, textbgcolor);
+    return 6 * font.size;
   #endif
 #else
   #ifndef LOAD_GFXFF
@@ -2173,19 +2227,19 @@ int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t
 #endif
 
 #ifdef LOAD_GFXFF
-    drawChar(clip, x, y, uniCode, textcolor, textbgcolor, textsize);
-    if(!gfxFont) { // 'Classic' built-in font
+    drawChar_GLCD_GFXFF(clip, cursor, font, uniCode, textcolor, textbgcolor);
+    if (!font.gfxFont) { // 'Classic' built-in font
     #ifdef LOAD_GLCD
-      return 6 * textsize;
+      return 6 * font.size;
     #else
       return 0;
     #endif
     }
     else {
-      if((uniCode >= pgm_read_word(&gfxFont->first)) && (uniCode <= pgm_read_word(&gfxFont->last) )) {
-        uint16_t   c2    = uniCode - pgm_read_word(&gfxFont->first);
-        GFXglyph *glyph = &(((GFXglyph *)pgm_read_dword(&gfxFont->glyph))[c2]);
-        return pgm_read_byte(&glyph->xAdvance) * textsize;
+      if((uniCode >= pgm_read_word(&font.gfxFont->first)) && (uniCode <= pgm_read_word(&font.gfxFont->last) )) {
+        uint16_t   c2    = uniCode - pgm_read_word(&font.gfxFont->first);
+        GFXglyph *glyph = &(((GFXglyph *)pgm_read_dword(&font.gfxFont->glyph))[c2]);
+        return pgm_read_byte(&glyph->xAdvance) * font.size;
       }
       else {
         return 0;
@@ -2194,7 +2248,7 @@ int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t
 #endif
   }
 
-  if ((font>1) && (font<9) && ((uniCode < 32) || (uniCode > 127))) return 0;
+  if ((font.font > 1) && (font.font < 9) && ((uniCode < 32) || (uniCode > 127))) return 0;
 
   int32_t width  = 0;
   int32_t height = 0;
@@ -2202,7 +2256,7 @@ int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t
   uniCode -= 32;
 
 #ifdef LOAD_FONT2
-  if (font == 2) {
+  if (font.font == 2) {
     flash_address = pgm_read_dword(&chrtbl_f16[uniCode]);
     width = pgm_read_byte(widtbl_f16 + uniCode);
     height = chr_hgt_f16;
@@ -2214,64 +2268,24 @@ int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t
 
 #ifdef LOAD_RLE
   {
-    if ((font>2) && (font<9)) {
-      flash_address = pgm_read_dword( (const void*)(pgm_read_dword( &(fontdata[font].chartbl ) ) + uniCode*sizeof(void *)) );
-      width = pgm_read_byte( (uint8_t *)pgm_read_dword( &(fontdata[font].widthtbl ) ) + uniCode );
-      height= pgm_read_byte( &fontdata[font].height );
+    if ((font.font>2) && (font.font<9)) {
+      flash_address = pgm_read_dword( (const void*)(pgm_read_dword( &(fontdata[font.font].chartbl ) ) + uniCode*sizeof(void *)) );
+      width = pgm_read_byte( (uint8_t *)pgm_read_dword( &(fontdata[font.font].widthtbl ) ) + uniCode );
+      height= pgm_read_byte( &fontdata[font.font].height );
     }
   }
 #endif
 
-  int32_t xd = x + clip.xDatum;
-  int32_t yd = y + clip.yDatum;
+  int32_t xd = cursor.x + clip.xDatum;
+  int32_t yd = cursor.y + clip.yDatum;
 
-  if ((xd + width * textsize < clip.x1 || xd >= clip.x2) && (yd + height * textsize < clip.y1 || yd >= clip.y2)) return width * textsize ;
+  if ((xd + width * font.size < clip.x1 || xd >= clip.x2) && (yd + height * font.size < clip.y1 || yd >= clip.y2)) return width * font.size ;
 
-  int32_t w = width;
-  int32_t pX      = 0;
-  int32_t pY      = y;
-  uint8_t line = 0;
-  bool outofclip = xd < clip.x1 || xd + width  * textsize >= clip.x2 || yd < clip.y1 || yd + height * textsize >= clip.y2;
+  bool offclip = xd < clip.x1 || xd + width  * font.size >= clip.x2 || yd < clip.y1 || yd + height * font.size >= clip.y2;
 
 #ifdef LOAD_FONT2 // chop out code if we do not need it
-  if (font == 2) {
-    w = w + 6; // Should be + 7 but we need to compensate for width increment
-    w = w / 8;
-
-    for (int32_t i = 0; i < height; i++)
-    {
-      if (textcolor != textbgcolor) fillRect(clip, x, pY, width * textsize, textsize, textbgcolor);
-
-      for (int32_t k = 0; k < w; k++)
-      {
-        line = pgm_read_byte((uint8_t *)flash_address + w * i + k);
-        if (line) {
-          if (textsize == 1) {
-            pX = x + k * 8;
-            if (line & 0x80) drawPixel(clip, pX, pY, textcolor);
-            if (line & 0x40) drawPixel(clip, pX + 1, pY, textcolor);
-            if (line & 0x20) drawPixel(clip, pX + 2, pY, textcolor);
-            if (line & 0x10) drawPixel(clip, pX + 3, pY, textcolor);
-            if (line & 0x08) drawPixel(clip, pX + 4, pY, textcolor);
-            if (line & 0x04) drawPixel(clip, pX + 5, pY, textcolor);
-            if (line & 0x02) drawPixel(clip, pX + 6, pY, textcolor);
-            if (line & 0x01) drawPixel(clip, pX + 7, pY, textcolor);
-          }
-          else {
-            pX = x + k * 8 * textsize;
-            if (line & 0x80) fillRect(clip, pX, pY, textsize, textsize, textcolor);
-            if (line & 0x40) fillRect(clip, pX + textsize, pY, textsize, textsize, textcolor);
-            if (line & 0x20) fillRect(clip, pX + 2 * textsize, pY, textsize, textsize, textcolor);
-            if (line & 0x10) fillRect(clip, pX + 3 * textsize, pY, textsize, textsize, textcolor);
-            if (line & 0x08) fillRect(clip, pX + 4 * textsize, pY, textsize, textsize, textcolor);
-            if (line & 0x04) fillRect(clip, pX + 5 * textsize, pY, textsize, textsize, textcolor);
-            if (line & 0x02) fillRect(clip, pX + 6 * textsize, pY, textsize, textsize, textcolor);
-            if (line & 0x01) fillRect(clip, pX + 7 * textsize, pY, textsize, textsize, textcolor);
-          }
-        }
-      }
-      pY += textsize;
-    }
+  if (font.font == 2) {
+    drawCharFont2(clip, cursor, width, height, font.size, textcolor, textbgcolor, flash_address);
   }
 
   #ifdef LOAD_RLE
@@ -2282,7 +2296,6 @@ int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t
 #ifdef LOAD_RLE  //674 bytes of code
   // Font is not 2 and hence is RLE encoded
   {
-    w *= height; // Now w is total number of pixels in the character
     int16_t color = textcolor;
     if (_bpp == 16) color = (textcolor >> 8) | (textcolor << 8);
     else if (_bpp == 8) color = ((textcolor & 0xE000)>>8 | (textcolor & 0x0700)>>6 | (textcolor & 0x0018)>>3);
@@ -2291,125 +2304,25 @@ int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t
     if (_bpp == 16) bgcolor = (textbgcolor >> 8) | (textbgcolor << 8);
     else if (_bpp == 8) bgcolor = ((textbgcolor & 0xE000)>>8 | (textbgcolor & 0x0700)>>6 | (textbgcolor & 0x0018)>>3);
 
-    if (textcolor == textbgcolor && !outofclip && _bpp != 1) {
-      int32_t px = 0, py = pY; // To hold character block start and end column and row values
-      int32_t pc = 0; // Pixel count
-      uint8_t np = textsize * textsize; // Number of pixels in a drawn pixel
-
-      uint8_t tnp = 0; // Temporary copy of np for while loop
-      uint8_t ts = textsize - 1; // Temporary copy of textsize
-      // 16 bit pixel count so maximum font size is equivalent to 180x180 pixels in area
-      // w is total number of pixels to plot to fill character block
-      while (pc < w) {
-        line = pgm_read_byte((uint8_t *)flash_address);
-        flash_address++;
-        if (line & 0x80) {
-          line &= 0x7F;
-          line++;
-          if (ts) {
-            px = xd + textsize * (pc % width); // Keep these px and py calculations outside the loop as they are slow
-            py = yd + textsize * (pc / width);
-          }
-          else {
-            px = xd + pc % width; // Keep these px and py calculations outside the loop as they are slow
-            py = yd + pc / width;
-          }
-          while (line--) { // In this case the while(line--) is faster
-            pc++; // This is faster than putting pc+=line before while()?
-            setWindow(px, py, ts + 1, ts + 1);
-
-            if (ts) {
-              tnp = np;
-              while (tnp--) writeColor(color);
-            }
-            else writeColor(color);
-
-            px += textsize;
-
-            if (px >= (xd + width * textsize)) {
-              px = xd;
-              py += textsize;
-            }
-          }
-        }
-        else {
-          line++;
-          pc += line;
-        }
-      }
+    if (textcolor == textbgcolor && !offclip && _bpp != 1) {
+      drawCharRLEfont(xd, yd, cursor.y, width, height, font.size, color, flash_address);
     }
     else {
-      // Text colour != background and textsize = 1 and character is within viewport area
+      // Text colour != background and font.size = 1 and character is within viewport area
       // so use faster drawing of characters and background using block write
-      if (textcolor != textbgcolor && textsize == 1 && !outofclip && _bpp != 1)
-      {
+      if (textcolor != textbgcolor && font.size == 1 && !offclip && _bpp != 1) {
         setWindow(xd, yd, width, height);
-
-        // Maximum font size is equivalent to 180x180 pixels in area
-        while (w > 0) {
-          line = pgm_read_byte((uint8_t *)flash_address++); // 8 bytes smaller when incrementing here
-          if (line & 0x80) {
-            line &= 0x7F;
-            line++; w -= line;
-            while (line--) writeColor(color);
-          }
-          else {
-            line++; w -= line;
-            while (line--) writeColor(bgcolor);
-          }
-        }
+        drawCharRLE_1(width, height, textcolor, textbgcolor, flash_address);
       }
-      else
-      {
-        int32_t px = 0, py = 0;  // To hold character pixel coords
-        int32_t tx = 0, ty = 0;  // To hold character TFT pixel coords
-        int32_t pc = 0;          // Pixel count
-        int32_t pl = 0;          // Pixel line length
-        uint16_t pcol = 0;       // Pixel color
-        bool     pf = true;      // Flag for plotting
-        while (pc < w) {
-          line = pgm_read_byte((uint8_t *)flash_address);
-          flash_address++;
-          if (line & 0x80) { pcol = textcolor; line &= 0x7F; pf = true;}
-          else { pcol = textbgcolor; if (textcolor == textbgcolor) pf = false;}
-          line++;
-          px = pc % width;
-          tx = x + textsize * px;
-          py = pc / width;
-          ty = y + textsize * py;
-
-          pl = 0;
-          pc += line;
-          while (line--) {
-            pl++;
-            if ((px+pl) >= width) {
-              if (pf) fillRect(clip, tx, ty, pl * textsize, textsize, pcol);
-              pl = 0;
-              px = 0;
-              tx = x;
-              py ++;
-              ty += textsize;
-            }
-          }
-          if (pl && pf) fillRect(clip, tx, ty, pl * textsize, textsize, pcol);
-        }
+      else {
+        drawCharRLE_3(clip, cursor, width, height, font.size, textcolor, textbgcolor, flash_address);
       }
     }
   }
   // End of RLE font rendering
 #endif
 
-#if !defined (LOAD_FONT2) && !defined (LOAD_RLE)
-  // Stop warnings
-  flash_address = flash_address;
-  w = w;
-  pX = pX;
-  pY = pY;
-  line = line;
-  clip = clip;
-#endif
-
-  return width * textsize;    // x +
+  return width * font.size;    // x +
 }
 
 
@@ -2419,7 +2332,7 @@ int16_t TFT_eSprite::drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t
 ** Description:             Write a character to the sprite cursor position
 ***************************************************************************************/
 //
-void TFT_eSprite::drawGlyph(wh_clip_t& clip, uint16_t code)
+void TFT_eSprite::drawGlyph(wh_clip_t& clip, cursor_t& cursor, uint16_t code, uint32_t textcolor, uint32_t textbgcolor)
 {
   uint16_t fg = textcolor;
   uint16_t bg = textbgcolor;
@@ -2427,28 +2340,28 @@ void TFT_eSprite::drawGlyph(wh_clip_t& clip, uint16_t code)
   if (fg == bg) getBG = true;
 
   // Check if cursor has moved
-  if (last_cursor_x != cursor_x)
+  if (_last_cursor_x != cursor.x)
   {
-    bg_cursor_x = cursor_x;
-    last_cursor_x = cursor_x;
+    _bg_cursor_x = cursor.x;
+    _last_cursor_x = cursor.x;
   }
 
   if (code < 0x21)
   {
     if (code == 0x20) {
-      if (_fillbg) fillRect(clip, bg_cursor_x, cursor_y, (cursor_x + gFont.spaceWidth) - bg_cursor_x, gFont.yAdvance, bg);
-      cursor_x += gFont.spaceWidth;
-      bg_cursor_x = cursor_x;
-      last_cursor_x = cursor_x;
+      if (_fillbg) fillRect(clip, _bg_cursor_x, cursor.y, (cursor.x + gFont.spaceWidth) - _bg_cursor_x, gFont.yAdvance, bg);
+      cursor.x += gFont.spaceWidth;
+      _bg_cursor_x = cursor.x;
+      _last_cursor_x = cursor.x;
       return;
     }
 
     if (code == '\n') {
-      cursor_x = 0;
-      bg_cursor_x = 0;
-      last_cursor_x = 0;
-      cursor_y += gFont.yAdvance;
-      if (textwrapY && (cursor_y >= height())) cursor_y = 0;
+      cursor.x = 0;
+      _bg_cursor_x = 0;
+      _last_cursor_x = 0;
+      cursor.y += gFont.yAdvance;
+      if (_textwrapY && (cursor.y >= height())) cursor.y = 0;
       return;
     }
   }
@@ -2465,22 +2378,22 @@ void TFT_eSprite::drawGlyph(wh_clip_t& clip, uint16_t code)
     {
       createSprite(gWidth[gNum], gFont.yAdvance);
       if(fg != bg) fillSprite(bg);
-      cursor_x = -gdX[gNum];
-      bg_cursor_x = cursor_x;
-      last_cursor_x = cursor_x;
-      cursor_y = 0;
+      cursor.x = -gdX[gNum];
+      _bg_cursor_x = cursor.x;
+      _last_cursor_x = cursor.x;
+      cursor.y = 0;
     }
     else
     {
-      if( textwrapX && ((cursor_x + gWidth[gNum] + gdX[gNum]) > width())) {
-        cursor_y += gFont.yAdvance;
-        cursor_x = 0;
-        bg_cursor_x = 0;
-        last_cursor_x = 0;
+      if (_textwrapX && ((cursor.x + gWidth[gNum] + gdX[gNum]) > width())) {
+        cursor.y += gFont.yAdvance;
+        cursor.x = 0;
+        _bg_cursor_x = 0;
+        _last_cursor_x = 0;
       }
 
-      if( textwrapY && ((cursor_y + gFont.yAdvance) > height())) cursor_y = 0;
-      if ( cursor_x == 0) cursor_x -= gdX[gNum];
+      if (_textwrapY && ((cursor.y + gFont.yAdvance) > height())) cursor.y = 0;
+      if (cursor.x == 0) cursor.x -= gdX[gNum];
     }
 
     uint8_t* pbuffer = nullptr;
@@ -2493,8 +2406,8 @@ void TFT_eSprite::drawGlyph(wh_clip_t& clip, uint16_t code)
     }
 #endif
 
-    int16_t cy = cursor_y + gFont.maxAscent - gdY[gNum];
-    int16_t cx = cursor_x + gdX[gNum];
+    int16_t cy = cursor.y + gFont.maxAscent - gdY[gNum];
+    int16_t cx = cursor.x + gdX[gNum];
 
     //  if (cx > width() && bg_cursor_x > width()) return;
     //  if (cursor_y > height()) return;
@@ -2511,11 +2424,11 @@ void TFT_eSprite::drawGlyph(wh_clip_t& clip, uint16_t code)
 
     // Fill area above glyph
     if (_fillbg) {
-      fillwidth  = (cursor_x + gxAdvance[gNum]) - bg_cursor_x;
+      fillwidth  = (cursor.x + gxAdvance[gNum]) - _bg_cursor_x;
       if (fillwidth > 0) {
         fillheight = gFont.maxAscent - gdY[gNum];
         if (fillheight > 0) {
-          fillRect(clip, bg_cursor_x, cursor_y, fillwidth, fillheight, textbgcolor);
+          fillRect(clip, _bg_cursor_x, cursor.y, fillwidth, fillheight, textbgcolor);
         }
       }
       else {
@@ -2524,12 +2437,12 @@ void TFT_eSprite::drawGlyph(wh_clip_t& clip, uint16_t code)
       }
 
       // Fill any area to left of glyph                              
-      if (bg_cursor_x < cx) fillRect(clip, bg_cursor_x, cy, cx - bg_cursor_x, gHeight[gNum], textbgcolor);
+      if (_bg_cursor_x < cx) fillRect(clip, _bg_cursor_x, cy, cx - _bg_cursor_x, gHeight[gNum], textbgcolor);
       // Set x position in glyph area where background starts
-      if (bg_cursor_x > cx) bx = bg_cursor_x - cx;
+      if (_bg_cursor_x > cx) bx = _bg_cursor_x - cx;
       // Fill any area to right of glyph
-      if (cx + gWidth[gNum] < cursor_x + gxAdvance[gNum]) {
-        fillRect(clip, cx + gWidth[gNum], cy, (cursor_x + gxAdvance[gNum]) - (cx + gWidth[gNum]), gHeight[gNum], textbgcolor);
+      if (cx + gWidth[gNum] < cursor.x + gxAdvance[gNum]) {
+        fillRect(clip, cx + gWidth[gNum], cy, (cursor.x + gxAdvance[gNum]) - (cx + gWidth[gNum]), gHeight[gNum], textbgcolor);
       }
     }
 
@@ -2585,29 +2498,29 @@ void TFT_eSprite::drawGlyph(wh_clip_t& clip, uint16_t code)
 
     // Fill area below glyph
     if (fillwidth > 0) {
-      fillheight = (cursor_y + gFont.yAdvance) - (cy + gHeight[gNum]);
+      fillheight = (cursor.y + gFont.yAdvance) - (cy + gHeight[gNum]);
       if (fillheight > 0) {
-        fillRect(clip, bg_cursor_x, cy + gHeight[gNum], fillwidth, fillheight, textbgcolor);
+        fillRect(clip, _bg_cursor_x, cy + gHeight[gNum], fillwidth, fillheight, textbgcolor);
       }
     }
 
     if (pbuffer) free(pbuffer);
-    cursor_x += gxAdvance[gNum];
+    cursor.x += gxAdvance[gNum];
 
     if (newSprite)
     {
-      pushSprite(cx, cursor_y);
+      pushSprite(cx, cursor.y);
       deleteSprite();
     }
   }
   else
   {
     // Not a Unicode in font so draw a rectangle and move on cursor
-    drawRect(clip, cursor_x, cursor_y + gFont.maxAscent - gFont.ascent, gFont.spaceWidth, gFont.ascent, fg);
-    cursor_x += gFont.spaceWidth + 1;
+    drawRect(clip, cursor.x, cursor.y + gFont.maxAscent - gFont.ascent, gFont.spaceWidth, gFont.ascent, fg);
+    cursor.x += gFont.spaceWidth + 1;
   }
-  bg_cursor_x = cursor_x;
-  last_cursor_x = cursor_x;
+  _bg_cursor_x = cursor.x;
+  _last_cursor_x = cursor.x;
 }
 
 
@@ -2632,7 +2545,7 @@ void TFT_eSprite::printToSprite(char *cbuffer, uint16_t len) //String string)
 
   uint16_t n = 0;
   bool newSprite = !_created;
-  int16_t  cursorX = _tft->cursor_x;
+  int16_t  cursorX = _tft->getCursorX();
 
   if (newSprite)
   {
@@ -2657,7 +2570,7 @@ void TFT_eSprite::printToSprite(char *cbuffer, uint16_t len) //String string)
 
     createSprite(sWidth, gFont.yAdvance);
 
-    if (textcolor != textbgcolor) fillSprite(textbgcolor);
+    if (_textcolor != _textbgcolor) fillSprite(_textbgcolor);
   }
 
   n = 0;
@@ -2667,12 +2580,12 @@ void TFT_eSprite::printToSprite(char *cbuffer, uint16_t len) //String string)
     uint16_t unicode = decodeUTF8((uint8_t*)cbuffer, &n, len - n);
     //Serial.print("Decoded Unicode = 0x");Serial.println(unicode,HEX);
     //Serial.print("n = ");Serial.println(n);
-    drawGlyph(_clip, unicode);
+    drawGlyph(_clip, _cursor, unicode, _textcolor, _textbgcolor);
   }
 
   if (newSprite)
   { // The sprite had to be created so place at TFT cursor
-    pushSprite(cursorX, _tft->cursor_y);
+    pushSprite(cursorX, _tft->getCursorY());
     deleteSprite();
   }
 }
@@ -2691,15 +2604,15 @@ int16_t TFT_eSprite::printToSprite(int16_t x, int16_t y, uint16_t index)
   {
     createSprite(sWidth, gFont.yAdvance);
 
-    if (textcolor != textbgcolor) fillSprite(textbgcolor);
+    if (_textcolor != _textbgcolor) fillSprite(_textbgcolor);
 
-    drawGlyph(_clip, gUnicode[index]);
+    drawGlyph(_clip, _cursor, gUnicode[index], _textcolor, _textbgcolor);
 
-    pushSprite(x + gdX[index], y, textbgcolor);
+    pushSprite(x + gdX[index], y, _textbgcolor);
     deleteSprite();
   }
 
-  else drawGlyph(_clip, gUnicode[index]);
+  else drawGlyph(_clip, _cursor, gUnicode[index], _textcolor, _textbgcolor);
 
   return gxAdvance[index];
 }

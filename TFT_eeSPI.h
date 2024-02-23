@@ -415,9 +415,9 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
   bool     _psram_enable; // Enable PSRAM use for library functions (TBD) and Sprites
 
-  void drawCharDefault(const uint8_t* font_offset, uint16_t color, uint16_t bg);
-  void drawCharFaster(uint16_t width, uint16_t height, uint16_t textcolor, uint16_t textbgcolor, uint32_t flash_address);
-  void drawRLEfont(int32_t xd, int32_t y, int32_t pY, uint16_t width, uint16_t height, uint16_t textcolor, int16_t textsize, uint32_t flash_addres);
+  virtual  void drawCharDefault(const uint8_t* font_offset, uint16_t color, uint16_t bg);
+  virtual  void drawCharFont2Faster(uint16_t width, uint16_t height, uint16_t textcolor, uint16_t textbgcolor, uint32_t flash_address);
+  virtual  void drawCharRLEfont(int32_t xd, int32_t y, int32_t pY, uint16_t width, uint16_t height, int16_t textsize, uint16_t textcolor, uint32_t flash_addres);
 
 #if defined (SSD1963_DRIVER)
   uint16_t Cswap;      // Swap buffer for SSD1963

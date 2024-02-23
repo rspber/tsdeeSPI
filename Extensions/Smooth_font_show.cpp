@@ -19,7 +19,7 @@ void TFT_eSPI::showFont(uint32_t td)
   int16_t cursorY = height();// for the first character
   uint32_t timeDelay = 0;    // No delay before first page
 
-  fillScreen(textbgcolor);
+  fillScreen(_textbgcolor);
 
   for (uint16_t i = 0; i < gFont.gCount; i++)
   {
@@ -33,17 +33,17 @@ void TFT_eSPI::showFont(uint32_t td)
         cursorY = 0;
         delay(timeDelay);
         timeDelay = td;
-        fillScreen(textbgcolor);
+        fillScreen(_textbgcolor);
       }
     }
 
     setCursor(cursorX, cursorY);
-    drawGlyph(_clip, gUnicode[i]);
+    drawGlyph(_clip, _cursor, gUnicode[i], _textcolor, _textbgcolor);
     cursorX += gxAdvance[i];
     yield();
   }
 
   delay(timeDelay);
-  fillScreen(textbgcolor);
+  fillScreen(_textbgcolor);
 }
 

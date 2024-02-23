@@ -66,7 +66,7 @@ class TFT_eSprite : public TFT_eSPI {
   void     drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color) override;
 
            // Draw a single character in the GLCD or GFXFF font
-  void     drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size) override,
+  void     drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t c, uint32_t color, uint32_t bg) override,
 
            // Fill Sprite with a colour
            fillSprite(uint32_t color),
@@ -140,8 +140,11 @@ class TFT_eSprite : public TFT_eSPI {
   bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y);
   bool     pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, uint16_t transparent);
 
+  void     drawCharRLE_1(int32_t width, int32_t height, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address) override;
+  void     drawCharRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, uint16_t height, int16_t textsize, uint16_t textcolor, uint32_t flash_address) override;
+
            // Draw a single character in the selected font
-  int16_t  drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t y, uint8_t font) override;
+  int16_t  drawChar(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t uniCode, uint32_t textcolor, uint32_t textbgcolor) override;
 
            // Return the width and height of the sprite
   int16_t  width(void), // override,
@@ -149,7 +152,7 @@ class TFT_eSprite : public TFT_eSPI {
 
            // Functions associated with anti-aliased fonts
            // Draw a single unicode character using the loaded font
-  void     drawGlyph(wh_clip_t& clip, uint16_t code) override;
+  void     drawGlyph(wh_clip_t& clip, cursor_t& cursor, uint16_t code, uint32_t textcolor, uint32_t textbgcolor) override;
            // Print string to sprite using loaded font at cursor position
   void     printToSprite(String string);
            // Print char array to sprite using loaded font at cursor position

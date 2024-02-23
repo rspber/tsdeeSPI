@@ -66,7 +66,7 @@ void TFT_eSPI_Button::drawButton(bool inverted, String long_name) {
   _gfx->fillRoundRect(_x1, _y1, _w, _h, r, fill);
   _gfx->drawRoundRect(_x1, _y1, _w, _h, r, outline);
 
-  if (_gfx->textfont == 255) {
+  if (_gfx->getTextFont() == 255) {
     _gfx->setCursor(_x1 + (_w / 8),
                     _y1 + (_h / 4));
     _gfx->setTextColor(text);

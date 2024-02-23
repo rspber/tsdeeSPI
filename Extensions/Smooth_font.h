@@ -22,7 +22,7 @@
   void     unloadFont( void );
   bool     getUnicodeIndex(uint16_t unicode, uint16_t *index);
 
-  virtual void drawGlyph(wh_clip_t& clip, uint16_t code);
+  virtual void drawGlyph(wh_clip_t& clip, cursor_t& cursor, uint16_t code, uint32_t textcolor, uint32_t textbgcolor);
 
  // This is for the whole font
   typedef struct

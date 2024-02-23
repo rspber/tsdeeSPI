@@ -49,6 +49,22 @@
 /***************************************************************************************
 **                         Section 5: Font datum enumeration
 ***************************************************************************************/
+//These enumerate the text plotting alignment (reference datum point)
+#define TL_DATUM 0 // Top left (default)
+#define TC_DATUM 1 // Top centre
+#define TR_DATUM 2 // Top right
+#define ML_DATUM 3 // Middle left
+#define CL_DATUM 3 // Centre left, same as above
+#define MC_DATUM 4 // Middle centre
+#define CC_DATUM 4 // Centre centre, same as above
+#define MR_DATUM 5 // Middle right
+#define CR_DATUM 5 // Centre right, same as above
+#define BL_DATUM 6 // Bottom left
+#define BC_DATUM 7 // Bottom centre
+#define BR_DATUM 8 // Bottom right
+#define L_BASELINE  9 // Left character baseline (Line the 'A' character would sit on)
+#define C_BASELINE 10 // Centre character baseline
+#define R_BASELINE 11 // Right character baseline
 
 /***************************************************************************************
 **                         Section 6: Colour enumeration
@@ -180,25 +196,23 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 
   TFT_eSPI(int16_t _W = TFT_WIDTH, int16_t _H = TFT_HEIGHT);
 
-  void             drawPixel(int32_t x, int32_t y, uint32_t color);
+  // These are virtual so the TFT_eSprite class can override them with sprite specific functions
+  void     drawPixel(int32_t x, int32_t y, uint32_t color),
+           drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t textsize),
+           drawLine(int32_t xs, int32_t ys, int32_t xe, int32_t ye, uint32_t color),
+           drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color),
+           drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color),
+           fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color);
+
+  int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t textfont),
+           drawChar(uint16_t uniCode, int32_t x, int32_t y),
+           height(void),
+           width(void);
 
                    // Read the colour of a pixel at x,y and return value in 565 format
-  uint16_t         readPixel(int32_t x, int32_t y);
+  uint16_t readPixel(int32_t x, int32_t y);
 
-  // These are virtual so the TFT_eSprite class can override them with sprite specific functions
-  void
-                   drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size),
-                   drawLine(int32_t xs, int32_t ys, int32_t xe, int32_t ye, uint32_t color),
-                   drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color),
-                   drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color),
-                   fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color);
-
-  int16_t          drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font),
-                   drawChar(uint16_t uniCode, int32_t x, int32_t y),
-                   height(void),
-                   width(void);
-
-  void             setRotationSizes(uint8_t r) override;
+  void     setRotationSizes(uint8_t r) override;
 
   // Change the origin position from the default top left
   // Note: setRotation, setViewport and resetViewport will revert origin to top left corner of screen/sprite
@@ -219,10 +233,6 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 
            // Write a set of pixels stored in memory, use setSwapBytes(true/false) function to correct endianess
   void     pushPixels(const void * data_in, uint32_t len);
-
-           // The next functions can be used as a pair to copy screen blocks (or horizontal/vertical lines) to another location
-           // Read a block of pixels to a data buffer, buffer is 16 bit and the size must be at least w * h
-  void     readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
 
   // Graphics drawing
   void     fillScreen(uint32_t color),
@@ -311,6 +321,9 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   int16_t  getPivotX(void), // Get pivot x
            getPivotY(void); // Get pivot y
 
+           // The next functions can be used as a pair to copy screen blocks (or horizontal/vertical lines) to another location
+           // Read a block of pixels to a data buffer, buffer is 16 bit and the size must be at least w * h
+  void     readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
            // Write a block of pixels to the screen which have been read by readRect()
   void     pushRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
 
@@ -333,21 +346,11 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            // Render a 16 bit colour image with a 1bpp mask
   void     pushMaskedImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask);
 
-           // Push an image to the TFT using DMA, buffer is optional and grabs (double buffers) a copy of the image
-           // Use the buffer if the image data will get over-written or destroyed while DMA is in progress
-           //
-           // Note 1: If swapping colour bytes is defined, and the double buffer option is NOT used, then the bytes
-           // in the original image buffer content will be byte swapped by the function before DMA is initiated.
-           //
-           // Note 2: If part of the image will be off screen or outside of a set viewport, then the the original
-           // image buffer content will be altered to a correctly clipped image before DMA is initiated.
-           //
-           // The function will wait for the last DMA to complete if it is called while a previous DMA is still
-           // in progress, this simplifies the sketch and helps avoid "gotchas".
-  void     pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer = nullptr);
+           // This next function has been used successfully to dump the TFT screen to a PC for documentation purposes
+           // It reads a screen area and returns the 3 RGB 8 bit colour values of each pixel in the buffer
+           // Set w and h to 1 to read 1 pixel's colour. The data buffer must be at least w * h * 3 bytes
+  void     readRectRGB(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data);
 
-           // Push a block of pixels into a window set up using setAddrWindow()
-  void     pushPixelsDMA(uint16_t* image, uint32_t len);
 
   // Text rendering - value returned is the pixel width of the rendered text
   int16_t  drawNumber(long intNumber, int32_t x, int32_t y, uint8_t font), // Draw integer using specified font number
@@ -370,16 +373,65 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            drawCentreString(const String& string, int32_t x, int32_t y, uint8_t font),// Deprecated, use setTextDatum() and drawString()
            drawRightString(const String& string, int32_t x, int32_t y, uint8_t font); // Deprecated, use setTextDatum() and drawString()
 
-  int16_t
+
+  // Text rendering and font handling support funtions
+  void     setCursor(int16_t x, int16_t y),                 // Set cursor for tft.print()
+           setCursor(int16_t x, int16_t y, uint8_t font);   // Set cursor and font number for tft.print()
+
+  int16_t  getCursorX(void),                                // Read current cursor x position (moves with tft.print())
+           getCursorY(void);                                // Read current cursor y position
+
+  void     setTextColor(uint16_t color),                    // Set character (glyph) color only (background not over-written)
+           setTextColor(uint16_t fgcolor, uint16_t bgcolor, bool bgfill = false),  // Set character (glyph) foreground and background colour, optional background fill for smooth fonts
+           setTextSize(uint8_t size);                       // Set character size multiplier (this increases pixel size)
+
+  void     setTextWrap(bool wrapX, bool wrapY = false);     // Turn on/off wrapping of text in TFT width and/or height
+
+  void     setTextDatum(uint8_t datum);                     // Set text datum position (default is top left), see Section 6 above
+  uint8_t  getTextDatum(void);
+
+  void     setTextPadding(uint16_t x_width);                // Set text padding (background blanking/over-write) width in pixels
+  uint16_t getTextPadding(void);                            // Get text padding
+
+#ifdef LOAD_GFXFF
+  void     setFreeFont(const GFXfont *f = NULL),            // Select the GFX Free Font
+           setTextFont(uint8_t font);                       // Set the font number to use in future
+#else
+  void     setFreeFont(uint8_t font),                       // Not used, historical fix to prevent an error
+           setTextFont(uint8_t font);                       // Set the font number to use in future
+#endif
+  uint8_t  getTextFont();
+
+  int16_t  textWidth(const char *string, uint8_t font),     // Returns pixel width of string in specified font
            textWidth(const char *string),                   // Returns pixel width of string in current font
            textWidth(const String& string, uint8_t font),   // As above for String types
            textWidth(const String& string),
+           fontHeight(uint8_t font),                        // Returns pixel height of specified font
            fontHeight(void);                                // Returns pixel height of current font
 
            // Support function to UTF8 decode and draw characters piped through print stream
   size_t   write(uint8_t utf8) override;
            // size_t   write(const uint8_t *buf, size_t len);
 
+           // Push an image to the TFT using DMA, buffer is optional and grabs (double buffers) a copy of the image
+           // Use the buffer if the image data will get over-written or destroyed while DMA is in progress
+           //
+           // Note 1: If swapping colour bytes is defined, and the double buffer option is NOT used, then the bytes
+           // in the original image buffer content will be byte swapped by the function before DMA is initiated.
+           //
+           // Note 2: If part of the image will be off screen or outside of a set viewport, then the the original
+           // image buffer content will be altered to a correctly clipped image before DMA is initiated.
+           //
+           // The function will wait for the last DMA to complete if it is called while a previous DMA is still
+           // in progress, this simplifies the sketch and helps avoid "gotchas".
+  void     pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer = nullptr);
+
+#if defined (ESP32) // ESP32 only at the moment
+           // For case where pointer is a const and the image data must not be modified (clipped or byte swapped)
+  void     pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t const* data);
+#endif
+           // Push a block of pixels into a window set up using setAddrWindow()
+  void     pushPixelsDMA(uint16_t* image, uint32_t len);
   // Set/get an arbitrary library configuration attribute or option
   //       Use to switch ON/OFF capabilities such as UTF8 decoding - each attribute has a unique ID
   //       id = 0: reserved - may be used in future to reset all attributes to a default state
@@ -395,6 +447,8 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            // Used for diagnostic sketch to see library setup adopted by compiler, see Section 7 above
   void     getSetup(setup_t& tft_settings); // Sketch provides the instance to populate
   bool     verifySetupID(uint32_t id);
+
+  using TFT_eeSPI::readRectRGB;
 
   using TFT_GFX::drawPixel;
   using TFT_GFX::readPixel;
@@ -436,17 +490,20 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   using TFT_CHAR::fontHeight;
   using TFT_CHAR::write;
   using TFT_CHAR::drawChar;
-  using TFT_CHAR::drawNumber;
-  using TFT_CHAR::drawFloat;
-  using TFT_CHAR::drawString;
-  using TFT_CHAR::drawCentreString;
-  using TFT_CHAR::drawRightString;
 
 #ifdef SMOOTH_FONT
   void     showFont(uint32_t td);
 #endif
 
- //-------------------------------------- protected ----------------------------------//
+ private:
+  uint32_t _textcolor, _textbgcolor;         // Text foreground and background colours
+  uint32_t _bitmap_fg, _bitmap_bg;           // Bitmap foreground (bit=1) and background (bit=0) colours
+
+  font_t _font;
+
+  uint8_t  _textdatum; // Text reference datum
+
+  //-------------------------------------- protected ----------------------------------//
  protected:
 
   //int32_t  win_xe, win_ye;          // Window end coords - not needed
@@ -464,6 +521,10 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   int32_t  _xWidth;
   int32_t  _yHeight;
   bool     _vpDatum;
+
+ private:
+  cursor_t _cursor;
+  int32_t  _padX;       // Text cursor x,y and padding setting
 
   bool     _swapBytes; // Swap the byte order for TFT pushImage()
 

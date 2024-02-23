@@ -118,7 +118,7 @@ typedef struct {
 // Now fill the structure
 const PROGMEM fontinfo fontdata [] = {
   #ifdef LOAD_GLCD
-   { (const uint8_t *)font, widtbl_null, 0, 0 },
+   { (const uint8_t *)glcdfont, widtbl_null, 0, 0 },
   #else
    { (const uint8_t *)chrtbl_null, widtbl_null, 0, 0 },
   #endif
@@ -162,25 +162,23 @@ const PROGMEM fontinfo fontdata [] = {
   #endif
 };
 
+typedef struct {
+#ifdef LOAD_GFXFF
+  GFXfont  *gfxFont = 0;
+#endif
+  uint8_t  font,  // Current selected font number
+           size;  // Current font size multiplier
+} font_t;
+
+typedef struct {
+
+  int32_t x, y;
+
+} cursor_t;
+
 /***************************************************************************************
 **                         Section 5: Font datum enumeration
 ***************************************************************************************/
-//These enumerate the text plotting alignment (reference datum point)
-#define TL_DATUM 0 // Top left (default)
-#define TC_DATUM 1 // Top centre
-#define TR_DATUM 2 // Top right
-#define ML_DATUM 3 // Middle left
-#define CL_DATUM 3 // Centre left, same as above
-#define MC_DATUM 4 // Middle centre
-#define CC_DATUM 4 // Centre centre, same as above
-#define MR_DATUM 5 // Middle right
-#define CR_DATUM 5 // Centre right, same as above
-#define BL_DATUM 6 // Bottom left
-#define BC_DATUM 7 // Bottom centre
-#define BR_DATUM 8 // Bottom right
-#define L_BASELINE  9 // Left character baseline (Line the 'A' character would sit on)
-#define C_BASELINE 10 // Centre character baseline
-#define R_BASELINE 11 // Right character baseline
 
 /***************************************************************************************
 **                         Section 6: Colour enumeration
@@ -204,106 +202,53 @@ class TFT_CHAR : public TFT_GFX { friend class TFT_eSprite;
 
   TFT_CHAR();
 
-  virtual void     drawChar(clip_t& clip, int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size);
+  virtual void     drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t c, uint32_t color, uint32_t bg);
 
-  virtual int16_t  drawChar(clip_t& clip, uint16_t uniCode, int32_t x, int32_t y, uint8_t font);
+  virtual int16_t  drawChar(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t uniCode, uint32_t textcolor, uint32_t textgbcolor);
 
-  // Text rendering - value returned is the pixel width of the rendered text
-  int16_t  drawNumber(wh_clip_t& clip, long intNumber, int32_t x, int32_t y, uint8_t font), // Draw integer using specified font number
+  virtual  void    drawCharFont2(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address);
+  virtual  void    drawCharRLE_1(int32_t width, int32_t height, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address);
+  virtual  void    drawCharRLE_3(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address);
 
-           // Decimal is the number of decimal places to render
-           // Use with setTextDatum() to position values on TFT, and setTextPadding() to blank old displayed values
-           drawFloat(wh_clip_t& clip, float floatNumber, uint8_t decimal, int32_t x, int32_t y, uint8_t font), // Draw float using specified font number
-
-           // Handle char arrays
-           // Use with setTextDatum() to position string on TFT, and setTextPadding() to blank old displayed strings
-           drawString(wh_clip_t& clip, const char *string, int32_t x, int32_t y, uint8_t font),  // Draw string using specified font number
-
-           drawCentreString(wh_clip_t& clip, const char *string, int32_t x, int32_t y, uint8_t font),  // Deprecated, use setTextDatum() and drawString()
-           drawRightString(wh_clip_t& clip, const char *string, int32_t x, int32_t y, uint8_t font);   // Deprecated, use setTextDatum() and drawString()
+  int16_t  textWidth(font_t& font, const char *string),     // Returns pixel width of string in specified font, cursor_t& cursor
+           fontHeight(font_t& font);                        // Returns pixel height of specified font
 
            // Used by Smooth font class to fetch a pixel colour for the anti-aliasing
   void     setCallback(getColorCallback getCol);
-
-  // Text rendering and font handling support funtions
-  void     setCursor(int16_t x, int16_t y),                 // Set cursor for tft.print()
-           setCursor(int16_t x, int16_t y, uint8_t font);   // Set cursor and font number for tft.print()
-
-  int16_t  getCursorX(void),                                // Read current cursor x position (moves with tft.print())
-           getCursorY(void);                                // Read current cursor y position
-
-  void     setTextColor(uint16_t color),                    // Set character (glyph) color only (background not over-written)
-           setTextColor(uint16_t fgcolor, uint16_t bgcolor, bool bgfill = false),  // Set character (glyph) foreground and background colour, optional background fill for smooth fonts
-           setTextSize(uint8_t size);                       // Set character size multiplier (this increases pixel size)
-
-  void     setTextWrap(bool wrapX, bool wrapY = false);     // Turn on/off wrapping of text in TFT width and/or height
-
-  void     setTextDatum(uint8_t datum);                     // Set text datum position (default is top left), see Section 6 above
-  uint8_t  getTextDatum(void);
-
-  void     setTextPadding(uint16_t x_width);                // Set text padding (background blanking/over-write) width in pixels
-  uint16_t getTextPadding(void);                            // Get text padding
-
-#ifdef LOAD_GFXFF
-  void     setFreeFont(const GFXfont *f = NULL),            // Select the GFX Free Font
-           setTextFont(uint8_t font);                       // Set the font number to use in future
-#else
-  void     setFreeFont(uint8_t font),                       // Not used, historical fix to prevent an error
-           setTextFont(uint8_t font);                       // Set the font number to use in future
-#endif
-
-  int16_t  textWidth(const char *string, uint8_t font),     // Returns pixel width of string in specified font
-           fontHeight(int16_t font);                        // Returns pixel height of specified font
 
            // Used by library and Smooth font class to extract Unicode point codes from a UTF8 encoded string
   uint16_t decodeUTF8(uint8_t *buf, uint16_t *index, uint16_t remaining),
            decodeUTF8(uint8_t c);
 
            // Support function to UTF8 decode and draw characters piped through print stream
-  size_t   write(wh_clip_t& clip, uint8_t utf8);
+  size_t   write(wh_clip_t& clip, cursor_t& cursor, font_t& font, uint8_t utf8, uint32_t textcolor, uint32_t textbgcolor);
            // size_t   write(const uint8_t *buf, size_t len);
 
   uint16_t fontsLoaded(void); // Each bit in returned value represents a font type that is loaded - used for debug/error handling only
 
-  uint32_t textcolor, textbgcolor;         // Text foreground and background colours
-
-  uint32_t bitmap_fg, bitmap_bg;           // Bitmap foreground (bit=1) and background (bit=0) colours
-
-  uint8_t  textfont,  // Current selected font number
-           textsize,  // Current font size multiplier
-           textdatum; // Text reference datum
-
   uint8_t  decoderState = 0;   // UTF8 decoder state        - not for user access
   uint16_t decoderBuffer;      // Unicode code-point buffer - not for user access
 
+ //--------------------------------------- private ------------------------------------//
  protected:
+
+  getColorCallback getColor = nullptr; // Smooth font callback function pointer
+
+  int32_t  _bg_cursor_x;                    // Background fill cursor
+  int32_t  _last_cursor_x;                  // Previous text cursor position when fill used
+
+  uint32_t _fontsloaded;               // Bit field of fonts loaded
+
+  uint8_t  _glyph_ab,   // Smooth font glyph delta Y (height) above baseline
+           _glyph_bb;   // Smooth font glyph delta Y (height) below baseline
+
+  bool     _isDigits;   // adjust bounding box for numbers to reduce visual jiggling
+  bool     _textwrapX, _textwrapY;  // If set, 'wrap' text at right and optionally bottom edge of display
                        // User sketch manages these via set/getAttribute()
   bool     _cp437;        // If set, use correct CP437 charset (default is ON)
   bool     _utf8;         // If set, use UTF-8 decoder in print stream 'write()' function (default ON)
 
   bool     _fillbg;    // Fill background flag (just for for smooth fonts at the moment)
-
- //--------------------------------------- private ------------------------------------//
- private:
-
-  getColorCallback getColor = nullptr; // Smooth font callback function pointer
-
-  int32_t  cursor_x, cursor_y, padX;       // Text cursor x,y and padding setting
-  int32_t  bg_cursor_x;                    // Background fill cursor
-  int32_t  last_cursor_x;                  // Previous text cursor position when fill used
-
-  uint32_t fontsloaded;               // Bit field of fonts loaded
-
-  uint8_t  glyph_ab,   // Smooth font glyph delta Y (height) above baseline
-           glyph_bb;   // Smooth font glyph delta Y (height) below baseline
-
-  bool     isDigits;   // adjust bounding box for numbers to reduce visual jiggling
-  bool     textwrapX, textwrapY;  // If set, 'wrap' text at right and optionally bottom edge of display
-
-#ifdef LOAD_GFXFF
-  GFXfont  *gfxFont = 0;
-#endif
-
 /***************************************************************************************
 **                         Section 9: TFT_eSPI class conditional extensions
 ***************************************************************************************/
