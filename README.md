@@ -96,6 +96,6 @@ Other notes:
 
 1. All changes will be successively applied in tsdesktop (and TFT_eSPI_light to maintain compilation in pico-sdk mainly).
 
-2. Due to the fact that the support for processors and protocols in tsdesktop and TFT_eSPI_light was built based on TFT_eSPI and is only fragmentary: It may happen that the tsdesktop and TFT_eSPI_light projects will be reduced to pico-sdk only and will be based on tsdeeSPI.
+2. Projects tsdesktop and TFT_eSPI_light will keep up with changes to get various aspects implemented in them, including educational ones.
 
 3. In order to maintain 100% compatibility with the TFT_eSPI library, a branch or a separate project will be created in which only those changes that do not conflict with the currently operating TFT_eSPI library will be implemented.
