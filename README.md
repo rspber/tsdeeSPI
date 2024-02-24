@@ -63,6 +63,10 @@ https://youtube.com/shorts/jzjth5kYvA4 TFT_eSPI
 
 https://youtube.com/shorts/YY17d5BoMTI tsdeeSPI
 
+* example https://www.youtube.com/watch?v=U4jOFLFNZBI work, but there is not enough memory in ESP32/RP2040 to maintain 320x240 background sprite.
+
+Example https://youtube.com/shorts/vQo6OsArblg arrow shows it.
+
 #### Sprite and DMA tested, I think these tests are enough.
 
 Let's try to draw up a short plan, what to do next:
