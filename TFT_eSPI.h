@@ -178,13 +178,13 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 
   // These are virtual so the TFT_eSprite class can override them with sprite specific functions
   void     drawPixel(int32_t x, int32_t y, uint32_t color),
-           drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t textsize),
+           drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size),
            drawLine(int32_t xs, int32_t ys, int32_t xe, int32_t ye, uint32_t color),
            drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color),
            drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color),
            fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color);
 
-  int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t textfont),
+  int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font),
            drawChar(uint16_t uniCode, int32_t x, int32_t y);
   virtual  int16_t height(void);
   virtual  int16_t width(void);
@@ -507,6 +507,10 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   int32_t  _padX;       // Text cursor x,y and padding setting
 
   bool     _swapBytes; // Swap the byte order for TFT pushImage()
+
+/***************************************************************************************
+**                         Section 9: TFT_eSPI class conditional extensions
+***************************************************************************************/
 
 }; // End of class TFT_eSPI
 
