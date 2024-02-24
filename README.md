@@ -77,6 +77,11 @@ But,...but,....but, in tsdesktop buffered screen is maintaned by GFXButton objec
 
 Although in some situations, e.g. image rotation (and _bpp = 16), the readPixel function in sprite refers directly to the parent screen, especially the physical screen, so other effects implemented in the sprite should be expected.
 
+And, after thought, I have an idea I must check:
+If we assume that the sprite moves only one pixel in any direction each time, there is no need to repaint the entire background each time. Just create a background sprite 1 pixel wider than the painted image which is sprite too in it, and each time recreate the fragmentary background in sprite memory and then the image on it and move not the image but this background on the screen.
+
+I hear that some people are laughing because already the Yetis used this technique to disappear in snow, but whatever, I'll write it.
+
 #### Sprite and DMA tested, I think these tests are enough.
 
 Let's try to draw up a short plan, what to do next:
