@@ -12,6 +12,8 @@ TFT_eSprite bg = TFT_eSprite(&tft);
 int x = 20;
 
 void setup() {
+  Serial.begin(9600);
+
   tft.init();
   tft.setRotation(1);
   tft.setSwapBytes(true);

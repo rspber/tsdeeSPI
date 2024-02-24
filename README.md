@@ -67,7 +67,7 @@ https://youtube.com/shorts/YY17d5BoMTI tsdeeSPI
 
 Example https://youtube.com/shorts/vQo6OsArblg arrow shows it.
 
-Some bug in tsdeeSPI occured with background sprite width, it's with rotation I suppose.
+Some bug in tsdeeSPI occured with background sprite width, it's with rotation I suppose. And I see it depends on _vpDatum value. Thank God it's not a Schrodingers cat type variable, which has no value until it's read.
 
 And what have we learned so far about sprites. It seems that the sprite feels best on a buffered screen, i.e. background. All drawings are created on the background stored in memory (with transparent effect too), and then the entire background is displayed and the flickering effect does not appear.
 
