@@ -69,6 +69,12 @@ Example https://youtube.com/shorts/vQo6OsArblg arrow shows it.
 
 Some bug in tsdeeSPI occured with background sprite width, it's with rotation I suppose.
 
+And what have we learned so far about sprites. It seems that the sprite feels best on a buffered screen, i.e. background. All drawings are created on the background stored in memory (with transparent effect too), and then the entire background is displayed and the flickering effect does not appear.
+
+But,...but,....but, in tsdesktop buffered screen is maintaned by GFXButton object (example canvas3) and what I did wrong is that I forgot to name it sprite. It's a joke for now. Sprite has some effects that are not implemented yet in GTXButton, but who knows in the future.
+
+Although in some situations, e.g. image rotation (and _bpp = 16), the readPixel function in sprite refers directly to the parent screen, especially the physical screen, so other effects implemented in the sprite should be expected.
+
 #### Sprite and DMA tested, I think these tests are enough.
 
 Let's try to draw up a short plan, what to do next:
