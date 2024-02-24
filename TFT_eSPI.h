@@ -185,9 +185,9 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color);
 
   int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t textfont),
-           drawChar(uint16_t uniCode, int32_t x, int32_t y),
-           height(void),
-           width(void);
+           drawChar(uint16_t uniCode, int32_t x, int32_t y);
+  virtual  int16_t height(void);
+  virtual  int16_t width(void);
 
                    // Read the colour of a pixel at x,y and return value in 565 format
   uint16_t readPixel(int32_t x, int32_t y);

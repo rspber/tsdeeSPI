@@ -198,8 +198,8 @@ class TFT_eSprite : public TFT_eSPI {
   int16_t  drawChar(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t uniCode, uint32_t textcolor, uint32_t textbgcolor) override;
 
            // Return the width and height of the sprite
-  int16_t  width(void), // override,
-           height(void); // override;
+  int16_t  width(void) override,
+           height(void) override;
 
            // Functions associated with anti-aliased fonts
            // Draw a single unicode character using the loaded font
