@@ -67,6 +67,8 @@ https://youtube.com/shorts/YY17d5BoMTI tsdeeSPI
 
 Example https://youtube.com/shorts/vQo6OsArblg arrow shows it.
 
+Some bug in tsdeeSPI occured with background sprite width, it's with rotation I suppose.
+
 #### Sprite and DMA tested, I think these tests are enough.
 
 Let's try to draw up a short plan, what to do next:
