@@ -82,6 +82,14 @@ If we assume that the sprite moves only one pixel in any direction each time, th
 
 I hear that some people are laughing because already the Yetis used this technique to disappear in snow, but whatever, I'll write it.
 
+And I found that there is already an example that uses this technique:
+Sprite_draw:
+Line 98:
+
+  // Draw a blue rectangle in sprite so when we move it 1 pixel it does not leave a trail
+  // on the blue screen background
+  spr.drawRect(0, 0, WIDTH, HEIGHT, TFT_BLUE);
+
 #### Sprite and DMA tested, I think these tests are enough.
 
 Let's try to draw up a short plan, what to do next:
