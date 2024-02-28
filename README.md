@@ -51,8 +51,6 @@ And, after thought, I have an idea I must check:
 
 If we assume that the sprite moves only one pixel in any direction each time, there is no need to repaint the entire background each time. Just create a background sprite 1 pixel wider than the painted image on it, and each time recreate the fragmentary background in sprite memory and then the image on it at position (1,1, width-2, height-2) enouch, but not (0,0) and move not the image but this background on the screen.
 
-I hear that some people are laughing because already the Yetis use this technique to disappear into the snow, but whatever, I'll write it.
-
 And I found that there is already an example that uses this technique:
     Sprite_draw:
     Line 98:
