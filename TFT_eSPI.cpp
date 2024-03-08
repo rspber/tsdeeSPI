@@ -9,7 +9,7 @@
 */
 
 /***************************************************
-  Arduino TFT graphics library targeted at 32 bit
+  Arduino TFT graphics library targeted at 32-bit
   processors such as ESP32, ESP8266 and STM32.
 
   This is a stand-alone library that contains the
@@ -311,7 +311,7 @@ void TFT_eSPI::pushRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *da
 
 /***************************************************************************************
 ** Function name:           pushImage
-** Description:             plot 16 bit colour sprite or image onto TFT
+** Description:             plot 16-bit colour sprite or image onto TFT
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
 {
@@ -320,7 +320,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 
 /***************************************************************************************
 ** Function name:           pushImage
-** Description:             plot 16 bit sprite or image with 1 colour being transparent
+** Description:             plot 16-bit sprite or image with 1 colour being transparent
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transp)
 {
@@ -330,7 +330,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 
 /***************************************************************************************
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
-** Description:             plot 16 bit image
+** Description:             plot 16-bit image
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data)
 {
@@ -339,7 +339,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 
 /***************************************************************************************
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
-** Description:             plot 16 bit image with 1 colour being transparent
+** Description:             plot 16-bit image with 1 colour being transparent
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, uint16_t transp)
 {
@@ -348,7 +348,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint1
 
 /***************************************************************************************
 ** Function name:           pushImage
-** Description:             plot 8 bit or 4 bit or 1 bit image or sprite using a line buffer
+** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8,  uint16_t *cmap)
 {
@@ -358,7 +358,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8
 
 /***************************************************************************************
 ** Function name:           pushImage
-** Description:             plot 8 bit or 4 bit or 1 bit image or sprite using a line buffer
+** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
 void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, bool bpp8,  uint16_t *cmap)
 {
@@ -377,7 +377,7 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *da
 
 /***************************************************************************************
 ** Function name:           pushMaskedImage
-** Description:             Render a 16 bit colour image to TFT with a 1bpp mask
+** Description:             Render a 16-bit colour image to TFT with a 1bpp mask
 ***************************************************************************************/
 // Can be used with a 16bpp sprite and a 1bpp sprite for the mask
 void TFT_eSPI::pushMaskedImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask)
@@ -428,7 +428,7 @@ void TFT_eSPI::pushPixelsDMA(uint16_t* image, uint32_t len)
 
 /***************************************************************************************
 ** Function name:           setSwapBytes
-** Description:             Used by 16 bit pushImage() to swap byte order in colours
+** Description:             Used by 16-bit pushImage() to swap byte order in colours
 ***************************************************************************************/
 void TFT_eSPI::setSwapBytes(bool swap)
 {
@@ -628,7 +628,7 @@ void TFT_eSPI::setCursor(int16_t x, int16_t y)
 ***************************************************************************************/
 void TFT_eSPI::setCursor(int16_t x, int16_t y, uint8_t textfont)
 {
-  _font.font = textfont;
+  setTextFont(textfont);
   _cursor.x = x;
   _cursor.y = y;
 }
@@ -840,6 +840,8 @@ int16_t TFT_eSPI::textWidth(const char *string)
 ***************************************************************************************/
 int16_t TFT_eSPI::fontHeight(uint8_t textfont)
 {
+  if (textfont > 8) return 0;
+
   font_t tmp = _font;
   tmp.font = textfont;
   return fontHeight(tmp);

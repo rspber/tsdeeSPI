@@ -9,7 +9,7 @@
 */
 
 /***************************************************
-  Arduino TFT graphics library targeted at 32 bit
+  Arduino TFT graphics library targeted at 32-bit
   processors such as ESP32, ESP8266 and STM32.
 
   This is a stand-alone library that contains the
@@ -39,7 +39,7 @@ TFT_CHAR::TFT_CHAR() : TFT_GFX()
 
   _fontsloaded = 0;
 
-  _cp437    = true;     // Legacy GLCD font bug fix
+  _cp437    = false;    // Legacy GLCD font bug fix disabled by default
   _utf8     = true;     // UTF8 decoding enabled
 
 #if defined (FONT_FS_AVAILABLE) && defined (SMOOTH_FONT)
@@ -161,7 +161,7 @@ int16_t TFT_CHAR::textWidth(font_t& font, const char *string)
 
 /***************************************************************************************
 ** Function name:           fontsLoaded
-** Description:             return an encoded 16 bit value showing the fonts loaded
+** Description:             return an encoded 16-bit value showing the fonts loaded
 ***************************************************************************************/
 // Returns a value showing which fonts are loaded (bit N set =  Font N loaded)
 uint16_t TFT_CHAR::fontsLoaded(void)
@@ -176,6 +176,8 @@ uint16_t TFT_CHAR::fontsLoaded(void)
 ***************************************************************************************/
 int16_t TFT_CHAR::fontHeight(font_t& font)
 {
+  if (font.font > 8) return 0;
+
 #ifdef SMOOTH_FONT
   if(fontLoaded) return gFont.yAdvance;
 #endif
@@ -204,8 +206,6 @@ void TFT_CHAR::drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, font_t& font,
   #endif
 //>>>>>>>>>>>>>>>>>>
 
-  if (c > 255) return;
-
   int32_t xd = cursor.x + clip.xDatum;
   int32_t yd = cursor.y + clip.yDatum;
 
@@ -217,6 +217,9 @@ void TFT_CHAR::drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, font_t& font,
       (yd + 8 * font.size - 1 < clip.y1))   // Clip top
     return;
 
+  if (c > 255) return;
+  if (!_cp437 && c > 175) c++;
+
   bool fillbg = (bg != color);
   bool offclip = xd < clip.x1 || xd + 6  * font.size >= clip.x2 || yd < clip.y1 || yd + 8 * font.size >= clip.y2;
 
@@ -227,7 +230,7 @@ void TFT_CHAR::drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, font_t& font,
 
     setWindow(xd, yd, 6, 8);
 
-    drawCharDefault(glcdfont + (c * 5), color, bg);
+    drawCharDefault(&glcdfont[0] + (c * 5), color, bg);
 
     end_tft_write();
   }
@@ -240,7 +243,7 @@ void TFT_CHAR::drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, font_t& font,
       if (i == 5)
         line = 0x0;
       else
-        line = pgm_read_byte(glcdfont + (c * 5) + i);
+        line = pgm_read_byte(&glcdfont[0] + (c * 5) + i);
 
       if (font.size == 1 && !fillbg) { // default size
         for (int8_t j = 0; j < 8; j++) {
@@ -334,26 +337,26 @@ uint16_t TFT_CHAR::decodeUTF8(uint8_t c)
 {
   if (!_utf8) return c;
 
-  // 7 bit Unicode Code Point
+  // 7-bit Unicode Code Point
   if ((c & 0x80) == 0x00) {
     decoderState = 0;
     return c;
   }
 
   if (decoderState == 0) {
-    // 11 bit Unicode Code Point
+    // 11-bit Unicode Code Point
     if ((c & 0xE0) == 0xC0) {
       decoderBuffer = ((c & 0x1F)<<6);
       decoderState = 1;
       return 0;
     }
-    // 16 bit Unicode Code Point
+    // 16-bit Unicode Code Point
     if ((c & 0xF0) == 0xE0) {
       decoderBuffer = ((c & 0x0F)<<12);
       decoderState = 2;
       return 0;
     }
-    // 21 bit Unicode  Code Point not supported so fall-back to extended ASCII
+    // 21-bit Unicode Code Point not supported so fall-back to extended ASCII
     // if ((c & 0xF8) == 0xF0) return c;
   }
   else {
@@ -386,21 +389,24 @@ uint16_t TFT_CHAR::decodeUTF8(uint8_t *buf, uint16_t *index, uint16_t remaining)
 
   if (!_utf8) return c;
 
-  // 7 bit Unicode
+  // 7-bit Unicode
   if ((c & 0x80) == 0x00) return c;
 
-  // 11 bit Unicode
+  // 11-bit Unicode
   if (((c & 0xE0) == 0xC0) && (remaining > 1))
     return ((c & 0x1F)<<6) | (buf[(*index)++]&0x3F);
 
-  // 16 bit Unicode
+  // 16-bit Unicode
   if (((c & 0xF0) == 0xE0) && (remaining > 2)) {
     c = ((c & 0x0F)<<12) | ((buf[(*index)++]&0x3F)<<6);
     return  c | ((buf[(*index)++]&0x3F));
   }
 
-  // 21 bit Unicode not supported so fall-back to extended ASCII
-  // if ((c & 0xF8) == 0xF0) return c;
+  // 21-bit Unicode not supported so fall-back to extended ASCII
+  // if (((c & 0xF8) == 0xF0) && (remaining > 3)) {
+  // c = ((c & 0x07) << 18) | ((buf[(*index)++] & 0x03F) << 12);
+  // c |= ((buf[(*index)++] & 0x3F) << 6);
+  // return c | ((buf[(*index)++] & 0x3F));
 
   return c; // fall-back to extended ASCII
 }

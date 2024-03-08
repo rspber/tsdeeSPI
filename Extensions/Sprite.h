@@ -38,7 +38,7 @@
 /***************************************************************************************
 **                         Section 6: Colour enumeration
 ***************************************************************************************/
-// Default palette for 4 bit colour sprites
+// Default palette for 4-bit colour sprites
 static const uint16_t default_4bit_palette[] PROGMEM = {
   TFT_BLACK,    //  0  ^
   TFT_BROWN,    //  1  |
@@ -74,12 +74,12 @@ class TFT_eSprite : public TFT_eSPI {
   ~TFT_eSprite(void);
 
            // Create a sprite of width x height pixels, return a pointer to the RAM area
-           // Sketch can cast returned value to (uint16_t*) for 16 bit depth if needed
+           // Sketch can cast returned value to (uint16_t*) for 16-bit depth if needed
            // RAM required is:
            //  - 1 bit per pixel for 1 bit colour depth
-           //  - 1 nibble per pixel for 4 bit colour (with palette table)
-           //  - 1 byte per pixel for 8 bit colour (332 RGB format)
-           //  - 2 bytes per pixel for 16 bit color depth (565 RGB format)
+           //  - 1 nibble per pixel for 4-bit colour (with palette table)
+           //  - 1 byte per pixel for 8-bit colour (332 RGB format)
+           //  - 2 bytes per pixel for 16-bit color depth (565 RGB format)
   void*    createSprite(int16_t width, int16_t height, uint8_t frames = 1);
 
            // Returns a pointer to the sprite or nullptr if not created, user must cast to pointer type
@@ -100,7 +100,7 @@ class TFT_eSprite : public TFT_eSPI {
   void*    setColorDepth(int8_t b);
   int8_t   getColorDepth(void);
 
-           // Set the palette for a 4 bit depth sprite.  Only the first 16 colours in the map are used.
+           // Set the palette for a 4-bit depth sprite.  Only the first 16 colours in the map are used.
   void     createPalette(uint16_t *palette = nullptr, uint8_t colors = 16);       // Palette in RAM
   void     createPalette(const uint16_t *palette = nullptr, uint8_t colors = 16); // Palette in FLASH
 
@@ -122,14 +122,14 @@ class TFT_eSprite : public TFT_eSPI {
            // Fill Sprite with a colour
            fillSprite(uint32_t color),
 
-           // Define a window to push 16 bit colour pixels into in a raster order
+           // Define a window to push 16-bit colour pixels into in a raster order
            // Colours are converted to the set Sprite colour bit depth
            setWindow(int32_t x, int32_t y, int32_t w, int32_t h) override,
            // Push a color (aka singe pixel) to the sprite's set window area
            pushColor(uint16_t color) override,
            // Push len colors (pixels) to the sprite's set window area
            pushColor(uint16_t color, uint32_t len),
-           // Push a pixel pre-formatted as a 1, 4, 8 or 16 bit colour (avoids conversion overhead)
+           // Push a pixel pre-formatted as a 1, 4, 8 or 16-bit colour (avoids conversion overhead)
            writeColor(uint16_t color), // override,
 
            // Set the scroll zone, top left corner at x,y with defined width and height
@@ -202,7 +202,7 @@ class TFT_eSprite : public TFT_eSPI {
            height(void) override;
 
            // Functions associated with anti-aliased fonts
-           // Draw a single unicode character using the loaded font
+           // Draw a single Unicode character using the loaded font
   void     drawGlyph(wh_clip_t& clip, cursor_t& cursor, uint16_t code, uint32_t textcolor, uint32_t textbgcolor) override;
            // Print string to sprite using loaded font at cursor position
   void     printToSprite(String string);
@@ -232,13 +232,13 @@ class TFT_eSprite : public TFT_eSPI {
  protected:
 
   uint8_t  _bpp;     // bits per pixel (1, 4, 8 or 16)
-  uint16_t *_img;    // pointer to 16 bit sprite
-  uint8_t  *_img8;   // pointer to  1 and 8 bit sprite frame 1 or frame 2
-  uint8_t  *_img4;   // pointer to  4 bit sprite (uses color map)
+  uint16_t *_img;    // pointer to 16-bit sprite
+  uint8_t  *_img8;   // pointer to  1 and 8-bit sprite frame 1 or frame 2
+  uint8_t  *_img4;   // pointer to  4-bit sprite (uses color map)
   uint8_t  *_img8_1; // pointer to frame 1
   uint8_t  *_img8_2; // pointer to frame 2
 
-  uint16_t *_colorMap; // color map pointer: 16 entries, used with 4 bit color map.
+  uint16_t *_colorMap; // color map pointer: 16 entries, used with 4-bit color map.
 
   int32_t  _sinra;   // Sine of rotation angle in fixed point
   int32_t  _cosra;   // Cosine of rotation angle in fixed point

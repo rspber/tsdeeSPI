@@ -24,7 +24,7 @@
 
 #pragma once
 
-#define TFT_ESPI_VERSION "2.5.34"
+#define TFT_ESPI_VERSION "2.5.43"
 
 #include "TFT_GFX.h"
 
@@ -210,11 +210,8 @@ class TFT_CHAR : public TFT_GFX { friend class TFT_eSprite;
   virtual  void    drawCharRLE_1(int32_t width, int32_t height, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address);
   virtual  void    drawCharRLE_3(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address);
 
-  int16_t  textWidth(font_t& font, const char *string),     // Returns pixel width of string in specified font, cursor_t& cursor
+  int16_t  textWidth(font_t& font, const char *string),     // Returns pixel width of string in specified font
            fontHeight(font_t& font);                        // Returns pixel height of specified font
-
-           // Used by Smooth font class to fetch a pixel colour for the anti-aliasing
-  void     setCallback(getColorCallback getCol);
 
            // Used by library and Smooth font class to extract Unicode point codes from a UTF8 encoded string
   uint16_t decodeUTF8(uint8_t *buf, uint16_t *index, uint16_t remaining),
@@ -223,6 +220,9 @@ class TFT_CHAR : public TFT_GFX { friend class TFT_eSprite;
            // Support function to UTF8 decode and draw characters piped through print stream
   size_t   write(wh_clip_t& clip, cursor_t& cursor, font_t& font, uint8_t utf8, uint32_t textcolor, uint32_t textbgcolor);
            // size_t   write(const uint8_t *buf, size_t len);
+
+           // Used by Smooth font class to fetch a pixel colour for the anti-aliasing
+  void     setCallback(getColorCallback getCol);
 
   uint16_t fontsLoaded(void); // Each bit in returned value represents a font type that is loaded - used for debug/error handling only
 
@@ -245,7 +245,7 @@ class TFT_CHAR : public TFT_GFX { friend class TFT_eSprite;
   bool     _isDigits;   // adjust bounding box for numbers to reduce visual jiggling
   bool     _textwrapX, _textwrapY;  // If set, 'wrap' text at right and optionally bottom edge of display
                        // User sketch manages these via set/getAttribute()
-  bool     _cp437;        // If set, use correct CP437 charset (default is ON)
+  bool     _cp437;        // If set, use correct CP437 charset (default is OFF)
   bool     _utf8;         // If set, use UTF-8 decoder in print stream 'write()' function (default ON)
 
   bool     _fillbg;    // Fill background flag (just for for smooth fonts at the moment)

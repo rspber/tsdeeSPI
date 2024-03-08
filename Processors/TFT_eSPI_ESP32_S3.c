@@ -84,7 +84,7 @@ void TFT_eeSPI::end_SDA_Read(void)
 
 /***************************************************************************************
 ** Function name:           read byte  - supports class functions
-** Description:             Read a byte from ESP32 8 bit data port
+** Description:             Read a byte from ESP32 8-bit data port
 ***************************************************************************************/
 // Parallel bus MUST be set to input before calling this function!
 uint8_t TFT_eeSPI::readByte(void)
@@ -426,7 +426,7 @@ void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes){
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-#elif defined (SPI_18BIT_DRIVER) // SPI 18 bit colour
+#elif defined (SPI_18BIT_DRIVER) // SPI 18-bit colour
 ////////////////////////////////////////////////////////////////////////////////////////
 
 /***************************************************************************************
@@ -439,7 +439,7 @@ void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len)
   uint32_t r = (color & 0xF800)>>8;
   uint32_t g = (color & 0x07E0)<<5;
   uint32_t b = (color & 0x001F)<<19;
-  // Concatenate 4 pixels into three 32 bit blocks
+  // Concatenate 4 pixels into three 32-bit blocks
   uint32_t r0 = r<<24 | b | g | r;
   uint32_t r1 = r0>>8 | g<<16;
   uint32_t r2 = r1>>8 | b<<8;
@@ -530,7 +530,7 @@ void TFT_eeSPI::pushSwapBytePixels(const void* data_in, uint32_t len){
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-#elif defined (TFT_PARALLEL_8_BIT) // Now the code for ESP32 8 bit parallel
+#elif defined (TFT_PARALLEL_8_BIT) // Now the code for ESP32 8-bit parallel
 ////////////////////////////////////////////////////////////////////////////////////////
 
 /***************************************************************************************
@@ -646,7 +646,7 @@ void TFT_eeSPI::pushPixelsDMA(uint16_t* image, uint32_t len, bool swapBytes)
   // of 32768 pixels maximum. (equivalent to an area of ~320 x 100 pixels)
   bool temp = _swapBytes;
   _swapBytes = false;
-  while(len>0x4000) { // Transfer 16 bit pixels in blocks if len*2 over 65536 bytes
+  while(len>0x4000) { // Transfer 16-bit pixels in blocks if len*2 over 65536 bytes
     pushPixels(image, 0x400);
     len -= 0x400; image+= 0x400; // Arbitrarily send 1K pixel blocks (2Kbytes)
   }
@@ -690,7 +690,7 @@ void TFT_eeSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
   // of 32768 pixels maximum. (equivalent to an area of ~320 x 100 pixels)
   bool temp = _swapBytes;
   _swapBytes = false;
-  while(len>0x4000) { // Transfer 16 bit pixels in blocks if len*2 over 65536 bytes
+  while(len>0x4000) { // Transfer 16-bit pixels in blocks if len*2 over 65536 bytes
     pushPixels(buffer, 0x400);
     len -= 0x400; buffer+= 0x400; // Arbitrarily send 1K pixel blocks (2Kbytes)
   }
@@ -702,7 +702,7 @@ void TFT_eeSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_
   memset(&trans, 0, sizeof(spi_transaction_t));
 
   trans.user = (void *)1;
-  trans.tx_buffer = image;   //Data pointer
+  trans.tx_buffer = buffer;   //Data pointer
   trans.length = len * 16;   //Data length, in bits
   trans.flags = 0;           //SPI_TRANS_USE_TXDATA flag
 
@@ -766,7 +766,7 @@ void TFT_eeSPI::pushImageDMA(clip_t& clip, int32_t x0, int32_t y0, int32_t w, in
   // small transfers are performed using a blocking call until DMA capacity is reached.
   // User sketch can prevent blocking by managing pixel count and splitting into blocks
   // of 32768 pixels maximum. (equivalent to an area of ~320 x 100 pixels)
-  while(len>0x4000) { // Transfer 16 bit pixels in blocks if len*2 over 65536 bytes
+  while(len>0x4000) { // Transfer 16-bit pixels in blocks if len*2 over 65536 bytes
     pushPixels(buffer, 0x400, false);
     len -= 0x400; buffer+= 0x400; // Arbitrarily send 1K pixel blocks (2Kbytes)
   }
@@ -829,6 +829,10 @@ bool TFT_eeSPI::initDMA(bool ctrl_cs)
     .sclk_io_num = TFT_SCLK,
     .quadwp_io_num = -1,
     .quadhd_io_num = -1,
+    .data4_io_num = -1,
+    .data5_io_num = -1,
+    .data6_io_num = -1,
+    .data7_io_num = -1,
     .max_transfer_sz = 65536, // ESP32 S3 max size is 64Kbytes
     .flags = 0,
     .intr_flags = 0

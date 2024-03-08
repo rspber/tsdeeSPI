@@ -22,11 +22,11 @@
   Last review/edit by Bodmer: 04/02/22
  ****************************************************/
 
-// Stop fonts etc being loaded multiple times
+// Stop fonts etc. being loaded multiple times
 #ifndef _TFT_eSPIH_
 #define _TFT_eSPIH_
 
-#define TFT_ESPI_VERSION "2.5.34"
+#define TFT_ESPI_VERSION "2.5.43"
 
 #include "TFT_CHAR.h"
 
@@ -95,9 +95,9 @@
 #define TFT_SKYBLUE     0x867D      /* 135, 206, 235 */
 #define TFT_VIOLET      0x915C      /* 180,  46, 226 */
 
-// Next is a special 16 bit colour value that encodes to 8 bits
-// and will then decode back to the same 16 bit value.
-// Convenient for 8 bit and 16 bit transparent sprites.
+// Next is a special 16-bit colour value that encodes to 8 bits
+// and will then decode back to the same 16-bit value.
+// Convenient for 8-bit and 16-bit transparent sprites.
 #define TFT_TRANSPARENT 0x0120 // This is actually a dark green
 
 /***************************************************************************************
@@ -302,7 +302,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            getPivotY(void); // Get pivot y
 
            // The next functions can be used as a pair to copy screen blocks (or horizontal/vertical lines) to another location
-           // Read a block of pixels to a data buffer, buffer is 16 bit and the size must be at least w * h
+           // Read a block of pixels to a data buffer, buffer is 16-bit and the size must be at least w * h
   void     readRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
            // Write a block of pixels to the screen which have been read by readRect()
   void     pushRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
@@ -323,11 +323,11 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            // FLASH version
   void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8,  uint16_t *cmap = nullptr);
 
-           // Render a 16 bit colour image with a 1bpp mask
+           // Render a 16-bit colour image with a 1bpp mask
   void     pushMaskedImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask);
 
            // This next function has been used successfully to dump the TFT screen to a PC for documentation purposes
-           // It reads a screen area and returns the 3 RGB 8 bit colour values of each pixel in the buffer
+           // It reads a screen area and returns the 3 RGB 8-bit colour values of each pixel in the buffer
            // Set w and h to 1 to read 1 pixel's colour. The data buffer must be at least w * h * 3 bytes
   void     readRectRGB(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data);
 
@@ -354,7 +354,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            drawRightString(const String& string, int32_t x, int32_t y, uint8_t font); // Deprecated, use setTextDatum() and drawString()
 
 
-  // Text rendering and font handling support funtions
+  // Text rendering and font handling support functions
   void     setCursor(int16_t x, int16_t y),                 // Set cursor for tft.print()
            setCursor(int16_t x, int16_t y, uint8_t font);   // Set cursor and font number for tft.print()
 
@@ -367,7 +367,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 
   void     setTextWrap(bool wrapX, bool wrapY = false);     // Turn on/off wrapping of text in TFT width and/or height
 
-  void     setTextDatum(uint8_t datum);                     // Set text datum position (default is top left), see Section 6 above
+  void     setTextDatum(uint8_t datum);                     // Set text datum position (default is top left), see Section 5 above
   uint8_t  getTextDatum(void);
 
   void     setTextPadding(uint16_t x_width);                // Set text padding (background blanking/over-write) width in pixels

@@ -22,7 +22,7 @@
 
   #ifdef RP2040_PIO_SPI
     #if  defined (SPI_18BIT_DRIVER)
-      // SPI PIO code for 18 bit colour transmit
+      // SPI PIO code for 18-bit colour transmit
       #include "pio_SPI_18bit.pio.h"
     #else
       // SPI PIO code for 16-bit colour transmit
@@ -30,7 +30,7 @@
     #endif
   #elif defined (TFT_PARALLEL_8_BIT)
     #if defined (SSD1963_DRIVER)
-      // PIO code for 8-bit parallel interface (18 bit colour)
+      // PIO code for 8-bit parallel interface (18-bit colour)
       #include "pio_8bit_parallel_18bpp.pio.h"
     #else
       // PIO code for 8-bit parallel interface (16-bit colour)
@@ -458,7 +458,7 @@ void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-#elif defined (SPI_18BIT_DRIVER) // SPI 18 bit colour
+#elif defined (SPI_18BIT_DRIVER) // SPI 18-bit colour
 ////////////////////////////////////////////////////////////////////////////////////////
 
 /***************************************************************************************
@@ -471,12 +471,12 @@ void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len)
   uint16_t g = (color & 0x07E0)>>3;
   uint16_t b = (color & 0x001F)<<3;
 
-  // If more than 32 pixels then change to 16 bit transfers with concatenated pixels
+  // If more than 32 pixels then change to 16-bit transfers with concatenated pixels
   if (len > 32) {
     uint32_t rg = r<<8 | g;
     uint32_t br = b<<8 | r;
     uint32_t gb = g<<8 | b;
-    // Must wait before changing to 16 bit
+    // Must wait before changing to 16-bit
     while (spi_get_hw(SPI_X)->sr & SPI_SSPSR_BSY_BITS) {};
     hw_write_masked(&spi_get_hw(SPI_X)->cr0, (16 - 1) << SPI_SSPCR0_DSS_LSB, SPI_SSPCR0_DSS_BITS);
     while ( len > 1 ) {
@@ -485,7 +485,7 @@ void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len)
       while (!spi_is_writable(SPI_X)){}; spi_get_hw(SPI_X)->dr = gb;
       len -= 2;
     }
-    // Must wait before changing back to 8 bit
+    // Must wait before changing back to 8-bit
     while (spi_get_hw(SPI_X)->sr & SPI_SSPSR_BSY_BITS) {};
     hw_write_masked(&spi_get_hw(SPI_X)->cr0, (8 - 1) << SPI_SSPCR0_DSS_LSB, SPI_SSPCR0_DSS_BITS);
   }
@@ -516,7 +516,7 @@ void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes){
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
-#else //                   Standard SPI 16 bit colour TFT
+#else //                   Standard SPI 16-bit colour TFT
 ////////////////////////////////////////////////////////////////////////////////////////
 
 /***************************************************************************************
@@ -562,7 +562,7 @@ void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes){
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
-#ifdef RP2040_DMA // DMA functions for 16 bit SPI and 8/16 bit parallel displays
+#ifdef RP2040_DMA // DMA functions for 16-bit SPI and 8/16-bit parallel displays
 ////////////////////////////////////////////////////////////////////////////////////////
 /*
 These are created in header file:

@@ -9,7 +9,7 @@
 */
 
 /***************************************************
-  Arduino TFT graphics library targeted at 32 bit
+  Arduino TFT graphics library targeted at 32-bit
   processors such as ESP32, ESP8266 and STM32.
 
   This is a stand-alone library that contains the
@@ -45,7 +45,7 @@ void TFT_GFX::pushRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h,
 
 /***************************************************************************************
 ** Function name:           pushImage
-** Description:             plot 16 bit colour sprite or image onto TFT
+** Description:             plot 16-bit colour sprite or image onto TFT
 ***************************************************************************************/
 void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t *data)
 {
@@ -76,7 +76,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 
 /***************************************************************************************
 ** Function name:           pushImage
-** Description:             plot 16 bit sprite or image with 1 colour being transparent
+** Description:             plot 16-bit sprite or image with 1 colour being transparent
 ***************************************************************************************/
 void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t *data, uint16_t transp)
 {
@@ -136,11 +136,11 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 
 /***************************************************************************************
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
-** Description:             plot 16 bit image
+** Description:             plot 16-bit image
 ***************************************************************************************/
 void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, const uint16_t *data)
 {
-  // Requires 32 bit aligned access, so use PROGMEM 16 bit word functions
+  // Requires 32-bit aligned access, so use PROGMEM 16-bit word functions
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
 
@@ -167,11 +167,11 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 
 /***************************************************************************************
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
-** Description:             plot 16 bit image with 1 colour being transparent
+** Description:             plot 16-bit image with 1 colour being transparent
 ***************************************************************************************/
 void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, const uint16_t *data, uint16_t transp)
 {
-  // Requires 32 bit aligned access, so use PROGMEM 16 bit word functions
+  // Requires 32-bit aligned access, so use PROGMEM 16-bit word functions
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
 
@@ -224,7 +224,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 
 /***************************************************************************************
 ** Function name:           pushImage
-** Description:             plot 8 bit or 4 bit or 1 bit image or sprite using a line buffer
+** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
 void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t bitmap_fg, uint16_t bitmap_bg, const uint8_t *data, bool bpp8, uint16_t *cmap)
 {
@@ -349,7 +349,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 
 /***************************************************************************************
 ** Function name:           pushImage
-** Description:             plot 8 bit or 4 bit or 1 bit image or sprite using a line buffer
+** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
 void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t bitmap_fg, uint16_t bitmap_bg, uint8_t *data, bool bpp8,  uint16_t *cmap)
 {
@@ -671,7 +671,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 
 /***************************************************************************************
 ** Function name:           pushMaskedImage
-** Description:             Render a 16 bit colour image to TFT with a 1bpp mask
+** Description:             Render a 16-bit colour image to TFT with a 1bpp mask
 ***************************************************************************************/
 // Can be used with a 16bpp sprite and a 1bpp sprite for the mask
 void TFT_GFX::pushMaskedImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t *img, uint8_t *mask)
@@ -841,7 +841,7 @@ void TFT_GFX::drawCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t rr,
   //begin_tft_write();          // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
 
-  while (xe < rr--)
+  do
   {
     while (f < 0) {
       ++xe;
@@ -887,7 +887,8 @@ void TFT_GFX::drawCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t rr,
       }
     }
     xs = xe;
-  }
+  } while (xe < rr--);
+
   inTransaction = lockTransaction;
   end_tft_write();              // Does nothing if Sprite class uses this function
 }
@@ -1331,7 +1332,7 @@ void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bit
 ** Function name:           drawLine
 ** Description:             draw a line between 2 arbitrary points
 ***************************************************************************************/
-// Bresenham's algorithm - thx wikipedia - speed enhanced by Bodmer to use
+// Bresenham's algorithm - thx Wikipedia - speed enhanced by Bodmer to use
 // an efficient FastH/V Line draw routine for line segments of 2 pixels or more
 void TFT_GFX::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color)
 {
@@ -1558,7 +1559,7 @@ void TFT_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
   float fabssin = fabsf(sinf(startAngle * deg2rad));
 
   // U16.16 slope of arc start
-  uint32_t slope = (fabscos/(fabssin + minDivisor)) * (float)(1<<16);
+  uint32_t slope = (fabscos/(fabssin + minDivisor)) * (float)(1UL<<16);
 
   // Update slope table, add slope for arc start
   if (startAngle <= 90) {
@@ -1582,7 +1583,7 @@ void TFT_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
   fabssin  = fabsf(sinf(endAngle * deg2rad));
 
   // U16.16 slope of arc end
-  slope   = (uint32_t)((fabscos/(fabssin + minDivisor)) * (float)(1<<16));
+  slope   = (uint32_t)((fabscos/(fabssin + minDivisor)) * (float)(1UL<<16));
 
   // Work out which quadrants will need to be drawn and add slope for arc end
   if (endAngle <= 90) {
@@ -2127,7 +2128,7 @@ void TFT_GFX::fillRectHGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, i
 
 /***************************************************************************************
 ** Function name:           color565
-** Description:             convert three 8 bit RGB levels to a 16 bit colour value
+** Description:             convert three 8-bit RGB levels to a 16-bit colour value
 ***************************************************************************************/
 uint16_t TFT_GFX::color565(uint8_t r, uint8_t g, uint8_t b)
 {
@@ -2137,7 +2138,7 @@ uint16_t TFT_GFX::color565(uint8_t r, uint8_t g, uint8_t b)
 
 /***************************************************************************************
 ** Function name:           color16to8
-** Description:             convert 16 bit colour to an 8 bit 332 RGB colour value
+** Description:             convert 16-bit colour to an 8-bit 332 RGB colour value
 ***************************************************************************************/
 uint8_t TFT_GFX::color16to8(uint16_t c)
 {
@@ -2147,7 +2148,7 @@ uint8_t TFT_GFX::color16to8(uint16_t c)
 
 /***************************************************************************************
 ** Function name:           color8to16
-** Description:             convert 8 bit colour to a 16 bit 565 colour value
+** Description:             convert 8-bit colour to a 16-bit 565 colour value
 ***************************************************************************************/
 uint16_t TFT_GFX::color8to16(uint8_t color)
 {
@@ -2164,7 +2165,7 @@ uint16_t TFT_GFX::color8to16(uint8_t color)
 
 /***************************************************************************************
 ** Function name:           color16to24
-** Description:             convert 16 bit colour to a 24 bit 888 colour value
+** Description:             convert 16-bit colour to a 24-bit 888 colour value
 ***************************************************************************************/
 uint32_t TFT_GFX::color16to24(uint16_t color565)
 {
@@ -2177,7 +2178,7 @@ uint32_t TFT_GFX::color16to24(uint16_t color565)
 
 /***************************************************************************************
 ** Function name:           color24to16
-** Description:             convert 24 bit colour to a 16 bit 565 colour value
+** Description:             convert 24-bit colour to a 16-bit 565 colour value
 ***************************************************************************************/
 uint32_t TFT_GFX::color24to16(uint32_t color888)
 {
@@ -2198,7 +2199,7 @@ uint16_t TFT_GFX::alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc)
   // Split out and blend 5 bit red and blue channels
   uint32_t rxb = bgc & 0xF81F;
   rxb += ((fgc & 0xF81F) - rxb) * (alpha >> 2) >> 6;
-  // Split out and blend 6 bit green channel
+  // Split out and blend 6-bit green channel
   uint32_t xgx = bgc & 0x07E0;
   xgx += ((fgc & 0x07E0) - xgx) * alpha >> 8;
   // Recombine channels

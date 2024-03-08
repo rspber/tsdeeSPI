@@ -9,7 +9,7 @@
 */
 
 /***************************************************
-  Arduino TFT graphics library targeted at 32 bit
+  Arduino TFT graphics library targeted at 32-bit
   processors such as ESP32, ESP8266 and STM32.
 
   This is a stand-alone library that contains the
@@ -27,9 +27,9 @@
 
 #if defined (ESP32)
   #if defined(CONFIG_IDF_TARGET_ESP32S3)
-    #include "Processors/TFT_eSPI_ESP32_S3.c" // Tested with SPI and 8 bit parallel
+    #include "Processors/TFT_eSPI_ESP32_S3.c" // Tested with SPI and 8-bit parallel
   #elif defined(CONFIG_IDF_TARGET_ESP32C3)
-    #include "Processors/TFT_eSPI_ESP32_C3.c" // Tested with SPI (8 bit parallel will probably work too!)
+    #include "Processors/TFT_eSPI_ESP32_C3.c" // Tested with SPI (8-bit parallel will probably work too!)
   #else
     #include "Processors/TFT_eSPI_ESP32.c"
   #endif
@@ -455,7 +455,7 @@ void TFT_eeSPI::commandList (const uint8_t *addr)
   {
     writecommand(pgm_read_byte(addr++)); // Read, issue command
     numArgs = pgm_read_byte(addr++);     // Number of args to follow
-    ms = numArgs & TFT_INIT_DELAY;       // If hibit set, delay follows args
+    ms = numArgs & TFT_INIT_DELAY;       // If high bit set, delay follows args
     numArgs &= ~TFT_INIT_DELAY;          // Mask out delay bit
 
     while (numArgs--)                    // For each argument...
@@ -487,7 +487,7 @@ void TFT_eeSPI::spiwrite(uint8_t c)
 
 /***************************************************************************************
 ** Function name:           writecommand
-** Description:             Send an 8 bit command to the TFT
+** Description:             Send an 8-bit command to the TFT
 ***************************************************************************************/
 #ifndef RM68120_DRIVER
 void TFT_eeSPI::writecommand(uint8_t c)
@@ -551,7 +551,7 @@ void TFT_eSPI::writeRegister16(uint16_t c, uint16_t d)
 
 /***************************************************************************************
 ** Function name:           writedata
-** Description:             Send a 8 bit data value to the TFT
+** Description:             Send a 8-bit data value to the TFT
 ***************************************************************************************/
 void TFT_eeSPI::writedata(uint8_t d)
 {
@@ -569,7 +569,7 @@ void TFT_eeSPI::writedata(uint8_t d)
 
 /***************************************************************************************
 ** Function name:           readcommand8
-** Description:             Read a 8 bit data value from an indexed command register
+** Description:             Read a 8-bit data value from an indexed command register
 ***************************************************************************************/
 uint8_t TFT_eeSPI::readcommand8(uint8_t cmd_function, uint8_t index)
 {
@@ -612,7 +612,7 @@ uint8_t TFT_eeSPI::readcommand8(uint8_t cmd_function, uint8_t index)
 
 /***************************************************************************************
 ** Function name:           readcommand16
-** Description:             Read a 16 bit data value from an indexed command register
+** Description:             Read a 16-bit data value from an indexed command register
 ***************************************************************************************/
 uint16_t TFT_eeSPI::readcommand16(uint8_t cmd_function, uint8_t index)
 {
@@ -627,7 +627,7 @@ uint16_t TFT_eeSPI::readcommand16(uint8_t cmd_function, uint8_t index)
 
 /***************************************************************************************
 ** Function name:           readcommand32
-** Description:             Read a 32 bit data value from an indexed command register
+** Description:             Read a 32-bit data value from an indexed command register
 ***************************************************************************************/
 uint32_t TFT_eeSPI::readcommand32(uint8_t cmd_function, uint8_t index)
 {
@@ -664,12 +664,12 @@ uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
   readByte();
   #endif
 
-  // Fetch the 16 bit BRG pixel
+  // Fetch the 16-bit BRG pixel
   //uint16_t rgb = (readByte() << 8) | readByte();
 
   #if defined (ILI9341_DRIVER)  || defined(ILI9341_2_DRIVER) || defined (ILI9488_DRIVER) || defined (SSD1963_DRIVER)// Read 3 bytes
 
-    // Read window pixel 24 bit RGB values and fill in LS bits
+    // Read window pixel 24-bit RGB values and fill in LS bits
     uint16_t rgb = ((readByte() & 0xF8) << 8) | ((readByte() & 0xFC) << 3) | (readByte() >> 3);
 
     if (!inTransaction) { CS_H; } // CS_H can be multi-statement
@@ -679,9 +679,9 @@ uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
 
     return rgb;
 
-  #else // ILI9481 or ILI9486 16 bit read
+  #else // ILI9481 or ILI9486 16-bit read
 
-    // Fetch the 16 bit BRG pixel
+    // Fetch the 16-bit BRG pixel
     uint16_t bgr = (readByte() << 8) | readByte();
 
     if (!inTransaction) { CS_H; } // CS_H can be multi-statement
@@ -792,12 +792,12 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
     // Dummy read to throw away don't care value
     readByte();
 
-    // Fetch the 24 bit RGB value
+    // Fetch the 24-bit RGB value
     while (z.dh--) {
       int32_t lw = z.dw;
       uint16_t* line = data;
       while (lw--) {
-        // Assemble the RGB 16 bit colour
+        // Assemble the RGB 16-bit colour
         uint16_t rgb = ((readByte() & 0xF8) << 8) | ((readByte() & 0xFC) << 3) | (readByte() >> 3);
 
         // Swapped byte order for compatibility with pushRect()
@@ -807,7 +807,7 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
     }
 
   #elif  defined (SSD1963_DRIVER)
-    // Fetch the 18 bit BRG pixels
+    // Fetch the 18-bit BRG pixels
     while (z.dh--) {
       int32_t lw = z.dw;
       uint16_t* line = data;
@@ -827,16 +827,16 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
     // Dummy read to throw away don't care value
     readByte();
 
-    // Fetch the 16 bit BRG pixels
+    // Fetch the 16-bit BRG pixels
     while (z.dh--) {
       int32_t lw = z.dw;
       uint16_t* line = data;
       while (lw--) {
       #if defined (ILI9486_DRIVER) || defined (ST7796_DRIVER)
-        // Read the RGB 16 bit colour
+        // Read the RGB 16-bit colour
         *line++ = readByte() | (readByte() << 8);
       #else
-        // Read the BRG 16 bit colour
+        // Read the BRG 16-bit colour
         uint16_t bgr = (readByte() << 8) | readByte();
         // Swap Red and Blue (could check MADCTL setting to see if this is needed)
         uint16_t rgb = (bgr>>11) | (bgr<<11) | (bgr & 0x7E0);
@@ -875,7 +875,7 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
   // Dummy read to throw away don't care value
   tft_Read_8();
 
-  // Read window pixel 24 bit RGB values
+  // Read window pixel 24-bit RGB values
   while (z.dh--) {
     int32_t lw = z.dw;
     uint16_t* line = data;
@@ -970,7 +970,7 @@ void  TFT_eeSPI::readRectRGB(clip_t& clip, int32_t x0, int32_t y0, int32_t w, in
   // Dummy read to throw away don't care value
   tft_Read_8();
 
-  // Read window pixel 24 bit RGB values, buffer must be set in sketch to 3 * w * h
+  // Read window pixel 24-bit RGB values, buffer must be set in sketch to 3 * w * h
   uint32_t len = w * h;
   while (len--) {
 
@@ -1081,7 +1081,7 @@ void TFT_eeSPI::setWindow(int32_t x0, int32_t y0, int32_t w, int32_t h)
   DC_D;
   // Temporary solution is to include the RP2040 code here
   #if (defined(ARDUINO_ARCH_RP2040)  || defined (ARDUINO_ARCH_MBED)) && !defined(RP2040_PIO_INTERFACE)
-    // For ILI9225 and RP2040 the slower Arduino SPI transfer calls were used, so need to swap back to 16 bit mode
+    // For ILI9225 and RP2040 the slower Arduino SPI transfer calls were used, so need to swap back to 16-bit mode
     while (spi_get_hw(SPI_X)->sr & SPI_SSPSR_BSY_BITS) {};
     hw_write_masked(&spi_get_hw(SPI_X)->cr0, (16 - 1) << SPI_SSPCR0_DSS_LSB, SPI_SSPCR0_DSS_BITS);
   #endif
@@ -1112,12 +1112,12 @@ void TFT_eeSPI::setWindow(int32_t x0, int32_t y0, int32_t w, int32_t h)
   // Temporary solution is to include the RP2040 optimised code here
   #if (defined(ARDUINO_ARCH_RP2040)  || defined (ARDUINO_ARCH_MBED))
     #if !defined(RP2040_PIO_INTERFACE)
-      // Use hardware SPI port, this code does not swap from 8 to 16 bit
+      // Use hardware SPI port, this code does not swap from 8 to 16-bit
       // to avoid the spi_set_format() call overhead
       while (spi_get_hw(SPI_X)->sr & SPI_SSPSR_BSY_BITS) {};
       DC_C;
       #if !defined (SPI_18BIT_DRIVER)
-        #if  defined (RPI_DISPLAY_TYPE) // RPi TFT type always needs 16 bit transfers
+        #if  defined (RPI_DISPLAY_TYPE) // RPi TFT type always needs 16-bit transfers
           hw_write_masked(&spi_get_hw(SPI_X)->cr0, (16 - 1) << SPI_SSPCR0_DSS_LSB, SPI_SSPCR0_DSS_BITS);
         #else
           hw_write_masked(&spi_get_hw(SPI_X)->cr0, (8 - 1) << SPI_SSPCR0_DSS_LSB, SPI_SSPCR0_DSS_BITS);
@@ -1215,7 +1215,7 @@ void TFT_eeSPI::readAddrWindow(int32_t xs, int32_t ys, int32_t w, int32_t h)
 
   // Temporary solution is to include the RP2040 optimised code here
 #if (defined(ARDUINO_ARCH_RP2040)  || defined (ARDUINO_ARCH_MBED)) && !defined(RP2040_PIO_INTERFACE)
-  // Use hardware SPI port, this code does not swap from 8 to 16 bit
+  // Use hardware SPI port, this code does not swap from 8 to 16-bit
   // to avoid the spi_set_format() call overhead
   while (spi_get_hw(SPI_X)->sr & SPI_SSPSR_BSY_BITS) {};
   DC_C;
@@ -1332,7 +1332,7 @@ void TFT_eeSPI::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color)
   #if !defined(RP2040_PIO_INTERFACE)
     while (spi_get_hw(SPI_X)->sr & SPI_SSPSR_BSY_BITS) {};
 
-    #if  defined (RPI_DISPLAY_TYPE) // RPi TFT type always needs 16 bit transfers
+    #if  defined (RPI_DISPLAY_TYPE) // RPi TFT type always needs 16-bit transfers
       hw_write_masked(&spi_get_hw(SPI_X)->cr0, (16 - 1) << SPI_SSPCR0_DSS_LSB, SPI_SSPCR0_DSS_BITS);
     #else
       hw_write_masked(&spi_get_hw(SPI_X)->cr0, (8 - 1) << SPI_SSPCR0_DSS_LSB, SPI_SSPCR0_DSS_BITS);
@@ -1367,7 +1367,7 @@ void TFT_eeSPI::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color)
     DC_C;
     spi_get_hw(SPI_X)->dr = (uint32_t)TFT_RAMWR;
 
-    #if defined (SPI_18BIT_DRIVER) // SPI 18 bit colour
+    #if defined (SPI_18BIT_DRIVER) // SPI 18-bit colour
       uint8_t r = (color & 0xF800)>>8;
       uint8_t g = (color & 0x07E0)>>3;
       uint8_t b = (color & 0x001F)<<3;
@@ -1377,7 +1377,7 @@ void TFT_eeSPI::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color)
     #else
       while (spi_get_hw(SPI_X)->sr & SPI_SSPSR_BSY_BITS) {};
       DC_D;
-      #if  defined (RPI_DISPLAY_TYPE) // RPi TFT type always needs 16 bit transfers
+      #if  defined (RPI_DISPLAY_TYPE) // RPi TFT type always needs 16-bit transfers
         spi_get_hw(SPI_X)->dr = (uint32_t)color;
       #else
         spi_get_hw(SPI_X)->dr = (uint32_t)color>>8;
@@ -1534,7 +1534,7 @@ void TFT_eeSPI::writeColor(uint16_t color, uint32_t len)
 
 /***************************************************************************************
 ** Function name:           pushColors
-** Description:             push an array of pixels for 16 bit raw image drawing
+** Description:             push an array of pixels for 16-bit raw image drawing
 ***************************************************************************************/
 // Assumed that setAddrWindow() has previously been called
 // len is number of bytes, not pixels
@@ -1564,7 +1564,7 @@ void TFT_eeSPI::pushColors(uint16_t *data, uint32_t len, bool swapBytes)
 
 /***************************************************************************************
 ** Function name:           color565
-** Description:             convert three 8 bit RGB levels to a 16 bit colour value
+** Description:             convert three 8-bit RGB levels to a 16-bit colour value
 ***************************************************************************************/
 uint16_t TFT_eeSPI::color565(uint8_t r, uint8_t g, uint8_t b)
 {
@@ -1630,7 +1630,7 @@ void TFT_eeSPI::drawCharRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t wid
       int32_t pc = 0; // Pixel count
       uint8_t np = textsize * textsize; // Number of pixels in a drawn pixel
 
-      // 16 bit pixel count so maximum font size is equivalent to 180x180 pixels in area
+      // 16-bit pixel count so maximum font size is equivalent to 180x180 pixels in area
       // w is total number of pixels to plot to fill character block
       while (pc < w) {
         uint8_t line = pgm_read_byte((uint8_t *)flash_address);

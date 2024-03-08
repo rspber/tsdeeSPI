@@ -24,7 +24,7 @@
 
 #pragma once
 
-#define TFT_ESPI_VERSION "2.5.34"
+#define TFT_ESPI_VERSION "2.5.43"
 
 #include "TFT_eeSPI.h"
 
@@ -171,19 +171,19 @@ public:
            // FLASH version
   void     pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t fg, uint16_t bg, const uint8_t *data, bool bpp8,  uint16_t *cmap = nullptr);
 
-           // Render a 16 bit colour image with a 1bpp mask
+           // Render a 16-bit colour image with a 1bpp mask
   void     pushMaskedImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t *img, uint8_t *mask);
 
   // Colour conversion
-           // Convert 8 bit red, green and blue to 16 bits
+           // Convert 8-bit red, green and blue to 16 bits
   uint16_t color565(uint8_t red, uint8_t green, uint8_t blue);
 
-           // Convert 8 bit colour to 16 bits
+           // Convert 8-bit colour to 16 bits
   uint16_t color8to16(uint8_t color332);
-           // Convert 16 bit colour to 8 bits
+           // Convert 16-bit colour to 8 bits
   uint8_t  color16to8(uint16_t color565);
 
-           // Convert 16 bit colour to/from 24 bit, R+G+B concatenated into LS 24 bits
+           // Convert 16-bit colour to/from 24-bit, R+G+B concatenated into LS 24 bits
   uint32_t color16to24(uint16_t color565);
   uint32_t color24to16(uint32_t color888);
 
@@ -191,9 +191,10 @@ public:
            // alpha =   0 = 100% background colour
            // alpha = 255 = 100% foreground colour
   uint16_t alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc);
-           // 16 bit colour alphaBlend with alpha dither (dither reduces colour banding)
+
+           // 16-bit colour alphaBlend with alpha dither (dither reduces colour banding)
   uint16_t alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc, uint8_t dither);
-           // 24 bit colour alphaBlend with optional alpha dither
+           // 24-bit colour alphaBlend with optional alpha dither
   uint32_t alphaBlend24(uint8_t alpha, uint32_t fgc, uint32_t bgc, uint8_t dither = 0);
 
  //--------------------------------------- private ------------------------------------//
@@ -203,8 +204,8 @@ public:
 
            // Helper function: calculate distance of a point from a finite length line between two points
   float    wedgeLineDistance(float pax, float pay, float bax, float bay, float dr);
-           // Display variant settings
 
+           // Display variant settings
   uint8_t  tabcolor,                   // ST7735 screen protector "tab" colour (now invalid)
            colstart = 0, rowstart = 0; // Screen display area to CGRAM area coordinate offsets
 
@@ -218,10 +219,10 @@ public:
 template <typename A, typename F, typename B> static inline uint16_t
 fastBlend(A alpha, F fgc, B bgc)
 {
-  // Split out and blend 5 bit red and blue channels
+  // Split out and blend 5-bit red and blue channels
   uint32_t rxb = bgc & 0xF81F;
   rxb += ((fgc & 0xF81F) - rxb) * (alpha >> 2) >> 6;
-  // Split out and blend 6 bit green channel
+  // Split out and blend 6-bit green channel
   uint32_t xgx = bgc & 0x07E0;
   xgx += ((fgc & 0x07E0) - xgx) * alpha >> 8;
   // Recombine channels

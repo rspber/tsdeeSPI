@@ -24,7 +24,7 @@
 
 #pragma once
 
-#define TFT_ESPI_VERSION "2.5.34"
+#define TFT_ESPI_VERSION "2.5.43"
 
 // Bit level feature flags
 // Bit 0 set: viewport capability
@@ -45,7 +45,7 @@
 **                         Section 2: Load library and processor specific header files
 ***************************************************************************************/
 // Include header file that defines the fonts loaded, the TFT drivers
-// available and the pins to be used, etc, etc
+// available and the pins to be used, etc. etc.
 #ifdef CONFIG_TFT_eSPI_ESPIDF
   #include "TFT_config.h"
 #endif
@@ -244,29 +244,29 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
            // Support for half duplex (bi-directional SDA) SPI bus where MOSI must be switched to input
            #ifdef TFT_SDA_READ
              #if defined (TFT_eSPI_ENABLE_8_BIT_READ)
-  uint8_t  tft_Read_8(void);     // Read 8 bit value from TFT command register
+  uint8_t  tft_Read_8(void);     // Read 8-bit value from TFT command register
              #endif
   void     begin_SDA_Read(void); // Begin a read on a half duplex (bi-directional SDA) SPI bus - sets MOSI to input
   void     end_SDA_Read(void);   // Restore MOSI to output
            #endif
 
            // The next functions can be used as a pair to copy screen blocks (or horizontal/vertical lines) to another location
-           // Read a block of pixels to a data buffer, buffer is 16 bit and the size must be at least w * h
+           // Read a block of pixels to a data buffer, buffer is 16-bit and the size must be at least w * h
   void     readRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
 
            // This next function has been used successfully to dump the TFT screen to a PC for documentation purposes
-           // It reads a screen area and returns the 3 RGB 8 bit colour values of each pixel in the buffer
+           // It reads a screen area and returns the 3 RGB 8-bit colour values of each pixel in the buffer
            // Set w and h to 1 to read 1 pixel's colour. The data buffer must be at least w * h * 3 bytes
   void     readRectRGB(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data);
 
    // Low level read/write
   void     spiwrite(uint8_t);        // legacy support only
 #ifdef RM68120_DRIVER
-  void     writecommand(uint16_t c);                 // Send a 16 bit command, function resets DC/RS high ready for data
-  void     writeRegister8(uint16_t c, uint8_t d);    // Write 8 bit data data to 16 bit command register
-  void     writeRegister16(uint16_t c, uint16_t d);  // Write 16 bit data data to 16 bit command register
+  void     writecommand(uint16_t c);                 // Send a 16-bit command, function resets DC/RS high ready for data
+  void     writeRegister8(uint16_t c, uint8_t d);    // Write 8-bit data data to 16-bit command register
+  void     writeRegister16(uint16_t c, uint16_t d);  // Write 16-bit data data to 16-bit command register
 #else
-  void     writecommand(uint8_t c);  // Send an 8 bit command, function resets DC/RS high ready for data
+  void     writecommand(uint8_t c);  // Send an 8-bit command, function resets DC/RS high ready for data
 #endif
   void     writedata(uint8_t d);     // Send data with DC/RS set high
 
@@ -276,12 +276,12 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   uint16_t readcommand16(uint8_t cmd_function, uint8_t index = 0); // read 16 bits from TFT
   uint32_t readcommand32(uint8_t cmd_function, uint8_t index = 0); // read 32 bits from TFT
 
-           // Convert 8 bit red, green and blue to 16 bits
+           // Convert 8-bit red, green and blue to 16 bits
   uint16_t color565(uint8_t red, uint8_t green, uint8_t blue);
 
   // Direct Memory Access (DMA) support functions
   // These can be used for SPI writes when using the ESP32 (original) or STM32 processors.
-  // DMA also works on a RP2040 processor with PIO based SPI and parallel (8 and 16 bit) interfaces
+  // DMA also works on a RP2040 processor with PIO based SPI and parallel (8 and 16-bit) interfaces
            // Bear in mind DMA will only be of benefit in particular circumstances and can be tricky
            // to manage by noobs. The functions have however been designed to be noob friendly and
            // avoid a few DMA behaviour "gotchas".
@@ -322,7 +322,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
            //
            // The function will wait for the last DMA to complete if it is called while a previous DMA is still
            // in progress, this simplifies the sketch and helps avoid "gotchas".
-  void     pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* data, uint16_t* buffer);
+  void     pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* data, uint16_t* buffer = nullptr);
 
 #if defined (ESP32) // ESP32 only at the moment
            // For case where pointer is a const and the image data must not be modified (clipped or byte swapped)
@@ -431,7 +431,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 #ifdef TOUCH_CS
   #if defined (TFT_PARALLEL_8_BIT) || defined (RP2040_PIO_INTERFACE)
     #if !defined(DISABLE_ALL_LIBRARY_WARNINGS)
-      #error >>>>------>> Touch functions not supported in 8/16 bit parallel mode or with RP2040 PIO.
+      #error >>>>------>> Touch functions not supported in 8/16-bit parallel mode or with RP2040 PIO.
     #endif
   #else
     #include "Extensions/Touch.h"        // Loaded if TOUCH_CS is defined by user

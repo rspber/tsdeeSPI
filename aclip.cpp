@@ -77,16 +77,6 @@ bool ein_clip::clipRect(int32_t& x, int32_t& y, int32_t& w, int32_t& h)
   x+= xDatum;
   y+= yDatum;
 
-  return clipRectNoDatum(x, y, w, h);
-}
-
-
-/***************************************************************************************
-** Function name:           clipAddrWindow
-** Description:             Clip address window x,y,w,h to screen and viewport
-***************************************************************************************/
-bool ein_clip::clipRectNoDatum(int32_t& x, int32_t& y, int32_t& w, int32_t& h)
-{
   if ((x >= x2) || (y >= y2)) return false;
 
   if (x < x1) { w += x - x1; x = x1; }
