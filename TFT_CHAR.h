@@ -168,7 +168,7 @@ typedef struct {
 #endif
   uint8_t  font,  // Current selected font number
            size;  // Current font size multiplier
-} font_t;
+} chr_font_t;
 
 typedef struct {
 
@@ -202,23 +202,23 @@ class TFT_CHAR : public TFT_GFX { friend class TFT_eSprite;
 
   TFT_CHAR();
 
-  virtual void     drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t c, uint32_t color, uint32_t bg);
+  virtual void     drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, chr_font_t& font, uint16_t c, rgb_t color, rgb_t bg);
 
-  virtual int16_t  drawChar(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t uniCode, uint32_t textcolor, uint32_t textgbcolor);
+  virtual int16_t  drawChar(clip_t& clip, cursor_t& cursor, chr_font_t& font, uint16_t uniCode, rgb_t textcolor, rgb_t textgbcolor);
 
-  virtual  void    drawCharFont2(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address);
-  virtual  void    drawCharRLE_1(int32_t width, int32_t height, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address);
-  virtual  void    drawCharRLE_3(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address);
+  virtual  void    drawCharFont2(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, rgb_t textcolor, rgb_t textbgcolor, uint32_t flash_address);
+  virtual  void    drawCharRLE_1(int32_t width, int32_t height, rgb_t textcolor, rgb_t textbgcolor, uint32_t flash_address);
+  virtual  void    drawCharRLE_3(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, rgb_t textcolor, rgb_t textbgcolor, uint32_t flash_address);
 
-  int16_t  textWidth(font_t& font, const char *string),     // Returns pixel width of string in specified font
-           fontHeight(font_t& font);                        // Returns pixel height of specified font
+  int16_t  textWidth(chr_font_t& font, const char *string),     // Returns pixel width of string in specified font
+           fontHeight(chr_font_t& font);                        // Returns pixel height of specified font
 
            // Used by library and Smooth font class to extract Unicode point codes from a UTF8 encoded string
   uint16_t decodeUTF8(uint8_t *buf, uint16_t *index, uint16_t remaining),
            decodeUTF8(uint8_t c);
 
            // Support function to UTF8 decode and draw characters piped through print stream
-  size_t   write(wh_clip_t& clip, cursor_t& cursor, font_t& font, uint8_t utf8, uint32_t textcolor, uint32_t textbgcolor);
+  size_t   write(wh_clip_t& clip, cursor_t& cursor, chr_font_t& font, uint8_t utf8, rgb_t textcolor, rgb_t textbgcolor);
            // size_t   write(const uint8_t *buf, size_t len);
 
            // Used by Smooth font class to fetch a pixel colour for the anti-aliasing

@@ -23,8 +23,7 @@
  ****************************************************/
 
 // Stop fonts etc. being loaded multiple times
-#ifndef _TFT_eSPIH_
-#define _TFT_eSPIH_
+#pragma once
 
 #define TFT_ESPI_VERSION "2.5.43"
 
@@ -70,35 +69,74 @@
 **                         Section 6: Colour enumeration
 ***************************************************************************************/
 // Default color definitions
-#define TFT_BLACK       0x0000      /*   0,   0,   0 */
-#define TFT_NAVY        0x000F      /*   0,   0, 128 */
-#define TFT_DARKGREEN   0x03E0      /*   0, 128,   0 */
-#define TFT_DARKCYAN    0x03EF      /*   0, 128, 128 */
-#define TFT_MAROON      0x7800      /* 128,   0,   0 */
-#define TFT_PURPLE      0x780F      /* 128,   0, 128 */
-#define TFT_OLIVE       0x7BE0      /* 128, 128,   0 */
-#define TFT_LIGHTGREY   0xD69A      /* 211, 211, 211 */
-#define TFT_DARKGREY    0x7BEF      /* 128, 128, 128 */
-#define TFT_BLUE        0x001F      /*   0,   0, 255 */
-#define TFT_GREEN       0x07E0      /*   0, 255,   0 */
-#define TFT_CYAN        0x07FF      /*   0, 255, 255 */
-#define TFT_RED         0xF800      /* 255,   0,   0 */
-#define TFT_MAGENTA     0xF81F      /* 255,   0, 255 */
-#define TFT_YELLOW      0xFFE0      /* 255, 255,   0 */
-#define TFT_WHITE       0xFFFF      /* 255, 255, 255 */
-#define TFT_ORANGE      0xFDA0      /* 255, 180,   0 */
-#define TFT_GREENYELLOW 0xB7E0      /* 180, 255,   0 */
-#define TFT_PINK        0xFE19      /* 255, 192, 203 */ //Lighter pink, was 0xFC9F
-#define TFT_BROWN       0x9A60      /* 150,  75,   0 */
-#define TFT_GOLD        0xFEA0      /* 255, 215,   0 */
-#define TFT_SILVER      0xC618      /* 192, 192, 192 */
-#define TFT_SKYBLUE     0x867D      /* 135, 206, 235 */
-#define TFT_VIOLET      0x915C      /* 180,  46, 226 */
 
 // Next is a special 16-bit colour value that encodes to 8 bits
 // and will then decode back to the same 16-bit value.
 // Convenient for 8-bit and 16-bit transparent sprites.
-#define TFT_TRANSPARENT 0x0120 // This is actually a dark green
+
+#define BLACK        RGB(    0,    0,    0)
+#define NAVY         RGB(    0,    0, 0x7C)
+#define BLUE         RGB(    0,    0, 0xFC)
+#define DARK_GREEN   RGB(    0, 0x7C,    0)
+#define DARK_CYAN    RGB(    0, 0x7C, 0x7C)
+#define TEAL         RGB(    0, 0x80, 0x80)
+#define GREEN        RGB(    0, 0xFC,    0)
+#define CYAN         RGB(    0, 0xFC, 0xFC)
+#define DIMM_CYAN    RGB( 0x08, 0x70, 0xC0)
+#define DODGER_BLUE  RGB( 0x1C, 0x90, 0xFC)
+#define CADET_BLUE   RGB( 0x5C, 0x9C, 0xA0)
+#define AQUA         RGB( 0x68, 0xC0, 0xE0)
+#define MAROON       RGB( 0x7C,    0,    0)
+#define PURPLE       RGB( 0x7C,    0, 0x7C)
+#define OLIVE        RGB( 0x7C, 0x7C,    0)
+#define GRAY         RGB( 0x7C, 0x7C, 0x7C)
+#define DARK_GRAY    RGB( 0x80, 0x80, 0x80)
+#define LIME         RGB( 0x80, 0xFC,    0)
+#define SKYBLUE      RGB( 0x88, 0xCC, 0xEC)
+#define VIOLET       RGB( 0xA0, 0x30, 0xC8)
+#define SILVER       RGB( 0xC0, 0xC0, 0x80)
+//#define BROWN        RGB( 0x80, 0x28, 0x28)
+#define BROWN        RGB( 0x94, 0x4C, 0x00)
+#define GREEN_YELLOW RGB( 0xAC, 0xFC, 0x00)
+#define LIGHT_GRAY   RGB( 0xD4, 0xD4, 0xD4)
+#define LIGHT_CYAN   RGB( 0xE0, 0xFC, 0xFC)
+#define RED          RGB( 0xFC,    0,    0)
+#define MAGENTA      RGB( 0xFC,    0, 0xFC)
+#define CORAL        RGB( 0xFC, 0x7C, 0x50)
+#define PINK         RGB( 0xFC, 0x80, 0xC4)
+//#define ORANGE       RGB( 0xFC, 0x98,    0)
+#define ORANGE       RGB( 0xFC, 0xA4,    0)
+#define GOLDEN       RGB( 0xFC, 0xD8,    0)
+#define YELLOW       RGB( 0xFC, 0xFC,    0)
+#define LIGHT_YELLOW RGB( 0xFC, 0xFC, 0xE0)
+#define WHITE        RGB( 0xFC, 0xFC, 0xFC)
+
+//#define TFT_BLACK        BLACK
+#define TFT_NAVY         NAVY
+#define TFT_DARKGREEN    DARK_GREEN
+//#define TFT_WHITE        WHITE
+#define TFT_DARKCYAN     DARK_CYAN
+#define TFT_MAROON       MAROON
+#define TFT_PURPLE       PURPLE
+#define TFT_OLIVE        OLIVE
+#define TFT_LIGHTGREY    LIGHT_GRAY
+#define TFT_DARKGREY     GRAY
+#define TFT_BLUE         BLUE
+#define TFT_GREEN        GREEN
+#define TFT_CYAN         CYAN
+#define TFT_RED          RED
+#define TFT_MAGENTA      MAGENTA
+#define TFT_YELLOW       YELLOW
+#define TFT_ORANGE       ORANGE
+#define TFT_GREENYELLOW  GREEN_YELLOW
+#define TFT_PINK         PINK
+#define TFT_BROWN        BROWN
+#define TFT_GOLD         GOLDEN
+#define TFT_SILVER       SILVER
+#define TFT_SKYBLUE      SKYBLUE
+#define TFT_VIOLET       VIOLET
+
+#define TFT_TRANSPARENT DARK_GRAY
 
 /***************************************************************************************
 **                         Section 7: Diagnostic support
@@ -177,12 +215,12 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   TFT_eSPI(int16_t _W = TFT_WIDTH, int16_t _H = TFT_HEIGHT);
 
   // These are virtual so the TFT_eSprite class can override them with sprite specific functions
-  void     drawPixel(int32_t x, int32_t y, uint32_t color),
-           drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t size),
-           drawLine(int32_t xs, int32_t ys, int32_t xe, int32_t ye, uint32_t color),
-           drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color),
-           drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color),
-           fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color);
+  void     drawPixel(int32_t x, int32_t y, rgb_t color),
+           drawChar(int32_t x, int32_t y, uint16_t c, rgb_t color, rgb_t bg, uint8_t size),
+           drawLine(int32_t xs, int32_t ys, int32_t xe, int32_t ye, rgb_t color),
+           drawFastVLine(int32_t x, int32_t y, int32_t h, rgb_t color),
+           drawFastHLine(int32_t x, int32_t y, int32_t w, rgb_t color),
+           fillRect(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color);
 
   int16_t  drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t font),
            drawChar(uint16_t uniCode, int32_t x, int32_t y);
@@ -212,34 +250,34 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   void     resetViewport(void) override;
 
            // Write a set of pixels stored in memory, use setSwapBytes(true/false) function to correct endianess
-  void     pushPixels(const void * data_in, uint32_t len);
+  void     pushPixels16(const void * data_in, uint32_t len);
 
   // Graphics drawing
-  void     fillScreen(uint32_t color),
-           drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color),
-           drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, uint32_t color),
-           fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, uint32_t color);
+  void     fillScreen(rgb_t color),
+           drawRect(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color),
+           drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, rgb_t color),
+           fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, rgb_t color);
 
-  void     fillRectVGradient(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color1, uint32_t color2);
-  void     fillRectHGradient(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color1, uint32_t color2);
+  void     fillRectVGradient(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color1, rgb_t color2);
+  void     fillRectHGradient(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color1, rgb_t color2);
 
-  void     drawCircle(int32_t x, int32_t y, int32_t r, uint32_t color),
-           drawCircleHelper(int32_t x, int32_t y, int32_t r, uint8_t cornername, uint32_t color),
-           fillCircle(int32_t x, int32_t y, int32_t r, uint32_t color),
-           fillCircleHelper(int32_t x, int32_t y, int32_t r, uint8_t cornername, int32_t delta, uint32_t color),
+  void     drawCircle(int32_t x, int32_t y, int32_t r, rgb_t color),
+           drawCircleHelper(int32_t x, int32_t y, int32_t r, uint8_t cornername, rgb_t color),
+           fillCircle(int32_t x, int32_t y, int32_t r, rgb_t color),
+           fillCircleHelper(int32_t x, int32_t y, int32_t r, uint8_t cornername, int32_t delta, rgb_t color),
 
            drawEllipse(int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color),
            fillEllipse(int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color),
 
            //                 Corner 1               Corner 2               Corner 3
-           drawTriangle(int32_t x1,int32_t y1, int32_t x2,int32_t y2, int32_t x3,int32_t y3, uint32_t color),
-           fillTriangle(int32_t x1,int32_t y1, int32_t x2,int32_t y2, int32_t x3,int32_t y3, uint32_t color);
+           drawTriangle(int32_t x1,int32_t y1, int32_t x2,int32_t y2, int32_t x3,int32_t y3, rgb_t color),
+           fillTriangle(int32_t x1,int32_t y1, int32_t x2,int32_t y2, int32_t x3,int32_t y3, rgb_t color);
 
 
   // Smooth (anti-aliased) graphics drawing
            // Draw a pixel blended with the background pixel colour (bg_color) specified,  return blended colour
            // If the bg_color is not specified, the background pixel colour will be read from TFT or sprite
-  uint16_t drawPixel(int32_t x, int32_t y, uint32_t color, uint8_t alpha, uint32_t bg_color = 0x00FFFFFF);
+  uint16_t drawPixel(int32_t x, int32_t y, rgb_t color, uint8_t alpha, rgb_t bg_color = 0x00FFFFFF);
 
   using TFT_eeSPI::drawPixel;
 
@@ -247,45 +285,45 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            // By default the arc is drawn with square ends unless the "roundEnds" parameter is included and set true
            // Angle = 0 is at 6 o'clock position, 90 at 9 o'clock etc. The angles must be in range 0-360 or they will be clipped to these limits
            // The start angle may be larger than the end angle. Arcs are always drawn clockwise from the start angle.
-  void     drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds = false);
+  void     drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, rgb_t startAngle, rgb_t endAngle, rgb_t fg_color, rgb_t bg_color, bool roundEnds = false);
 
            // As per "drawSmoothArc" except the ends of the arc are NOT anti-aliased, this facilitates dynamic arc length changes with
            // arc segments and ensures clean segment joints. 
            // The sides of the arc are anti-aliased by default. If smoothArc is false sides will NOT be anti-aliased
-  void     drawArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool smoothArc = true);
+  void     drawArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, rgb_t fg_color, rgb_t bg_color, bool smoothArc = true);
 
            // Draw an anti-aliased filled circle at x, y with radius r
            // Note: The thickness of line is 3 pixels to reduce the visible "braiding" effect of anti-aliasing narrow lines
            //       this means the inner anti-alias zone is always at r-1 and the outer zone at r+1
-  void     drawSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t fg_color, uint32_t bg_color);
+  void     drawSmoothCircle(int32_t x, int32_t y, int32_t r, rgb_t fg_color, rgb_t bg_color);
   
            // Draw an anti-aliased filled circle at x, y with radius r
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
-  void     fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color, uint32_t bg_color = 0x00FFFFFF);
+  void     fillSmoothCircle(int32_t x, int32_t y, int32_t r, rgb_t color, rgb_t bg_color = 0x00FFFFFF);
 
            // Draw a rounded rectangle that has a line thickness of r-ir+1 and bounding box defined by x,y and w,h
            // The outer corner radius is r, inner corner radius is ir
            // The inside and outside of the border are anti-aliased
-  void     drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, uint32_t fg_color, uint32_t bg_color = 0x00FFFFFF, uint8_t quadrants = 0xF);
+  void     drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, rgb_t fg_color, rgb_t bg_color = 0x00FFFFFF, uint8_t quadrants = 0xF);
 
            // Draw a filled rounded rectangle , corner radius r and bounding box defined by x,y and w,h
-  void     fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, uint32_t color, uint32_t bg_color = 0x00FFFFFF);
+  void     fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, rgb_t color, rgb_t bg_color = 0x00FFFFFF);
 
            // Draw a small anti-aliased filled circle at ax,ay with radius r (uses drawWideLine)
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
-  void     drawSpot(float ax, float ay, float r, uint32_t fg_color, uint32_t bg_color = 0x00FFFFFF);
+  void     drawSpot(float ax, float ay, float r, rgb_t fg_color, rgb_t bg_color = 0x00FFFFFF);
 
            // Draw an anti-aliased wide line from ax,ay to bx,by width wd with radiused ends (radius is wd/2)
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
-  void     drawWideLine(float ax, float ay, float bx, float by, float wd, uint32_t fg_color, uint32_t bg_color = 0x00FFFFFF);
+  void     drawWideLine(float ax, float ay, float bx, float by, float wd, rgb_t fg_color, rgb_t bg_color = 0x00FFFFFF);
 
            // Draw an anti-aliased wide line from ax,ay to bx,by with different width at each end aw, bw and with radiused ends
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
-  void     drawWedgeLine(float ax, float ay, float bx, float by, float aw, float bw, uint32_t fg_color, uint32_t bg_color = 0x00FFFFFF);
+  void     drawWedgeLine(float ax, float ay, float bx, float by, float aw, float bw, rgb_t fg_color, rgb_t bg_color = 0x00FFFFFF);
 
 
   // Image rendering
-           // Swap the byte order for pushImage() and pushPixels() - corrects endianness
+           // Swap the byte order for pushImage and pushPixels - corrects endianness
   void     setSwapBytes(bool swap);
   bool     getSwapBytes(void);
 
@@ -308,23 +346,23 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   void     pushRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
 
            // These are used to render images or sprites stored in RAM arrays (used by Sprite class for 16bpp Sprites)
-  void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
-  void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transparent);
+  void     pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
+  void     pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, rgb_t transparent);
 
            // These are used to render images stored in FLASH (PROGMEM)
-  void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, uint16_t transparent);
-  void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data);
+  void     pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, rgb_t transparent);
+  void     pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data);
 
            // These are used by Sprite class pushSprite() member function for 1, 4 and 8 bits per pixel (bpp) colours
            // They are not intended to be used with user sketches (but could be)
            // Set bpp8 true for 8bpp sprites, false otherwise. The cmap pointer must be specified for 4bpp
-  void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, bool bpp8 = true, uint16_t *cmap = nullptr);
-  void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, uint8_t  transparent, bool bpp8 = true, uint16_t *cmap = nullptr);
+  void     pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, bool bpp8 = true, rgb_t *cmap = nullptr);
+  void     pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, uint8_t  transparent, bool bpp8 = true, rgb_t *cmap = nullptr);
            // FLASH version
-  void     pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8,  uint16_t *cmap = nullptr);
+  void     pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8, rgb_t *cmap = nullptr);
 
            // Render a 16-bit colour image with a 1bpp mask
-  void     pushMaskedImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask);
+  void     pushMaskedImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask);
 
            // This next function has been used successfully to dump the TFT screen to a PC for documentation purposes
            // It reads a screen area and returns the 3 RGB 8-bit colour values of each pixel in the buffer
@@ -404,14 +442,14 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            //
            // The function will wait for the last DMA to complete if it is called while a previous DMA is still
            // in progress, this simplifies the sketch and helps avoid "gotchas".
-  void     pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer = nullptr);
+  void     pushImageDMA16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer = nullptr);
 
 #if defined (ESP32) // ESP32 only at the moment
            // For case where pointer is a const and the image data must not be modified (clipped or byte swapped)
-  void     pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t const* data);
+  void     pushImageDMA16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t const* data);
 #endif
            // Push a block of pixels into a window set up using setAddrWindow()
-  void     pushPixelsDMA(uint16_t* image, uint32_t len);
+  void     pushPixelsDMA16(uint16_t* image, uint32_t len);
   // Set/get an arbitrary library configuration attribute or option
   //       Use to switch ON/OFF capabilities such as UTF8 decoding - each attribute has a unique ID
   //       id = 0: reserved - may be used in future to reset all attributes to a default state
@@ -427,6 +465,40 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
            // Used for diagnostic sketch to see library setup adopted by compiler, see Section 7 above
   void     getSetup(setup_t& tft_settings); // Sketch provides the instance to populate
   bool     verifySetupID(uint32_t id);
+
+#ifdef COLOR_565
+  #define pushBlock(color, len)       pushBlock16(color, len)
+  #define pushPixels(data, len)       pushPixels16(data, len)
+  #define pushPixelsDMA(data, len)    pushPixelsDMA16(data, len)
+  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data) {
+    pushImage16(x,y,w,h,data);
+  }
+  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, rgb_t transparent) {
+    pushImage16(x,y,w,h,data);
+  }
+  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, rgb_t transparent) {
+    pushImage(x, y, w, h, data, transparent);
+  }
+  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data) {
+    pushImage(x, y, w, h, data);
+  }
+  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, bool bpp8 = true, uint16_t *cmap = nullptr) {
+    pushImage(x, y, w, h, data, bpp8, cmap);
+  }
+  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, uint8_t  transparent, bool bpp8 = true, uint16_t *cmap = nullptr) {
+    pushImage(x, y, w, h, data, transparent, bpp8, cmap);
+  }
+  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8,  uint16_t *cmap = nullptr) {
+    pushImage(x, y, w, h, data, bpp8, cmap);
+  }
+  inline void pushMaskedImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask) {
+    pushMaskedImage(x, y, w, h, img, mask);
+  }
+
+  #define pushMaskedImage             pushMaskedImage16
+  #define pushImageDMA                pushImageDMA16
+#else
+#endif
 
   using TFT_eeSPI::readRectRGB;
 
@@ -460,11 +532,11 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   using TFT_GFX::drawBitmap;
   using TFT_GFX::drawXBitmap;
   using TFT_GFX::pushRect;
-  using TFT_GFX::pushImage;
-  using TFT_GFX::pushMaskedImage;
-  using TFT_GFX::pushImageDMA;
-  using TFT_GFX::pushPixels;
-  using TFT_GFX::pushPixelsDMA;
+  using TFT_GFX::pushImage16;
+  using TFT_GFX::pushMaskedImage16;
+  using TFT_GFX::pushImageDMA16;
+  using TFT_GFX::pushPixels16;
+  using TFT_GFX::pushPixelsDMA16;
 
   using TFT_CHAR::textWidth;
   using TFT_CHAR::fontHeight;
@@ -476,10 +548,10 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 #endif
 
  private:
-  uint32_t _textcolor, _textbgcolor;         // Text foreground and background colours
-  uint32_t _bitmap_fg, _bitmap_bg;           // Bitmap foreground (bit=1) and background (bit=0) colours
+  rgb_t _textcolor, _textbgcolor;         // Text foreground and background colours
+  rgb_t _bitmap_fg, _bitmap_bg;           // Bitmap foreground (bit=1) and background (bit=0) colours
 
-  font_t _font;
+  chr_font_t _font;
 
   uint8_t  _textdatum; // Text reference datum
 
@@ -506,7 +578,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   cursor_t _cursor;
   int32_t  _padX;       // Text cursor x,y and padding setting
 
-  bool     _swapBytes; // Swap the byte order for TFT pushImage()
+  bool     _swapBytes; // Swap the byte order for TFT pushImage
 
 /***************************************************************************************
 **                         Section 9: TFT_eSPI class conditional extensions
@@ -523,4 +595,3 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 // Load the Sprite Class
 #include "Extensions/Sprite.h"
 
-#endif // ends #ifndef _TFT_eSPIH_

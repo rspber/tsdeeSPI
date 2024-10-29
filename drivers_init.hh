@@ -40,6 +40,9 @@
 #elif defined (ST7789_2_DRIVER)
     #include "TFT_Drivers/ST7789_2_Init.h"
 
+#elif defined (ST7789_3_DRIVER)
+    #include "TFT_Drivers/ST7789_3_Init.hh"
+
 #elif defined (SSD1351_DRIVER)
     #include "TFT_Drivers/SSD1351_Init.h"
 

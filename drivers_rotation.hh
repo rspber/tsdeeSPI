@@ -39,6 +39,9 @@
 #elif defined (ST7789_2_DRIVER)
     #include "TFT_Drivers/ST7789_2_Rotation.h"
 
+#elif defined (ST7789_3_DRIVER)
+    #include "TFT_Drivers/ILI9341_Rotation.h"
+
 #elif defined (SSD1351_DRIVER)
     #include "TFT_Drivers/SSD1351_Rotation.h"
 

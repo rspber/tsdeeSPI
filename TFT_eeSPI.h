@@ -169,6 +169,8 @@
 **                         Section 4: Setup fonts
 ***************************************************************************************/
 
+#include <rgb.h>
+
 /***************************************************************************************
 **                         Section 5: Font datum enumeration
 ***************************************************************************************/
@@ -205,19 +207,23 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   virtual void     resetViewport(void) {}
 
   // These are virtual so the TFT_eSprite class can override them with sprite specific functions
-  virtual void     drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color);
+  virtual void     drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color);
 
                    // Read the colour of a pixel at x,y and return value in 565 format
-  virtual uint16_t readPixel(clip_t& clip, int32_t x, int32_t y);
+  virtual rgb_t    readPixel(clip_t& clip, int32_t x, int32_t y);
 
   virtual void     setWindow(int32_t x, int32_t y, int32_t w, int32_t h);   // Note: start + width and height
 
                    // Push (aka write pixel) colours to the set window
-  virtual void     pushColor(uint16_t color);
+  virtual void     pushColor(rgb_t color);
 
                    // These are non-inlined to enable override
   virtual void     begin_nin_write();
   virtual void     end_nin_write();
+
+  void sendCmd(const uint8_t cmd);
+  void sendCmdData(const uint8_t cmd, const uint8_t* data, const int16_t size);
+  void sendCmdByte(const uint8_t cmd, const uint8_t b);
 
   void     setRotation(uint8_t r); // Set the display image orientation to 0, 1, 2 or 3
   uint8_t  getRotation(void);      // Read the current rotation
@@ -231,15 +237,15 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   void     setAddrWindow(int32_t xs, int32_t ys, int32_t w, int32_t h); // Note: start coordinates + width and height
 
            // Push (aka write pixel) colours to the TFT (use setAddrWindow() first)
-  void     pushColor(uint16_t color, uint32_t len),  // Deprecated, use pushBlock()
+  void     pushColor(rgb_t color, uint32_t len),  // Deprecated, use pushBlock
            pushColors(uint16_t  *data, uint32_t len, bool swapBytes = true), // With byte swap option
-           pushColors(uint8_t  *data, uint32_t len, bool swapBytes); // Deprecated, use pushPixels()
+           pushColors(uint8_t  *data, uint32_t len, bool swapBytes); // Deprecated, use pushPixels
 
            // Write a solid block of a single colour
-  void     pushBlock(uint16_t color, uint32_t len);
+  void     pushBlock16(uint16_t color, uint32_t len);
 
            // Write a set of pixels stored in memory, use setSwapBytes(true/false) function to correct endianess
-  void     pushPixels(const void * data_in, uint32_t len, bool swapBytes);
+  void     pushPixels16(const void * data_in, uint32_t len, bool swapBytes);
 
            // Support for half duplex (bi-directional SDA) SPI bus where MOSI must be switched to input
            #ifdef TFT_SDA_READ
@@ -322,14 +328,14 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
            //
            // The function will wait for the last DMA to complete if it is called while a previous DMA is still
            // in progress, this simplifies the sketch and helps avoid "gotchas".
-  void     pushImageDMA(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* data, uint16_t* buffer = nullptr);
+  void     pushImageDMA16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* data, uint16_t* buffer = nullptr);
 
 #if defined (ESP32) // ESP32 only at the moment
            // For case where pointer is a const and the image data must not be modified (clipped or byte swapped)
-  void     pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t const* data);
+  void     pushImageDMA16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t const* data);
 #endif
            // Push a block of pixels into a window set up using setAddrWindow()
-  void     pushPixelsDMA(uint16_t* image, uint32_t len, bool swapBytes);
+  void     pushPixelsDMA16(uint16_t* image, uint32_t len, bool swapBytes);
 
            // Check if the DMA is complete - use while(tft.dmaBusy); for a blocking wait
   bool     dmaBusy(void); // returns true if DMA is still in progress
@@ -340,7 +346,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
   // Bare metal functions
   void     startWrite(void);                         // Begin SPI transaction
-  void     writeColor(uint16_t color, uint32_t len); // Deprecated, use pushBlock()
+  void     writeColor(rgb_t color, uint32_t len);    // Deprecated, use pushBlock
   void     endWrite(void);                           // End SPI transaction
 
 
@@ -352,7 +358,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   uint8_t rotation;  // Display rotation (0-3)
 
  //--------------------------------------- private ------------------------------------//
- private:
+ protected:
            // Legacy begin and end prototypes - deprecated TODO: delete
   void     spi_begin();
   void     spi_end();
@@ -373,6 +379,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   inline void begin_tft_read()  __attribute__((always_inline));
   inline void end_tft_read()    __attribute__((always_inline));
 
+ private:
            // Initialise the data bus GPIO and hardware interfaces
   void     initBus(void);
 
@@ -415,9 +422,9 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
   bool     _psram_enable; // Enable PSRAM use for library functions (TBD) and Sprites
 
-  virtual  void drawCharDefault(const uint8_t* font_offset, uint16_t color, uint16_t bg);
-  virtual  void drawCharFont2Faster(uint16_t width, uint16_t height, uint16_t textcolor, uint16_t textbgcolor, uint32_t flash_address);
-  virtual  void drawCharRLEfont(int32_t xd, int32_t y, int32_t pY, uint16_t width, uint16_t height, int16_t textsize, uint16_t textcolor, uint32_t flash_addres);
+  virtual  void drawCharDefault(const uint8_t* font_offset, rgb_t color, rgb_t bg);
+  virtual  void drawCharFont2Faster(uint16_t width, uint16_t height, rgb_t textcolor, rgb_t textbgcolor, uint32_t flash_address);
+  virtual  void drawCharRLEfont(int32_t xd, int32_t y, int32_t pY, uint16_t width, uint16_t height, int16_t textsize, rgb_t textcolor, uint32_t flash_addres);
 
 #if defined (SSD1963_DRIVER)
   uint16_t Cswap;      // Swap buffer for SSD1963
@@ -451,3 +458,67 @@ transpose(T& a, T& b) { T t = a; a = b; b = t; }
 /***************************************************************************************
 **                         Section 10: Additional extension classes
 ***************************************************************************************/
+  // Colour conversion
+
+/***************************************************************************************
+** Function name:           color565
+** Description:             convert three 8-bit RGB levels to a 16-bit colour value
+***************************************************************************************/
+inline uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
+{
+  return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+}
+
+
+/***************************************************************************************
+** Function name:           color16to8
+** Description:             convert 16-bit colour to an 8-bit 332 RGB colour value
+***************************************************************************************/
+inline uint8_t color16to8(uint16_t c)
+{
+  return ((c & 0xE000)>>8) | ((c & 0x0700)>>6) | ((c & 0x0018)>>3);
+}
+
+
+/***************************************************************************************
+** Function name:           color8to16
+** Description:             convert 8-bit colour to a 16-bit 565 colour value
+***************************************************************************************/
+inline uint16_t color8to16(uint8_t color)
+{
+  uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
+  uint16_t color16 = 0;
+
+  //        =====Green=====     ===============Red==============
+  color16  = (color & 0x1C)<<6 | (color & 0xC0)<<5 | (color & 0xE0)<<8;
+  //        =====Green=====    =======Blue======
+  color16 |= (color & 0x1C)<<3 | blue[color & 0x03];
+
+  return color16;
+}
+
+/***************************************************************************************
+** Function name:           color16to24
+** Description:             convert 16-bit colour to a 24-bit 888 colour value
+***************************************************************************************/
+inline rgb_t color16to24(uint16_t color565)
+{
+  uint8_t r = (color565 >> 8) & 0xF8; r |= (r >> 5);
+  uint8_t g = (color565 >> 3) & 0xFC; g |= (g >> 6);
+  uint8_t b = (color565 << 3) & 0xF8; b |= (b >> 5);
+
+  return ((uint32_t)r << 16) | ((uint32_t)g << 8) | ((uint32_t)b << 0);
+}
+
+/***************************************************************************************
+** Function name:           color24to16
+** Description:             convert 24-bit colour to a 16-bit 565 colour value
+***************************************************************************************/
+inline uint16_t color24to16(rgb_t color888)
+{
+  uint16_t r = (color888 >> 8) & 0xF800;
+  uint16_t g = (color888 >> 5) & 0x07E0;
+  uint16_t b = (color888 >> 3) & 0x001F;
+
+  return (r | g | b);
+}

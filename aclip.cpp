@@ -1,6 +1,16 @@
 
 #include "aclip.h"
 
+const int16_t ein_clip::width()
+{
+  return x2 > x1 ? x2 - x1 : 0;
+}
+
+const int16_t ein_clip::height()
+{
+  return y2 > y1 ? y2 - y1 : 0;
+}
+
 void ein_clip::set(int32_t x1, int32_t  y1, int32_t  x2, int32_t  y2)
 {
   this->x1 = x1;

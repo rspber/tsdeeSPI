@@ -11,7 +11,7 @@
 #define RP2040_PIO_SPI
 
 // TFT driver
-#define ILI9341_DRIVER
+#define ST7789_3_DRIVER
 
 // Pins - the PIO will control MOSI, SCLK and DC pins
 // Any digital GPIO pins may be used
@@ -41,4 +41,4 @@
 // #define SPI_FREQUENCY  10000000
 // #define SPI_FREQUENCY  20000000
 // #define SPI_FREQUENCY  32000000
-#define SPI_FREQUENCY  62500000
+#define SPI_FREQUENCY  2 * 62500000

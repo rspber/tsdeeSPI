@@ -23,7 +23,7 @@
   Last update by Bodmer 20/03/20
  ****************************************************/
 
-#include "TFT_eSPI.h"
+#include "TFT_GFX.h"
 
 /***************************************************************************************
 ** Function name:           TFT_eSPI
@@ -39,7 +39,7 @@ TFT_GFX::TFT_GFX() : TFT_eeSPI()
 ***************************************************************************************/
 void TFT_GFX::pushRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
 {
-  pushImage(clip, x, y, w, h, false, data);
+  pushImage16(clip, x, y, w, h, false, data);
 }
 
 
@@ -47,7 +47,7 @@ void TFT_GFX::pushRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h,
 ** Function name:           pushImage
 ** Description:             plot 16-bit colour sprite or image onto TFT
 ***************************************************************************************/
-void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t *data)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t *data)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -60,12 +60,12 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
   data += z.dx + z.dy * w;
 
   // Check if whole image can be pushed
-  if (z.dw == w) pushPixels(data, z.dw * z.dh, swapBytes);
+  if (z.dw == w) pushPixels16(data, z.dw * z.dh, swapBytes);
   else {
     // Push line segments to crop image
     while (z.dh--)
     {
-      pushPixels(data, z.dw, swapBytes);
+      pushPixels16(data, z.dw, swapBytes);
       data += w;
     }
   }
@@ -78,7 +78,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 ** Function name:           pushImage
 ** Description:             plot 16-bit sprite or image with 1 colour being transparent
 ***************************************************************************************/
-void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t *data, uint16_t transp)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t *data, rgb_t transp)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -116,14 +116,14 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
         if (np)
         {
           setWindow(sx, z.y, np, 1);
-          pushPixels((uint16_t*)lineBuf, np, swapBytes);
+          pushPixels16((uint16_t*)lineBuf, np, swapBytes);
           np = 0;
         }
       }
       px++;
       ptr++;
     }
-    if (np) { setWindow(sx, z.y, np, 1); pushPixels((uint16_t*)lineBuf, np, swapBytes); }
+    if (np) { setWindow(sx, z.y, np, 1); pushPixels16((uint16_t*)lineBuf, np, swapBytes); }
 
     z.y++;
     data += w;
@@ -138,7 +138,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
 ** Description:             plot 16-bit image
 ***************************************************************************************/
-void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, const uint16_t *data)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, const uint16_t *data)
 {
   // Requires 32-bit aligned access, so use PROGMEM 16-bit word functions
   block_t z;
@@ -158,7 +158,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
     for (int32_t j = 0; j < z.dw; j++) {
       buffer[j] = pgm_read_word(&data[i * w + j]);
     }
-    pushPixels(buffer, z.dw, swapBytes);
+    pushPixels16(buffer, z.dw, swapBytes);
   }
 
   inTransaction = lockTransaction;
@@ -169,7 +169,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
 ** Description:             plot 16-bit image with 1 colour being transparent
 ***************************************************************************************/
-void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, const uint16_t *data, uint16_t transp)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, const uint16_t *data, rgb_t transp)
 {
   // Requires 32-bit aligned access, so use PROGMEM 16-bit word functions
   block_t z;
@@ -205,14 +205,14 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
         move = true;
         if (np) {
           setWindow(sx, z.y, np, 1);
-          pushPixels(lineBuf, np, swapBytes);
+          pushPixels16(lineBuf, np, swapBytes);
           np = 0;
         }
       }
       px++;
       ptr++;
     }
-    if (np) { setWindow(sx, z.y, np, 1); pushPixels(lineBuf, np, swapBytes); }
+    if (np) { setWindow(sx, z.y, np, 1); pushPixels16(lineBuf, np, swapBytes); }
 
     z.y++;
     data += w;
@@ -226,7 +226,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t bitmap_fg, uint16_t bitmap_bg, const uint8_t *data, bool bpp8, uint16_t *cmap)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, rgb_t bitmap_fg, rgb_t bitmap_bg, const uint8_t *data, bool bpp8, rgb_t *cmap)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -243,7 +243,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
   {
     uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
 
-    uint32_t _lastColor = -1; // Set to illegal value
+    rgb_t _lastColor = -1; // Set to illegal value
 
     // Used to store last shifted colour
     uint8_t msbColor = 0;
@@ -256,7 +256,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
       uint8_t* linePtr = (uint8_t*)lineBuf;
 
       while(len--) {
-        uint32_t color = pgm_read_byte(ptr++);
+        rgb_t color = pgm_read_byte(ptr++);
 
         // Shifts are slow so check if colour has changed first
         if (color != _lastColor) {
@@ -271,7 +271,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
        *linePtr++ = lsbColor;
       }
 
-      pushPixels(lineBuf, z.dw, false);
+      pushPixels16(lineBuf, z.dw, false);
 
       data += w;
     }
@@ -320,7 +320,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
         ptr++;
       }
 
-      pushPixels(lineBuf, z.dw, true);
+      pushPixels16(lineBuf, z.dw, true);
       data += (w >> 1);
     }
   }
@@ -338,7 +338,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
         else     {*linePtr++ = bitmap_bg>>8; *linePtr++ = (uint8_t) bitmap_bg;}
       }
       ptr += ww;
-      pushPixels(lineBuf, z.dw, false);
+      pushPixels16(lineBuf, z.dw, false);
     }
   }
 
@@ -351,7 +351,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t bitmap_fg, uint16_t bitmap_bg, uint8_t *data, bool bpp8,  uint16_t *cmap)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, rgb_t bitmap_fg, rgb_t bitmap_bg, uint8_t *data, bool bpp8, rgb_t *cmap)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -368,7 +368,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
   {
     uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
 
-    uint32_t _lastColor = -1; // Set to illegal value
+    rgb_t _lastColor = -1; // Set to illegal value
 
     // Used to store last shifted colour
     uint8_t msbColor = 0;
@@ -381,7 +381,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
       uint8_t* linePtr = (uint8_t*)lineBuf;
 
       while(len--) {
-        uint32_t color = *ptr++;
+        rgb_t color = *ptr++;
 
         // Shifts are slow so check if colour has changed first
         if (color != _lastColor) {
@@ -396,7 +396,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
        *linePtr++ = lsbColor;
       }
 
-      pushPixels(lineBuf, z.dw, false);
+      pushPixels16(lineBuf, z.dw, false);
 
       data += w;
     }
@@ -445,7 +445,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
         ptr++;
       }
 
-      pushPixels(lineBuf, z.dw, true);
+      pushPixels16(lineBuf, z.dw, true);
       data += (w >> 1);
     }
   }
@@ -462,7 +462,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
         else     {*linePtr++ = bitmap_bg>>8; *linePtr++ = (uint8_t) bitmap_bg;}
       }
       data += ww;
-      pushPixels(lineBuf, z.dw, false);
+      pushPixels16(lineBuf, z.dw, false);
     }
   }
 
@@ -475,7 +475,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 ** Function name:           pushImage
 ** Description:             plot 8 or 4 or 1 bit image or sprite with a transparent colour
 ***************************************************************************************/
-void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t bitmap_fg, uint16_t bitmap_bg, uint8_t *data, uint8_t transp, bool bpp8, uint16_t *cmap)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, rgb_t bitmap_fg, rgb_t bitmap_bg, uint8_t *data, uint8_t transp, bool bpp8, rgb_t *cmap)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -492,7 +492,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 
     uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
 
-    uint32_t _lastColor = -1; // Set to illegal value
+    rgb_t _lastColor = -1; // Set to illegal value
 
     // Used to store last shifted colour
     uint8_t msbColor = 0;
@@ -528,7 +528,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
           move = true;
           if (np) {
             setWindow(sx, z.y, np, 1);
-            pushPixels(lineBuf, np, false);
+            pushPixels16(lineBuf, np, false);
             linePtr = (uint8_t*)lineBuf;
             np = 0;
           }
@@ -537,7 +537,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
         ptr++;
       }
 
-      if (np) { setWindow(sx, z.y, np, 1); pushPixels(lineBuf, np, false); }
+      if (np) { setWindow(sx, z.y, np, 1); pushPixels16(lineBuf, np, false); }
       z.y++;
       data += w;
     }
@@ -592,7 +592,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
           move = true;
           if (np) {
             setWindow(sx, z.y, np, 1);
-            pushPixels(lineBuf, np, true);
+            pushPixels16(lineBuf, np, true);
             np = 0;
           }
         }
@@ -612,7 +612,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
             move = true;
             if (np) {
               setWindow(sx, z.y, np, 1);
-              pushPixels(lineBuf, np, true);
+              pushPixels16(lineBuf, np, true);
               np = 0;
             }
           }
@@ -626,7 +626,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 
       if (np) {
         setWindow(sx, z.y, np, 1);
-        pushPixels(lineBuf, np, true);
+        pushPixels16(lineBuf, np, true);
         np = 0;
       }
       data += (w>>1);
@@ -654,13 +654,13 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
           move = true;
           if (np) {
             setWindow(sx, z.y, np, 1);
-            pushBlock(bitmap_fg, np);
+            pushBlock16(mdt_color(bitmap_fg), np);
             np = 0;
           }
         }
         px++;
       }
-      if (np) { setWindow(sx, z.y, np, 1); pushBlock(bitmap_fg, np); np = 0; }
+      if (np) { setWindow(sx, z.y, np, 1); pushBlock16(mdt_color(bitmap_fg), np); np = 0; }
       z.y++;
       data += ww;
     }
@@ -674,7 +674,7 @@ void TFT_GFX::pushImage(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t
 ** Description:             Render a 16-bit colour image to TFT with a 1bpp mask
 ***************************************************************************************/
 // Can be used with a 16bpp sprite and a 1bpp sprite for the mask
-void TFT_GFX::pushMaskedImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t *img, uint8_t *mask)
+void TFT_GFX::pushMaskedImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t *img, uint8_t *mask)
 {
   if (w < 1 || h < 1) return;
 
@@ -739,7 +739,7 @@ void TFT_GFX::pushMaskedImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int
       if (setCount) {
         xp += clearCount;
         clearCount = 0;
-        pushImage(clip, x + xp, y, setCount, 1, swapBytes, iptr + xp);      // pushImage handles clipping
+        pushImage16(clip, x + xp, y, setCount, 1, swapBytes, iptr + xp);      // pushImage handles clipping
         if (mptr >= eptr) break;
         xp += setCount;
       }
@@ -760,7 +760,7 @@ void TFT_GFX::pushMaskedImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int
 ** Description:             Draw a circle outline
 ***************************************************************************************/
 // Optimised midpoint circle algorithm
-void TFT_GFX::drawCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, uint32_t color)
+void TFT_GFX::drawCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, rgb_t color)
 {
   if ( r <= 0 ) return;
 
@@ -828,7 +828,7 @@ void TFT_GFX::drawCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, uint32
 ** Function name:           drawCircleHelper
 ** Description:             Support function for drawRoundRect()
 ***************************************************************************************/
-void TFT_GFX::drawCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t rr, uint8_t cornername, uint32_t color)
+void TFT_GFX::drawCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t rr, uint8_t cornername, rgb_t color)
 {
   if (rr <= 0) return;
   int32_t f     = 1 - rr;
@@ -899,7 +899,7 @@ void TFT_GFX::drawCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t rr,
 ***************************************************************************************/
 // Optimised midpoint circle algorithm, changed to horizontal lines (faster in sprites)
 // Improved algorithm avoids repetition of lines
-void TFT_GFX::fillCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, uint32_t color)
+void TFT_GFX::fillCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, rgb_t color)
 {
   int32_t  x  = 0;
   int32_t  dx = 1;
@@ -939,7 +939,7 @@ void TFT_GFX::fillCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, uint32
 ** Description:             Support function for fillRoundRect()
 ***************************************************************************************/
 // Support drawing roundrects, changed to horizontal lines (faster in sprites)
-void TFT_GFX::fillCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t r, uint8_t cornername, int32_t delta, uint32_t color)
+void TFT_GFX::fillCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t r, uint8_t cornername, int32_t delta, rgb_t color)
 {
   int32_t f     = 1 - r;
   int32_t ddF_x = 1;
@@ -1069,7 +1069,7 @@ void TFT_GFX::fillEllipse(clip_t& clip, int16_t x0, int16_t y0, int32_t rx, int3
 ** Description:             Draw a rectangle outline
 ***************************************************************************************/
 // Draw a rectangle
-void TFT_GFX::drawRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color)
+void TFT_GFX::drawRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
 {
   //begin_tft_write();          // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1090,7 +1090,7 @@ void TFT_GFX::drawRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h,
 ** Description:             Draw a rounded corner rectangle outline
 ***************************************************************************************/
 // Draw a rounded rectangle
-void TFT_GFX::drawRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color)
+void TFT_GFX::drawRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color)
 {
   //begin_tft_write();          // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1116,7 +1116,7 @@ void TFT_GFX::drawRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32
 ** Description:             Draw a rounded corner filled rectangle
 ***************************************************************************************/
 // Fill a rounded rectangle, changed to horizontal lines (faster in sprites)
-void TFT_GFX::fillRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color)
+void TFT_GFX::fillRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color)
 {
   //begin_tft_write();          // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1138,7 +1138,7 @@ void TFT_GFX::fillRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32
 ** Description:             Draw a triangle outline using 3 arbitrary points
 ***************************************************************************************/
 // Draw a triangle
-void TFT_GFX::drawTriangle(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+void TFT_GFX::drawTriangle(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, rgb_t color)
 {
   //begin_tft_write();          // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1157,7 +1157,7 @@ void TFT_GFX::drawTriangle(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int
 ** Description:             Draw a filled triangle using 3 arbitrary points
 ***************************************************************************************/
 // Fill a triangle - original Adafruit function works well and code footprint is small
-void TFT_GFX::fillTriangle (clip_t&clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+void TFT_GFX::fillTriangle (clip_t&clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, rgb_t color)
 {
   int32_t a, b, y, last;
 
@@ -1237,7 +1237,7 @@ void TFT_GFX::fillTriangle (clip_t&clip, int32_t x0, int32_t y0, int32_t x1, int
 ** Function name:           drawBitmap
 ** Description:             Draw an image stored in an array on the TFT
 ***************************************************************************************/
-void TFT_GFX::drawBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
+void TFT_GFX::drawBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t color)
 {
   //begin_tft_write();          // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1261,7 +1261,7 @@ void TFT_GFX::drawBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitm
 ** Function name:           drawBitmap
 ** Description:             Draw an image stored in an array on the TFT
 ***************************************************************************************/
-void TFT_GFX::drawBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t fgcolor, uint16_t bgcolor)
+void TFT_GFX::drawBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t fgcolor, rgb_t bgcolor)
 {
   //begin_tft_write();          // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1284,7 +1284,7 @@ void TFT_GFX::drawBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitm
 ** Function name:           drawXBitmap
 ** Description:             Draw an image stored in an XBM array onto the TFT
 ***************************************************************************************/
-void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color)
+void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t color)
 {
   //begin_tft_write();          // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1308,7 +1308,7 @@ void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bit
 ** Function name:           drawXBitmap
 ** Description:             Draw an XBM image with foreground and background colors
 ***************************************************************************************/
-void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color, uint16_t bgcolor)
+void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t color, rgb_t bgcolor)
 {
   //begin_tft_write();          // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1334,7 +1334,7 @@ void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bit
 ***************************************************************************************/
 // Bresenham's algorithm - thx Wikipedia - speed enhanced by Bodmer to use
 // an efficient FastH/V Line draw routine for line segments of 2 pixels or more
-void TFT_GFX::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color)
+void TFT_GFX::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, rgb_t color)
 {
   //begin_tft_write();       // Sprite class can use this function, avoiding begin_tft_write()
   inTransaction = true;
@@ -1407,10 +1407,10 @@ constexpr float deg2rad      = 3.14159265359/180.0;
 ** Function name:           drawPixel (alpha blended)
 ** Description:             Draw a pixel blended with the screen or bg pixel colour
 ***************************************************************************************/
-uint16_t TFT_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color, uint8_t alpha, uint32_t bg_color)
+uint16_t TFT_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color, uint8_t alpha, rgb_t bg_color)
 {
   if (bg_color == 0x00FFFFFF) bg_color = readPixel(clip, x, y);
-  color = fastBlend(alpha, color, bg_color);
+  color = alphaBlend(alpha, color, bg_color);
   drawPixel(clip, x, y, color);
   return color;
 }
@@ -1420,7 +1420,7 @@ uint16_t TFT_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color, 
 ** Function name:           drawSmoothArc
 ** Description:             Draw a smooth arc clockwise from 6 o'clock
 ***************************************************************************************/
-void TFT_GFX::drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds)
+void TFT_GFX::drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, rgb_t fg_color, rgb_t bg_color, bool roundEnds)
 // Centre at x,y
 // r = arc outer radius, ir = arc inner radius. Inclusive so arc thickness = r - ir + 1
 // Angles in range 0-360
@@ -1516,7 +1516,7 @@ inline uint8_t TFT_GFX::sqrt_fraction(uint32_t num) {
 // Note: Arc ends are not anti-aliased (use drawSmoothArc instead for that)
 void TFT_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
                        uint32_t startAngle, uint32_t endAngle,
-                       uint32_t fg_color, uint32_t bg_color,
+                       rgb_t fg_color, rgb_t bg_color,
                        bool smooth)
 {
   if (endAngle   > 360)   endAngle = 360;
@@ -1651,7 +1651,7 @@ void TFT_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
       if (alpha < 16) continue;  // Skip low alpha pixels
 
       // If background is read it must be done in each quadrant
-      uint16_t pcol = fastBlend(alpha, fg_color, bg_color);
+      uint16_t pcol = alphaBlend(alpha, fg_color, bg_color);
       // Check if an AA pixels need to be drawn
       slope = ((r - cy)<<16)/(r - cx);
       if (slope <= startSlope[0] && slope >= endSlope[0]) // BL
@@ -1685,7 +1685,7 @@ void TFT_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
 ** Description:             Draw a smooth circle
 ***************************************************************************************/
 // To have effective anti-aliasing the circle will be 3 pixels thick
-void TFT_GFX::drawSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, uint32_t fg_color, uint32_t bg_color)
+void TFT_GFX::drawSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, rgb_t fg_color, rgb_t bg_color)
 {
   drawSmoothRoundRect(clip, x-r, y-r, r, r-1, 0, 0, fg_color, bg_color);
 }
@@ -1694,7 +1694,7 @@ void TFT_GFX::drawSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, ui
 ** Function name:           fillSmoothCircle
 ** Description:             Draw a filled anti-aliased circle
 ***************************************************************************************/
-void TFT_GFX::fillSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, uint32_t color, uint32_t bg_color)
+void TFT_GFX::fillSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, rgb_t color, rgb_t bg_color)
 {
   if (r <= 0) return;
 
@@ -1757,7 +1757,7 @@ void TFT_GFX::fillSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, ui
 //   0x1 | 0x2
 //    ---¦---    Arc quadrant mask select bits (as in drawCircleHelper fn)
 //   0x8 | 0x4
-void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, uint32_t fg_color, uint32_t bg_color, uint8_t quadrants)
+void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, rgb_t fg_color, rgb_t bg_color, uint8_t quadrants)
 {
   if (r < ir) transpose(r, ir); // Required that r > ir
   if (r <= 0 || ir < 0) return; // Invalid
@@ -1821,7 +1821,7 @@ void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r,
       if (alpha < 16) continue;  // Skip low alpha pixels
 
       // If background is read it must be done in each quadrant - TODO
-      uint16_t pcol = fastBlend(alpha, fg_color, bg_color);
+      uint16_t pcol = alphaBlend(alpha, fg_color, bg_color);
       if (quadrants & 0x8) drawPixel(clip, x + cx - r, y - cy + r + h, pcol);     // BL
       if (quadrants & 0x1) drawPixel(clip, x + cx - r, y + cy - r, pcol);         // TL
       if (quadrants & 0x2) drawPixel(clip, x - cx + r + w, y + cy - r, pcol);     // TR
@@ -1849,7 +1849,7 @@ void TFT_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r,
 ** Function name:           fillSmoothRoundRect
 ** Description:             Draw a filled anti-aliased rounded corner rectangle
 ***************************************************************************************/
-void TFT_GFX::fillSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color, uint32_t bg_color)
+void TFT_GFX::fillSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color, rgb_t bg_color)
 {
   inTransaction = true;
 
@@ -1903,7 +1903,7 @@ void TFT_GFX::fillSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w,
 ** Function name:           drawWedgeLine - background colour specified or pixel read
 ** Description:             draw an anti-aliased line with different width radiused ends
 ***************************************************************************************/
-void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by, float ar, float br, uint32_t fg_color, uint32_t bg_color)
+void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by, float ar, float br, rgb_t fg_color, rgb_t bg_color)
 {
   if ( (ar < 0.0) || (br < 0.0) )return;
   if ( (fabsf(ax - bx) < 0.01f) && (fabsf(ay - by) < 0.01f) ) bx += 0.01f;  // Avoid divide by zero
@@ -1957,12 +1957,12 @@ void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by
         bg = readPixel(clip, xp, yp); swin = true;
       }
       #ifdef GC9A01_DRIVER
-        uint16_t pcol = fastBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg);
+        uint16_t pcol = alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg);
         drawPixel(clip, xp, yp, pcol);
         swin = swin;
       #else
         if (swin) { setWindow(xp, yp, x1-xp+1, 1); swin = false; }
-        pushColor(fastBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
+        pushColor(alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
       #endif
     }
   }
@@ -1995,12 +1995,12 @@ void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by
         bg = readPixel(clip, xp, yp); swin = true;
       }
       #ifdef GC9A01_DRIVER
-        uint16_t pcol = fastBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg);
+        uint16_t pcol = alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg);
         drawPixel(xp, yp, pcol);
         swin = swin;
       #else
         if (swin) { setWindow(xp, yp, x1-xp+1, yp); swin = false; }
-        pushColor(fastBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
+        pushColor(alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
       #endif
     }
   }
@@ -2026,7 +2026,7 @@ inline float TFT_GFX::wedgeLineDistance(float xpax, float ypay, float bax, float
 ** Function name:           drawFastVLine
 ** Description:             draw a vertical line
 ***************************************************************************************/
-void TFT_GFX::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, uint32_t color)
+void TFT_GFX::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, rgb_t color)
 {
   int32_t w = 1;
   if (!clip.clipRect(x, y, w, h)) return;
@@ -2035,7 +2035,7 @@ void TFT_GFX::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, uint3
 
   setWindow(x, y, 1, h);
 
-  pushBlock(color, h);
+  pushBlock16(mdt_color(color), h);
 
   end_tft_write();
 }
@@ -2045,7 +2045,7 @@ void TFT_GFX::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, uint3
 ** Function name:           drawFastHLine
 ** Description:             draw a horizontal line
 ***************************************************************************************/
-void TFT_GFX::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, uint32_t color)
+void TFT_GFX::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, rgb_t color)
 {
   int32_t h = 1;
   if (!clip.clipRect(x, y, w, h)) return;
@@ -2054,7 +2054,7 @@ void TFT_GFX::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, uint3
 
   setWindow(x, y, w, 1);
 
-  pushBlock(color, w);
+  pushBlock16(mdt_color(color), w);
 
   end_tft_write();
 }
@@ -2064,7 +2064,7 @@ void TFT_GFX::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, uint3
 ** Function name:           fillRect
 ** Description:             draw a filled rectangle
 ***************************************************************************************/
-void TFT_GFX::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color)
+void TFT_GFX::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
 {
   if (!clip.clipRect(x, y, w, h)) return;
 
@@ -2072,7 +2072,7 @@ void TFT_GFX::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h,
 
   setWindow(x, y, w, h);
 
-  pushBlock(color, w * h);
+  pushBlock16(mdt_color(color), w * h);
 
   end_tft_write();
 }
@@ -2082,7 +2082,7 @@ void TFT_GFX::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h,
 ** Function name:           fillRectVGradient
 ** Description:             draw a filled rectangle with a vertical colour gradient
 ***************************************************************************************/
-void TFT_GFX::fillRectVGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color1, uint32_t color2)
+void TFT_GFX::fillRectVGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color1, rgb_t color2)
 {
   if (!clip.clipRect(x, y, w, h)) return;
 
@@ -2090,12 +2090,12 @@ void TFT_GFX::fillRectVGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, i
 
   float delta = -255.0/h;
   float alpha = 255.0;
-  uint32_t color = color1;
+  rgb_t color = color1;
 
   while (h--) {
     drawFastHLine(clip, x, y++, w, color);
     alpha += delta;
-    color = fastBlend((uint8_t)alpha, color1, color2);
+    color = alphaBlend((uint8_t)alpha, color1, color2);
   }
 
   end_nin_write();
@@ -2106,7 +2106,7 @@ void TFT_GFX::fillRectVGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, i
 ** Function name:           fillRectHGradient
 ** Description:             draw a filled rectangle with a horizontal colour gradient
 ***************************************************************************************/
-void TFT_GFX::fillRectHGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color1, uint32_t color2)
+void TFT_GFX::fillRectHGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color1, rgb_t color2)
 {
   if (!clip.clipRect(x, y, w, h)) return;
 
@@ -2114,134 +2114,13 @@ void TFT_GFX::fillRectHGradient(clip_t& clip, int32_t x, int32_t y, int32_t w, i
 
   float delta = -255.0/w;
   float alpha = 255.0;
-  uint32_t color = color1;
+  rgb_t color = color1;
 
   while (w--) {
     drawFastVLine(clip, x++, y, h, color);
     alpha += delta;
-    color = fastBlend((uint8_t)alpha, color1, color2);
+    color = alphaBlend((uint8_t)alpha, color1, color2);
   }
 
   end_nin_write();
 }
-
-
-/***************************************************************************************
-** Function name:           color565
-** Description:             convert three 8-bit RGB levels to a 16-bit colour value
-***************************************************************************************/
-uint16_t TFT_GFX::color565(uint8_t r, uint8_t g, uint8_t b)
-{
-  return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
-}
-
-
-/***************************************************************************************
-** Function name:           color16to8
-** Description:             convert 16-bit colour to an 8-bit 332 RGB colour value
-***************************************************************************************/
-uint8_t TFT_GFX::color16to8(uint16_t c)
-{
-  return ((c & 0xE000)>>8) | ((c & 0x0700)>>6) | ((c & 0x0018)>>3);
-}
-
-
-/***************************************************************************************
-** Function name:           color8to16
-** Description:             convert 8-bit colour to a 16-bit 565 colour value
-***************************************************************************************/
-uint16_t TFT_GFX::color8to16(uint8_t color)
-{
-  uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
-  uint16_t color16 = 0;
-
-  //        =====Green=====     ===============Red==============
-  color16  = (color & 0x1C)<<6 | (color & 0xC0)<<5 | (color & 0xE0)<<8;
-  //        =====Green=====    =======Blue======
-  color16 |= (color & 0x1C)<<3 | blue[color & 0x03];
-
-  return color16;
-}
-
-/***************************************************************************************
-** Function name:           color16to24
-** Description:             convert 16-bit colour to a 24-bit 888 colour value
-***************************************************************************************/
-uint32_t TFT_GFX::color16to24(uint16_t color565)
-{
-  uint8_t r = (color565 >> 8) & 0xF8; r |= (r >> 5);
-  uint8_t g = (color565 >> 3) & 0xFC; g |= (g >> 6);
-  uint8_t b = (color565 << 3) & 0xF8; b |= (b >> 5);
-
-  return ((uint32_t)r << 16) | ((uint32_t)g << 8) | ((uint32_t)b << 0);
-}
-
-/***************************************************************************************
-** Function name:           color24to16
-** Description:             convert 24-bit colour to a 16-bit 565 colour value
-***************************************************************************************/
-uint32_t TFT_GFX::color24to16(uint32_t color888)
-{
-  uint16_t r = (color888 >> 8) & 0xF800;
-  uint16_t g = (color888 >> 5) & 0x07E0;
-  uint16_t b = (color888 >> 3) & 0x001F;
-
-  return (r | g | b);
-}
-
-
-/***************************************************************************************
-** Function name:           alphaBlend
-** Description:             Blend 16bit foreground and background
-*************************************************************************************x*/
-uint16_t TFT_GFX::alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc)
-{
-  // Split out and blend 5 bit red and blue channels
-  uint32_t rxb = bgc & 0xF81F;
-  rxb += ((fgc & 0xF81F) - rxb) * (alpha >> 2) >> 6;
-  // Split out and blend 6-bit green channel
-  uint32_t xgx = bgc & 0x07E0;
-  xgx += ((fgc & 0x07E0) - xgx) * alpha >> 8;
-  // Recombine channels
-  return (rxb & 0xF81F) | (xgx & 0x07E0);
-}
-
-/***************************************************************************************
-** Function name:           alphaBlend
-** Description:             Blend 16bit foreground and background with dither
-*************************************************************************************x*/
-uint16_t TFT_GFX::alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc, uint8_t dither)
-{
-  if (dither) {
-    int16_t alphaDither = (int16_t)alpha - dither + random(2*dither+1); // +/-4 randomised
-    alpha = (uint8_t)alphaDither;
-    if (alphaDither <  0) alpha = 0;
-    if (alphaDither >255) alpha = 255;
-  }
-
-  return alphaBlend(alpha, fgc, bgc);
-}
-
-/***************************************************************************************
-** Function name:           alphaBlend
-** Description:             Blend 24bit foreground and background with optional dither
-*************************************************************************************x*/
-uint32_t TFT_GFX::alphaBlend24(uint8_t alpha, uint32_t fgc, uint32_t bgc, uint8_t dither)
-{
-
-  if (dither) {
-    int16_t alphaDither = (int16_t)alpha - dither + random(2*dither+1); // +/-dither randomised
-    alpha = (uint8_t)alphaDither;
-    if (alphaDither <  0) alpha = 0;
-    if (alphaDither >255) alpha = 255;
-  }
-
-  uint32_t rxx = bgc & 0xFF0000;
-  rxx += ((fgc & 0xFF0000) - rxx) * alpha >> 8;
-  uint32_t xgx = bgc & 0x00FF00;
-  xgx += ((fgc & 0x00FF00) - xgx) * alpha >> 8;
-  uint32_t xxb = bgc & 0x0000FF;
-  xxb += ((fgc & 0x0000FF) - xxb) * alpha >> 8;
-  return (rxx & 0xFF0000) | (xgx & 0x00FF00) | (xxb & 0x0000FF);
-}
-

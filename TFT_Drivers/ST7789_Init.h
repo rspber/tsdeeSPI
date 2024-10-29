@@ -7,7 +7,7 @@
 
 #ifndef INIT_SEQUENCE_3
 {
-  fillScreen(TFT_RED);
+//  fillScreen(TFT_RED);
   writecommand(ST7789_SLPOUT);   // Sleep out
   delay(120);
 

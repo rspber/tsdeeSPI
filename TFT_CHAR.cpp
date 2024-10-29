@@ -91,7 +91,7 @@ void TFT_CHAR::setCallback(getColorCallback getCol)
 ** Function name:           textWidth
 ** Description:             Return the width in pixels of a string in a given font
 ***************************************************************************************/
-int16_t TFT_CHAR::textWidth(font_t& font, const char *string)
+int16_t TFT_CHAR::textWidth(chr_font_t& font, const char *string)
 {
   int32_t str_width = 0;
   uint16_t uniCode  = 0;
@@ -174,7 +174,7 @@ uint16_t TFT_CHAR::fontsLoaded(void)
 ** Function name:           fontHeight
 ** Description:             return the height of a font (yAdvance for free fonts)
 ***************************************************************************************/
-int16_t TFT_CHAR::fontHeight(font_t& font)
+int16_t TFT_CHAR::fontHeight(chr_font_t& font)
 {
   if (font.font > 8) return 0;
 
@@ -197,7 +197,7 @@ int16_t TFT_CHAR::fontHeight(font_t& font)
 ** Function name:           drawChar
 ** Description:             draw a single character in the GLCD or GFXFF font
 ***************************************************************************************/
-void TFT_CHAR::drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t c, uint32_t color, uint32_t bg)
+void TFT_CHAR::drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, chr_font_t& font, uint16_t c, rgb_t color, rgb_t bg)
 {
 #ifdef LOAD_GLCD
 //>>>>>>>>>>>>>>>>>>
@@ -416,7 +416,7 @@ uint16_t TFT_CHAR::decodeUTF8(uint8_t *buf, uint16_t *index, uint16_t remaining)
 ** Function name:           write
 ** Description:             draw characters piped through serial stream
 ***************************************************************************************/
-size_t TFT_CHAR::write(wh_clip_t& clip, cursor_t& cursor, font_t& font, uint8_t utf8, uint32_t textcolor, uint32_t textbgcolor)
+size_t TFT_CHAR::write(wh_clip_t& clip, cursor_t& cursor, chr_font_t& font, uint8_t utf8, rgb_t textcolor, rgb_t textbgcolor)
 {
   uint16_t uniCode = decodeUTF8(utf8);
 
@@ -536,7 +536,7 @@ size_t TFT_CHAR::write(wh_clip_t& clip, cursor_t& cursor, font_t& font, uint8_t 
 }
 
 
-void TFT_CHAR::drawCharFont2(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address)
+void TFT_CHAR::drawCharFont2(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, rgb_t textcolor, rgb_t textbgcolor, uint32_t flash_address)
 {
       int32_t pY = cursor.y;
       int32_t w = width;
@@ -580,7 +580,7 @@ void TFT_CHAR::drawCharFont2(clip_t& clip, cursor_t& cursor, int32_t width, int3
 }
 
 
-void TFT_CHAR::drawCharRLE_1(int32_t width, int32_t height, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address)
+void TFT_CHAR::drawCharRLE_1(int32_t width, int32_t height, rgb_t textcolor, rgb_t textbgcolor, uint32_t flash_address)
 {
         int32_t w = width;
         w *= height; // Now w is total number of pixels in the character
@@ -591,16 +591,16 @@ void TFT_CHAR::drawCharRLE_1(int32_t width, int32_t height, uint32_t textcolor, 
           if (line & 0x80) {
             line &= 0x7F;
             line++; w -= line;
-            pushBlock(textcolor, line);
+            pushBlock16(textcolor, line);
           }
           else {
             line++; w -= line;
-            pushBlock(textbgcolor, line);
+            pushBlock16(textbgcolor, line);
           }
         }
 }
 
-void TFT_CHAR::drawCharRLE_3(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, uint32_t textcolor, uint32_t textbgcolor, uint32_t flash_address)
+void TFT_CHAR::drawCharRLE_3(clip_t& clip, cursor_t& cursor, int32_t width, int32_t height, uint8_t textsize, rgb_t textcolor, rgb_t textbgcolor, uint32_t flash_address)
 {
         int32_t w = width;
         w *= height; // Now w is total number of pixels in the character
@@ -646,7 +646,7 @@ void TFT_CHAR::drawCharRLE_3(clip_t& clip, cursor_t& cursor, int32_t width, int3
 ***************************************************************************************/
   // TODO: Rationalise with TFT_eSprite
   // Any UTF-8 decoding must be done before calling drawChar()
-int16_t TFT_CHAR::drawChar(clip_t& clip, cursor_t& cursor, font_t& font, uint16_t uniCode, uint32_t textcolor, uint32_t textbgcolor)
+int16_t TFT_CHAR::drawChar(clip_t& clip, cursor_t& cursor, chr_font_t& font, uint16_t uniCode, rgb_t textcolor, rgb_t textbgcolor)
 {
   if (!uniCode) return 0;
 

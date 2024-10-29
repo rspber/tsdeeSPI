@@ -269,6 +269,37 @@ void TFT_eeSPI::begin(uint8_t tc)
  init(tc);
 }
 
+/***************************************************************************************
+** Function name:           sendCmd
+** Description:             tsdeeSPI
+***************************************************************************************/
+void TFT_eeSPI::sendCmd(const uint8_t cmd)
+{
+  writecommand(cmd);
+}
+
+/***************************************************************************************
+** Function name:           sendCmdData
+** Description:             tsdeeSPI
+***************************************************************************************/
+void TFT_eeSPI::sendCmdData(const uint8_t cmd, const uint8_t* data, const int16_t size)
+{
+  writecommand(cmd);
+  for (int i = size; --i >= 0; ) {
+    writedata(*data++);
+  }
+}
+
+/***************************************************************************************
+** Function name:           sendByte
+** Description:             tsdeeSPI
+***************************************************************************************/
+void TFT_eeSPI::sendCmdByte(const uint8_t cmd, const uint8_t b)
+{
+  writecommand(cmd);
+  writedata(b);
+}
+
 
 /***************************************************************************************
 ** Function name:           init (tc is tab colour for ST7735 displays only)
@@ -646,7 +677,7 @@ uint32_t TFT_eeSPI::readcommand32(uint8_t cmd_function, uint8_t index)
 ** Function name:           read pixel (for SPI Interface II i.e. IM [3:0] = "1101")
 ** Description:             Read 565 pixel colours from a pixel
 ***************************************************************************************/
-uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
+rgb_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
 {
   if (!clip.check_point(x, y)) return 0;
 
@@ -661,7 +692,7 @@ uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
 
   #if  !defined (SSD1963_DRIVER)
   // Dummy read to throw away don't care value
-  readByte();
+    readByte();
   #endif
 
   // Fetch the 16-bit BRG pixel
@@ -670,7 +701,7 @@ uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
   #if defined (ILI9341_DRIVER)  || defined(ILI9341_2_DRIVER) || defined (ILI9488_DRIVER) || defined (SSD1963_DRIVER)// Read 3 bytes
 
     // Read window pixel 24-bit RGB values and fill in LS bits
-    uint16_t rgb = ((readByte() & 0xF8) << 8) | ((readByte() & 0xFC) << 3) | (readByte() >> 3);
+    uint32_t rgb = ((uint32_t)readByte() << 16) | (readByte() << 8) | readByte();
 
     if (!inTransaction) { CS_H; } // CS_H can be multi-statement
 
@@ -683,6 +714,7 @@ uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
 
     // Fetch the 16-bit BRG pixel
     uint16_t bgr = (readByte() << 8) | readByte();
+    uint32_t rgb = color16to24(bgr);
 
     if (!inTransaction) { CS_H; } // CS_H can be multi-statement
 
@@ -690,10 +722,10 @@ uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
     busDir(GPIO_DIR_MASK, OUTPUT);
 
     #if defined (ILI9486_DRIVER) || defined (ST7796_DRIVER)
-      return  bgr;
+      return  rgb;
     #else
       // Swap Red and Blue (could check MADCTL setting to see if this is needed)
-      return  (bgr>>11) | (bgr<<11) | (bgr & 0x7E0);
+      return  ((rgb >> 16) & 0x0000FF) | ((rgb << 16) & 0xFF0000)| (rgb & 0x00FF00);
     #endif
 
   #endif
@@ -705,7 +737,7 @@ uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
   bool wasInTransaction = inTransaction;
   if (inTransaction) { inTransaction= false; end_tft_write();}
 
-  uint16_t color = 0;
+  uint32_t color = 0;
 
   begin_tft_read(); // Sets CS low
 
@@ -729,14 +761,14 @@ uint16_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
       uint8_t r = tft_Read_8()<<1;
       uint8_t g = tft_Read_8()<<1;
       uint8_t b = tft_Read_8()<<1;
-      color = color565(r, g, b);
+      color = RGB(r, g, b);
     #else
       // Read the 3 RGB bytes, colour is actually only in the top 6 bits of each byte
       // as the TFT stores colours as 18 bits
       uint8_t r = tft_Read_8();
       uint8_t g = tft_Read_8();
       uint8_t b = tft_Read_8();
-      color = color565(r, g, b);
+      color = RGB(r, g, b);
     #endif
 
 /*
@@ -1010,7 +1042,7 @@ void  TFT_eeSPI::readRectRGB(clip_t& clip, int32_t x0, int32_t y0, int32_t w, in
 ** Function name:           drawCharDefault
 ** Description:             tsdeeSPI
 ***************************************************************************************/
-void TFT_eeSPI::drawCharDefault(const uint8_t* font_offset, uint16_t color, uint16_t bg)
+void TFT_eeSPI::drawCharDefault(const uint8_t* font_offset, rgb_t color, rgb_t bg)
 {
     uint8_t column[6];
     uint8_t mask = 0x1;
@@ -1274,7 +1306,7 @@ void TFT_eeSPI::readAddrWindow(int32_t xs, int32_t ys, int32_t w, int32_t h)
 ** Function name:           drawPixel
 ** Description:             push a single pixel at an arbitrary position
 ***************************************************************************************/
-void TFT_eeSPI::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color)
+void TFT_eeSPI::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color)
 {
   if (!clip.check_point(x, y)) return;
 
@@ -1476,12 +1508,15 @@ void TFT_eeSPI::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color)
 ** Function name:           pushColor
 ** Description:             push a single pixel
 ***************************************************************************************/
-void TFT_eeSPI::pushColor(uint16_t color)
+void TFT_eeSPI::pushColor(rgb_t color)
 {
   begin_tft_write();
 
   SPI_BUSY_CHECK;
-  tft_Write_16N(color);
+#ifdef COLOR_565
+  tft_Write_16N(mdt_color(color));
+#else
+#endif
 
   end_tft_write();
 }
@@ -1491,11 +1526,14 @@ void TFT_eeSPI::pushColor(uint16_t color)
 ** Function name:           pushColor
 ** Description:             push a single colour to "len" pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushColor(uint16_t color, uint32_t len)
+void TFT_eeSPI::pushColor(rgb_t color, uint32_t len)
 {
   begin_tft_write();
 
-  pushBlock(color, len);
+#ifdef COLOR_565
+  pushBlock16(mdt_color(color), len);
+#else
+#endif
 
   end_tft_write();
 }
@@ -1527,9 +1565,12 @@ void TFT_eeSPI::endWrite(void)
 ** Function name:           writeColor (use startWrite() and endWrite() before & after)
 ** Description:             raw write of "len" pixels avoiding transaction check
 ***************************************************************************************/
-void TFT_eeSPI::writeColor(uint16_t color, uint32_t len)
+void TFT_eeSPI::writeColor(rgb_t color, uint32_t len)
 {
-  pushBlock(color, len);
+#ifdef COLOR_565
+  pushBlock16(color, len);
+#else
+#endif
 }
 
 /***************************************************************************************
@@ -1542,7 +1583,10 @@ void TFT_eeSPI::pushColors(uint8_t *data, uint32_t len, bool swapBytes)
 {
   begin_tft_write();
 
-  pushPixels(data, len>>1, swapBytes);
+#ifdef COLOR_565
+  pushPixels16(data, len>>1, swapBytes);
+#else
+#endif
 
   end_tft_write();
 }
@@ -1556,7 +1600,10 @@ void TFT_eeSPI::pushColors(uint16_t *data, uint32_t len, bool swapBytes)
 {
   begin_tft_write();
 
-  pushPixels(data, len, swapBytes);
+#ifdef COLOR_565
+  pushPixels16(data, len, swapBytes);
+#else
+#endif
 
   end_tft_write();
 }
@@ -1593,7 +1640,7 @@ void TFT_eeSPI::invertDisplay(bool i)
 ** Function name:           drawCharFaster
 ** Description:             tsdeeSPI
 ***************************************************************************************/
-void TFT_eeSPI::drawCharFont2Faster(uint16_t width, uint16_t height, uint16_t textcolor, uint16_t textbgcolor, uint32_t flash_address)
+void TFT_eeSPI::drawCharFont2Faster(uint16_t width, uint16_t height, rgb_t textcolor, rgb_t textbgcolor, uint32_t flash_address)
 {
     int32_t w = width;
     w = w + 6; // Should be + 7 but we need to compensate for width increment
@@ -1621,7 +1668,7 @@ void TFT_eeSPI::drawCharFont2Faster(uint16_t width, uint16_t height, uint16_t te
 ** Function name:           drawCharRLEfont
 ** Description:             tsdeeSPI
 ***************************************************************************************/
-void TFT_eeSPI::drawCharRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, uint16_t height, int16_t textsize, uint16_t textcolor, uint32_t flash_address)
+void TFT_eeSPI::drawCharRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, uint16_t height, int16_t textsize, rgb_t textcolor, uint32_t flash_address)
 {
     int32_t w = width;
     w *= height; // Now w is total number of pixels in the character

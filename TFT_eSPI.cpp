@@ -313,18 +313,18 @@ void TFT_eSPI::pushRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *da
 ** Function name:           pushImage
 ** Description:             plot 16-bit colour sprite or image onto TFT
 ***************************************************************************************/
-void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
 {
-  pushImage(_clip, x, y, w, h, _swapBytes, data);
+  pushImage16(_clip, x, y, w, h, _swapBytes, data);
 }
 
 /***************************************************************************************
 ** Function name:           pushImage
 ** Description:             plot 16-bit sprite or image with 1 colour being transparent
 ***************************************************************************************/
-void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transp)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, rgb_t transp)
 {
-  pushImage(_clip, x, y, w, h, _swapBytes, data, transp);
+  pushImage16(_clip, x, y, w, h, _swapBytes, data, transp);
 }
 
 
@@ -332,27 +332,27 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *d
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
 ** Description:             plot 16-bit image
 ***************************************************************************************/
-void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data)
 {
-  pushImage(_clip, x, y, w, h, _swapBytes, data);
+  pushImage16(_clip, x, y, w, h, _swapBytes, data);
 }
 
 /***************************************************************************************
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
 ** Description:             plot 16-bit image with 1 colour being transparent
 ***************************************************************************************/
-void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, uint16_t transp)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, rgb_t transp)
 {
-  pushImage(_clip, x, y, w, h, _swapBytes, data, transp);
+  pushImage16(_clip, x, y, w, h, _swapBytes, data, transp);
 }
 
 /***************************************************************************************
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8,  uint16_t *cmap)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8, rgb_t *cmap)
 {
-  pushImage(_clip, x, y, w, h, _bitmap_fg, _bitmap_bg, data, bpp8, cmap);
+  pushImage16(_clip, x, y, w, h, _bitmap_fg, _bitmap_bg, data, bpp8, cmap);
 }
 
 
@@ -360,9 +360,9 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, bool bpp8,  uint16_t *cmap)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, bool bpp8, rgb_t *cmap)
 {
-  pushImage(_clip, x, y, w, h, _bitmap_fg, _bitmap_bg, data, bpp8, cmap);
+  pushImage16(_clip, x, y, w, h, _bitmap_fg, _bitmap_bg, data, bpp8, cmap);
 }
 
 
@@ -370,9 +370,9 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *da
 ** Function name:           pushImage
 ** Description:             plot 8 or 4 or 1 bit image or sprite with a transparent colour
 ***************************************************************************************/
-void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, uint8_t transp, bool bpp8, uint16_t *cmap)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, uint8_t transp, bool bpp8, rgb_t *cmap)
 {
-  pushImage(_clip, x, y, w, h, _bitmap_fg, _bitmap_bg, data, transp, bpp8, cmap);
+  pushImage16(_clip, x, y, w, h, _bitmap_fg, _bitmap_bg, data, transp, bpp8, cmap);
 }
 
 /***************************************************************************************
@@ -380,9 +380,9 @@ void TFT_eSPI::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *da
 ** Description:             Render a 16-bit colour image to TFT with a 1bpp mask
 ***************************************************************************************/
 // Can be used with a 16bpp sprite and a 1bpp sprite for the mask
-void TFT_eSPI::pushMaskedImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask)
+void TFT_eSPI::pushMaskedImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask)
 {
-  pushMaskedImage(_clip, x, y, w, h, _swapBytes, img, mask);
+  pushMaskedImage16(_clip, x, y, w, h, _swapBytes, img, mask);
 }
 
 
@@ -399,9 +399,9 @@ void TFT_eSPI::readRectRGB(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *
 ** Function name:           pushImageDMA
 ** Description:             tsdeeSPI
 ***************************************************************************************/
-void TFT_eSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer)
+void TFT_eSPI::pushImageDMA16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer)
 {
-  pushImageDMA(_clip, x, y, w, h, _swapBytes, data, buffer);
+  pushImageDMA16(_clip, x, y, w, h, _swapBytes, data, buffer);
 }
 
 /***************************************************************************************
@@ -409,9 +409,9 @@ void TFT_eSPI::pushImageDMA(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t
 ** Description:             tsdeeSPI
 ***************************************************************************************/
 // Write a set of pixels stored in memory, use setSwapBytes(true/false) function to correct endianess
-void TFT_eSPI::pushPixels(const void * data_in, uint32_t len)
+void TFT_eSPI::pushPixels16(const void * data_in, uint32_t len)
 {
-  pushPixels(data_in, len, _swapBytes);
+  pushPixels16(data_in, len, _swapBytes);
 }
 
 
@@ -420,15 +420,15 @@ void TFT_eSPI::pushPixels(const void * data_in, uint32_t len)
 ** Description:             tsdeeSPI
 ***************************************************************************************/
 // Push a block of pixels into a window set up using setAddrWindow()
-void TFT_eSPI::pushPixelsDMA(uint16_t* image, uint32_t len)
+void TFT_eSPI::pushPixelsDMA16(uint16_t* image, uint32_t len)
 {
-  pushPixelsDMA(image, len, _swapBytes);
+  pushPixelsDMA16(image, len, _swapBytes);
 }
 
 
 /***************************************************************************************
 ** Function name:           setSwapBytes
-** Description:             Used by 16-bit pushImage() to swap byte order in colours
+** Description:             Used by 16-bit pushImage to swap byte order in colours
 ***************************************************************************************/
 void TFT_eSPI::setSwapBytes(bool swap)
 {
@@ -451,7 +451,7 @@ bool TFT_eSPI::getSwapBytes(void)
 ** Description:             Draw a circle outline
 ***************************************************************************************/
 // Optimised midpoint circle algorithm
-void TFT_eSPI::drawCircle(int32_t x0, int32_t y0, int32_t r, uint32_t color)
+void TFT_eSPI::drawCircle(int32_t x0, int32_t y0, int32_t r, rgb_t color)
 {
   drawCircle(_clip, x0, y0, r, color);
 }
@@ -461,7 +461,7 @@ void TFT_eSPI::drawCircle(int32_t x0, int32_t y0, int32_t r, uint32_t color)
 ** Function name:           drawCircleHelper
 ** Description:             Support function for drawRoundRect()
 ***************************************************************************************/
-void TFT_eSPI::drawCircleHelper( int32_t x0, int32_t y0, int32_t rr, uint8_t cornername, uint32_t color)
+void TFT_eSPI::drawCircleHelper( int32_t x0, int32_t y0, int32_t rr, uint8_t cornername, rgb_t color)
 {
   drawCircleHelper(_clip, x0, y0, rr, cornername, color);
 }
@@ -472,7 +472,7 @@ void TFT_eSPI::drawCircleHelper( int32_t x0, int32_t y0, int32_t rr, uint8_t cor
 ***************************************************************************************/
 // Optimised midpoint circle algorithm, changed to horizontal lines (faster in sprites)
 // Improved algorithm avoids repetition of lines
-void TFT_eSPI::fillCircle(int32_t x0, int32_t y0, int32_t r, uint32_t color)
+void TFT_eSPI::fillCircle(int32_t x0, int32_t y0, int32_t r, rgb_t color)
 {
   fillCircle(_clip, x0, y0, r, color);
 }
@@ -482,7 +482,7 @@ void TFT_eSPI::fillCircle(int32_t x0, int32_t y0, int32_t r, uint32_t color)
 ** Description:             Support function for fillRoundRect()
 ***************************************************************************************/
 // Support drawing roundrects, changed to horizontal lines (faster in sprites)
-void TFT_eSPI::fillCircleHelper(int32_t x0, int32_t y0, int32_t r, uint8_t cornername, int32_t delta, uint32_t color)
+void TFT_eSPI::fillCircleHelper(int32_t x0, int32_t y0, int32_t r, uint8_t cornername, int32_t delta, rgb_t color)
 {
   fillCircleHelper(_clip, x0, y0, r, cornername, delta, color);
 }
@@ -512,7 +512,7 @@ void TFT_eSPI::fillEllipse(int16_t x0, int16_t y0, int32_t rx, int32_t ry, uint1
 ** Function name:           fillScreen
 ** Description:             Clear the screen to defined colour
 ***************************************************************************************/
-void TFT_eSPI::fillScreen(uint32_t color)
+void TFT_eSPI::fillScreen(rgb_t color)
 {
   fillRect(0, 0, _clip.width, _clip.height, color);
 }
@@ -523,7 +523,7 @@ void TFT_eSPI::fillScreen(uint32_t color)
 ** Description:             Draw a rectangle outline
 ***************************************************************************************/
 // Draw a rectangle
-void TFT_eSPI::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color)
+void TFT_eSPI::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
 {
   drawRect(_clip, x, y, w, h, color);
 }
@@ -533,7 +533,7 @@ void TFT_eSPI::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t col
 ** Function name:           drawRoundRect
 ** Description:             Draw a rounded corner rectangle outline
 ***************************************************************************************/
-void TFT_eSPI::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, uint32_t color)
+void TFT_eSPI::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, rgb_t color)
 {
   drawRoundRect(_clip, x, y, w, h, radius, color);
 }
@@ -544,7 +544,7 @@ void TFT_eSPI::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t
 ** Description:             Draw a rounded corner filled rectangle
 ***************************************************************************************/
 // Fill a rounded rectangle, changed to horizontal lines (faster in sprites)
-void TFT_eSPI::fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color)
+void TFT_eSPI::fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color)
 {
   fillRoundRect(_clip, x, y, w, h, r, color);
 }
@@ -555,7 +555,7 @@ void TFT_eSPI::fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t
 ** Description:             Draw a triangle outline using 3 arbitrary points
 ***************************************************************************************/
 // Draw a triangle
-void TFT_eSPI::drawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+void TFT_eSPI::drawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, rgb_t color)
 {
   drawTriangle(_clip, x0, y0, x1, y1, x2, y2, color);
 }
@@ -566,7 +566,7 @@ void TFT_eSPI::drawTriangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int3
 ** Description:             Draw a filled triangle using 3 arbitrary points
 ***************************************************************************************/
 // Fill a triangle - original Adafruit function works well and code footprint is small
-void TFT_eSPI::fillTriangle ( int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color)
+void TFT_eSPI::fillTriangle ( int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, rgb_t color)
 {
   fillTriangle(_clip, x0, y0, x1, y1, x2, y2, color);
 }
@@ -823,7 +823,7 @@ int16_t TFT_eSPI::textWidth(const String& string, uint8_t textfont)
   int16_t len = string.length() + 2;
   char buffer[len];
   string.toCharArray(buffer, len);
-  font_t tmp = _font;
+  chr_font_t tmp = _font;
   tmp.font = textfont;
   return textWidth(tmp, buffer);
 }
@@ -842,7 +842,7 @@ int16_t TFT_eSPI::fontHeight(uint8_t textfont)
 {
   if (textfont > 8) return 0;
 
-  font_t tmp = _font;
+  chr_font_t tmp = _font;
   tmp.font = textfont;
   return fontHeight(tmp);
 }
@@ -856,12 +856,12 @@ int16_t TFT_eSPI::fontHeight(void)
 ** Function name:           drawChar
 ** Description:             draw a single character in the GLCD or GFXFF font
 ***************************************************************************************/
-void TFT_eSPI::drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32_t bg, uint8_t textsize)
+void TFT_eSPI::drawChar(int32_t x, int32_t y, uint16_t c, rgb_t color, rgb_t bg, uint8_t textsize)
 {
   cursor_t cursor;
   cursor.x = x;
   cursor.y = y;
-  font_t tmp = _font;
+  chr_font_t tmp = _font;
   tmp.size = textsize;
   drawChar(_clip, cursor, tmp, c, color, bg);
 }
@@ -871,7 +871,7 @@ void TFT_eSPI::drawChar(int32_t x, int32_t y, uint16_t c, uint32_t color, uint32
 ** Function name:           drawPixel
 ** Description:             push a single pixel at an arbitrary position
 ***************************************************************************************/
-void TFT_eSPI::drawPixel(int32_t x, int32_t y, uint32_t color)
+void TFT_eSPI::drawPixel(int32_t x, int32_t y, rgb_t color)
 {
   drawPixel(_clip, x, y, color);
 }
@@ -880,7 +880,7 @@ void TFT_eSPI::drawPixel(int32_t x, int32_t y, uint32_t color)
 ** Function name:           drawLine
 ** Description:             draw a line between 2 arbitrary points
 ***************************************************************************************/
-void TFT_eSPI::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color)
+void TFT_eSPI::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, rgb_t color)
 {
   drawLine(_clip, x0, y0, x1, y1, color);
 }
@@ -890,10 +890,10 @@ void TFT_eSPI::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t
 ** Function name:           drawPixel (alpha blended)
 ** Description:             Draw a pixel blended with the screen or bg pixel colour
 ***************************************************************************************/
-uint16_t TFT_eSPI::drawPixel(int32_t x, int32_t y, uint32_t color, uint8_t alpha, uint32_t bg_color)
+uint16_t TFT_eSPI::drawPixel(int32_t x, int32_t y, rgb_t color, uint8_t alpha, rgb_t bg_color)
 {
   if (bg_color == 0x00FFFFFF) bg_color = readPixel(x, y);
-  color = fastBlend(alpha, color, bg_color);
+  color = alphaBlend(alpha, color, bg_color);
   drawPixel(x, y, color);
   return color;
 }
@@ -903,7 +903,7 @@ uint16_t TFT_eSPI::drawPixel(int32_t x, int32_t y, uint32_t color, uint8_t alpha
 ** Function name:           drawSmoothArc
 ** Description:             Draw a smooth arc clockwise from 6 o'clock
 ***************************************************************************************/
-void TFT_eSPI::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds)
+void TFT_eSPI::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, rgb_t fg_color, rgb_t bg_color, bool roundEnds)
 // Centre at x,y
 // r = arc outer radius, ir = arc inner radius. Inclusive so arc thickness = r - ir + 1
 // Angles in range 0-360
@@ -926,7 +926,7 @@ void TFT_eSPI::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32
 // Note: Arc ends are not anti-aliased (use drawSmoothArc instead for that)
 void TFT_eSPI::drawArc(int32_t x, int32_t y, int32_t r, int32_t ir,
                        uint32_t startAngle, uint32_t endAngle,
-                       uint32_t fg_color, uint32_t bg_color,
+                       rgb_t fg_color, rgb_t bg_color,
                        bool smooth)
 {
   drawArc(_clip, x, y, r, ir, startAngle, endAngle, fg_color, bg_color, smooth);
@@ -937,7 +937,7 @@ void TFT_eSPI::drawArc(int32_t x, int32_t y, int32_t r, int32_t ir,
 ** Description:             Draw a smooth circle
 ***************************************************************************************/
 // To have effective anti-aliasing the circle will be 3 pixels thick
-void TFT_eSPI::drawSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t fg_color, uint32_t bg_color)
+void TFT_eSPI::drawSmoothCircle(int32_t x, int32_t y, int32_t r, rgb_t fg_color, rgb_t bg_color)
 {
   drawSmoothCircle(_clip, x, y, r, fg_color, bg_color);
 }
@@ -946,7 +946,7 @@ void TFT_eSPI::drawSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t fg_col
 ** Function name:           fillSmoothCircle
 ** Description:             Draw a filled anti-aliased circle
 ***************************************************************************************/
-void TFT_eSPI::fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color, uint32_t bg_color)
+void TFT_eSPI::fillSmoothCircle(int32_t x, int32_t y, int32_t r, rgb_t color, rgb_t bg_color)
 {
   fillSmoothCircle(_clip, x, y, r, color, bg_color);
 }
@@ -966,7 +966,7 @@ void TFT_eSPI::fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color,
 //   0x1 | 0x2
 //    ---¦---    Arc quadrant mask select bits (as in drawCircleHelper fn)
 //   0x8 | 0x4
-void TFT_eSPI::drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, uint32_t fg_color, uint32_t bg_color, uint8_t quadrants)
+void TFT_eSPI::drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, rgb_t fg_color, rgb_t bg_color, uint8_t quadrants)
 {
   drawSmoothRoundRect(_clip, x, y, r, ir, w, h, fg_color, bg_color, quadrants);
 }
@@ -975,7 +975,7 @@ void TFT_eSPI::drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, 
 ** Function name:           fillSmoothRoundRect
 ** Description:             Draw a filled anti-aliased rounded corner rectangle
 ***************************************************************************************/
-void TFT_eSPI::fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color, uint32_t bg_color)
+void TFT_eSPI::fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color, rgb_t bg_color)
 {
   fillSmoothRoundRect(_clip, x, y, w, h, r, color, bg_color);
 }
@@ -985,7 +985,7 @@ void TFT_eSPI::fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, i
 ** Description:             Draw an anti-aliased filled circle at ax,ay with radius r
 ***************************************************************************************/
 // Coordinates are floating point to achieve sub-pixel positioning
-void TFT_eSPI::drawSpot(float ax, float ay, float r, uint32_t fg_color, uint32_t bg_color)
+void TFT_eSPI::drawSpot(float ax, float ay, float r, rgb_t fg_color, rgb_t bg_color)
 {
   // Filled circle can be created by the wide line function with zero line length
   drawWedgeLine(_clip, ax, ay, ax, ay, r, r, fg_color, bg_color);
@@ -995,7 +995,7 @@ void TFT_eSPI::drawSpot(float ax, float ay, float r, uint32_t fg_color, uint32_t
 ** Function name:           drawWideLine - background colour specified or pixel read
 ** Description:             draw an anti-aliased line with rounded ends, width wd
 ***************************************************************************************/
-void TFT_eSPI::drawWideLine(float ax, float ay, float bx, float by, float wd, uint32_t fg_color, uint32_t bg_color)
+void TFT_eSPI::drawWideLine(float ax, float ay, float bx, float by, float wd, rgb_t fg_color, rgb_t bg_color)
 {
   drawWedgeLine(_clip, ax, ay, bx, by, wd/2.0, wd/2.0, fg_color, bg_color);
 }
@@ -1004,7 +1004,7 @@ void TFT_eSPI::drawWideLine(float ax, float ay, float bx, float by, float wd, ui
 ** Function name:           drawWedgeLine - background colour specified or pixel read
 ** Description:             draw an anti-aliased line with different width radiused ends
 ***************************************************************************************/
-void TFT_eSPI::drawWedgeLine(float ax, float ay, float bx, float by, float ar, float br, uint32_t fg_color, uint32_t bg_color)
+void TFT_eSPI::drawWedgeLine(float ax, float ay, float bx, float by, float ar, float br, rgb_t fg_color, rgb_t bg_color)
 {
   drawWedgeLine(_clip, ax, ay, bx, by, ar, br, fg_color, bg_color);
 }
@@ -1014,7 +1014,7 @@ void TFT_eSPI::drawWedgeLine(float ax, float ay, float bx, float by, float ar, f
 ** Function name:           drawFastVLine
 ** Description:             draw a vertical line
 ***************************************************************************************/
-void TFT_eSPI::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color)
+void TFT_eSPI::drawFastVLine(int32_t x, int32_t y, int32_t h, rgb_t color)
 {
   drawFastVLine(_clip, x, y, h, color);
 }
@@ -1024,7 +1024,7 @@ void TFT_eSPI::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color)
 ** Function name:           drawFastHLine
 ** Description:             draw a horizontal line
 ***************************************************************************************/
-void TFT_eSPI::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color)
+void TFT_eSPI::drawFastHLine(int32_t x, int32_t y, int32_t w, rgb_t color)
 {
   drawFastHLine(_clip, x, y, w, color);
 }
@@ -1034,7 +1034,7 @@ void TFT_eSPI::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color)
 ** Function name:           fillRect
 ** Description:             draw a filled rectangle
 ***************************************************************************************/
-void TFT_eSPI::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color)
+void TFT_eSPI::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
 {
   fillRect(_clip, x, y, w, h, color);
 }
@@ -1044,7 +1044,7 @@ void TFT_eSPI::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t col
 ** Function name:           fillRectVGradient
 ** Description:             draw a filled rectangle with a vertical colour gradient
 ***************************************************************************************/
-void TFT_eSPI::fillRectVGradient(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color1, uint32_t color2)
+void TFT_eSPI::fillRectVGradient(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color1, rgb_t color2)
 {
   fillRectVGradient(_clip, x, y, w, h, color1, color2);
 }
@@ -1054,7 +1054,7 @@ void TFT_eSPI::fillRectVGradient(int32_t x, int32_t y, int32_t w, int32_t h, uin
 ** Function name:           fillRectHGradient
 ** Description:             draw a filled rectangle with a horizontal colour gradient
 ***************************************************************************************/
-void TFT_eSPI::fillRectHGradient(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color1, uint32_t color2)
+void TFT_eSPI::fillRectHGradient(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color1, rgb_t color2)
 {
   fillRectHGradient(_clip, x, y, w, h, color1, color2);
 }
@@ -1158,7 +1158,7 @@ int16_t TFT_eSPI::drawChar(uint16_t uniCode, int32_t x, int32_t y, uint8_t textf
   cursor_t cursor;
   cursor.x = x;
   cursor.y = y;
-  font_t tmp = _font;
+  chr_font_t tmp = _font;
   tmp.font = textfont;
   return drawChar(_clip, cursor, tmp, uniCode, _textcolor, _textbgcolor);
 }
@@ -1194,7 +1194,7 @@ int16_t TFT_eSPI::drawString(const char *string, int32_t poX, int32_t poY)
 // With font number. Note: font number is over-ridden if a smooth font is loaded
 int16_t TFT_eSPI::drawString(const char *string, int32_t poX, int32_t poY, uint8_t textfont)
 {
-  font_t font = _font;
+  chr_font_t font = _font;
   font.font = textfont;
 
   int16_t sumX = 0;

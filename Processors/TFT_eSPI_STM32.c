@@ -80,7 +80,7 @@ void TFT_eeSPI::end_SDA_Read(void)
 ** Function name:           pushBlock - for ESP32 and parallel display
 ** Description:             Write a block of pixels of the same colour
 ***************************************************************************************/
-void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len){
+void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
     // Loop unrolling improves speed dramatically graphics test  0.634s => 0.374s
     while (len>31) {
     #if !defined (SSD1963_DRIVER)
@@ -125,7 +125,7 @@ void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for ESP32 and parallel display
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes){
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes){
 
   uint16_t *data = (uint16_t*)data_in;
 
@@ -264,7 +264,7 @@ uint8_t TFT_eeSPI::readByte(void)
 ** Function name:           pushBlock - for ESP32 or STM32 RPi TFT
 ** Description:             Write a block of pixels of the same colour
 ***************************************************************************************/
-void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len)
+void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len)
 {
   if(len) { tft_Write_16(color); len--; }
   while(len--) {WR_L; WR_H;}
@@ -274,7 +274,7 @@ void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len)
 ** Function name:           pushPixels - for ESP32 or STM32 RPi TFT
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes)
 {
   uint16_t *data = (uint16_t*)data_in;
 
@@ -291,7 +291,7 @@ void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes)
 ** Description:             Write a block of pixels of the same colour
 ***************************************************************************************/
 #define BUF_SIZE 240*3
-void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len)
+void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len)
 {
   //uint8_t col[BUF_SIZE];
   // Always using swapped bytes is a peculiarity of this function...
@@ -311,7 +311,7 @@ void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len)
 ** Function name:           pushPixels - for STM32 and 3 byte RGB display
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes)
 {
   uint16_t *data = (uint16_t*)data_in;
 
@@ -346,7 +346,7 @@ void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes)
 ***************************************************************************************/
 #define BUF_SIZE 480
 /*
-void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len)
+void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len)
 {
   uint16_t col[BUF_SIZE];
   // Always using swapped bytes is a peculiarity of this function...
@@ -366,7 +366,7 @@ void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len)
   if (len) HAL_SPI_Transmit(&spiHal, (uint8_t*)col, len<<1, HAL_MAX_DELAY);
 }
  //*/
-void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len){
+void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
     // Loop unrolling improves speed dramatically graphics test  0.634s => 0.374s
     while (len>31) {
     #if !defined (SSD1963_DRIVER)
@@ -411,7 +411,7 @@ void TFT_eeSPI::pushBlock(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for STM32
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels(const void* data_in, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes)
 {
   uint16_t *data = (uint16_t*)data_in;
 
@@ -470,7 +470,7 @@ void TFT_eeSPI::dmaWait(void)
 ** Description:             Push pixels to TFT (len must be less than 32767)
 ***************************************************************************************/
 // This will byte swap the original image if setSwapBytes(true) was called by sketch.
-void TFT_eeSPI::pushPixelsDMA(uint16_t* image, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixelsDMA16(uint16_t* image, uint32_t len, bool swapBytes)
 {
   if (len == 0) return;
 
@@ -490,7 +490,7 @@ void TFT_eeSPI::pushPixelsDMA(uint16_t* image, uint32_t len, bool swapBytes)
 ** Description:             Push image to a window (w*h must be less than 65536)
 ***************************************************************************************/
 // This will clip and also swap bytes if setSwapBytes(true) was called by sketch
-void TFT_eeSPI::pushImageDMA(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t* image, uint16_t* buffer)
+void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t* image, uint16_t* buffer)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
