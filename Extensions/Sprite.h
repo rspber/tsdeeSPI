@@ -66,6 +66,8 @@ static const rgb_t default_4bit_palette[] PROGMEM = {
 **                         Section 8: Class member and support functions
 ***************************************************************************************/
 
+#define pushImage  pushImage16
+
 class TFT_eSprite : public TFT_eSPI {
 
  public:
@@ -176,7 +178,7 @@ class TFT_eSprite : public TFT_eSPI {
   uint16_t readPixelValue(int32_t x, int32_t y);
 
            // Write an image (colour bitmap) to the sprite.
-  void     pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp = 0);// override;
+  void     pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp = 0);
   void     pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data); // override;
 
            // Push the sprite to the TFT screen, this fn calls pushImage in the TFT class.

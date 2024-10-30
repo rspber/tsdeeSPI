@@ -2,16 +2,12 @@
  TV example
 */
 
-
-// not working now !!!    ???
-
-
 #include <TFT_eSPI.h>
 #include "arrow.h"
 
 TFT_eSPI tft;
 TFT_eSprite bg(&tft);
-TFT_eSprite ar(&bg);
+TFT_eSprite ar(&tft);
 
 int x = 20;
 
@@ -20,12 +16,12 @@ void setup() {
 
   tft.init();
   tft.setRotation(1);
-  tft.setSwapBytes(true);
+//  tft.setSwapBytes(true);
   ar.setColorDepth(8);
   bg.setColorDepth(8);
 
   ar.createSprite(96, 96);
-  ar.setSwapBytes(true);
+//  ar.setSwapBytes(true);
 
   bg.createSprite(320, 100);
 
