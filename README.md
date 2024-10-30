@@ -21,8 +21,12 @@ After multiple attempts to port all protocol support from TFT_eSPI to tsdesktop,
 I have decided to continue with this repository in order to obtain a solution
 that will allow to run intact examples from TFT_eSPI and tsdesktop simultaneously.<br/></br>
 
-The examples with TFT_eSPI worked here from the beginning,
-now after thorough testing it can be said that there are only problems
-with the correct display of colors and some little errors with colordepth in Sprite handling.<br/></br>
+The TFT_eSPI examples, with little breaks, worked here from the beginning.<br/></br>
 
 Examples from tsdesktop with appropriate support will be added successively<br/></br>.
+
+Main steps to do:
+- change setups to this from tsdesktop: with touch and i2c configuration,
+- color swap by use of TFT_MADCTL function instead of software color swapping,
+- enable color 666, for now it's rgb_t type use only,
+
