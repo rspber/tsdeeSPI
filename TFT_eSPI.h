@@ -249,9 +249,6 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   void     frameViewport(uint16_t color, int32_t w);
   void     resetViewport(void) override;
 
-           // Write a set of pixels stored in memory, use setSwapBytes(true/false) function to correct endianess
-  void     pushPixels16(const void * data_in, uint32_t len);
-
   // Graphics drawing
   void     fillScreen(rgb_t color),
            drawRect(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color),
@@ -431,25 +428,8 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   size_t   write(uint8_t utf8) override;
            // size_t   write(const uint8_t *buf, size_t len);
 
-           // Push an image to the TFT using DMA, buffer is optional and grabs (double buffers) a copy of the image
-           // Use the buffer if the image data will get over-written or destroyed while DMA is in progress
-           //
-           // Note 1: If swapping colour bytes is defined, and the double buffer option is NOT used, then the bytes
-           // in the original image buffer content will be byte swapped by the function before DMA is initiated.
-           //
-           // Note 2: If part of the image will be off screen or outside of a set viewport, then the the original
-           // image buffer content will be altered to a correctly clipped image before DMA is initiated.
-           //
-           // The function will wait for the last DMA to complete if it is called while a previous DMA is still
-           // in progress, this simplifies the sketch and helps avoid "gotchas".
   void     pushImageDMA16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer = nullptr);
 
-#if defined (ESP32) // ESP32 only at the moment
-           // For case where pointer is a const and the image data must not be modified (clipped or byte swapped)
-  void     pushImageDMA16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t const* data);
-#endif
-           // Push a block of pixels into a window set up using setAddrWindow()
-  void     pushPixelsDMA16(uint16_t* image, uint32_t len);
   // Set/get an arbitrary library configuration attribute or option
   //       Use to switch ON/OFF capabilities such as UTF8 decoding - each attribute has a unique ID
   //       id = 0: reserved - may be used in future to reset all attributes to a default state

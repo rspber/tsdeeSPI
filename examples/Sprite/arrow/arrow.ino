@@ -11,7 +11,7 @@
 
 TFT_eSPI tft;
 TFT_eSprite bg(&tft);
-TFT_eSprite ar(&bg);
+TFT_eSprite ar(&tft);
 
 int x = 20;
 
@@ -28,6 +28,8 @@ void setup() {
   ar.setSwapBytes(true);
 
   bg.createSprite(320, 100);
+
+  tft.fillScreen(RGB(255,0,0));
 }
 
 void loop() {
