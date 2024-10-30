@@ -125,11 +125,11 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for ESP32 and parallel display
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes){
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len){
 
   uint16_t *data = (uint16_t*)data_in;
 
-  if(swapBytes) {
+  if(_swapBytes) {
     while (len>1) {tft_Write_16(*data); data++; tft_Write_16(*data); data++; len -=2;}
     if (len) {tft_Write_16(*data);}
     return;
@@ -274,7 +274,7 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len)
 ** Function name:           pushPixels - for ESP32 or STM32 RPi TFT
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len)
 {
   uint16_t *data = (uint16_t*)data_in;
 
@@ -311,11 +311,11 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len)
 ** Function name:           pushPixels - for STM32 and 3 byte RGB display
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len)
 {
   uint16_t *data = (uint16_t*)data_in;
 
-  if(swapBytes) {
+  if(!_swapBytes) {
     while ( len-- ) {
       // Split out the colours
       TX_FIFO = (*data & 0xF8); // Red
@@ -411,11 +411,11 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for STM32
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len)
 {
   uint16_t *data = (uint16_t*)data_in;
 
-  if(swapBytes) {
+  if(_swapBytes) {
     while ( len-- ) {
       TX_FIFO = (uint8_t)(*data>>8);
       TX_FIFO = (uint8_t)(*data);
@@ -470,14 +470,14 @@ void TFT_eeSPI::dmaWait(void)
 ** Description:             Push pixels to TFT (len must be less than 32767)
 ***************************************************************************************/
 // This will byte swap the original image if setSwapBytes(true) was called by sketch.
-void TFT_eeSPI::pushPixelsDMA16(uint16_t* image, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixelsDMA16(uint16_t* image, uint32_t len)
 {
   if (len == 0) return;
 
   // Wait for any current DMA transaction to end
   while (spiHal.State == HAL_SPI_STATE_BUSY_TX); // Check if SPI Tx is busy
 
-  if(swapBytes) {
+  if(_swapBytes) {
     for (uint32_t i = 0; i < len; i++) (image[i] = image[i] << 8 | image[i] >> 8);
   }
 
@@ -490,7 +490,7 @@ void TFT_eeSPI::pushPixelsDMA16(uint16_t* image, uint32_t len, bool swapBytes)
 ** Description:             Push image to a window (w*h must be less than 65536)
 ***************************************************************************************/
 // This will clip and also swap bytes if setSwapBytes(true) was called by sketch
-void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t* image, uint16_t* buffer)
+void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t* image, uint16_t* buffer)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -504,7 +504,7 @@ void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, 
 
   // If image is clipped, copy pixels into a contiguous block
   if ( (z.dw != w) || (z.dh != h) ) {
-    if(swapBytes) {
+    if(_swapBytes) {
       for (int32_t yb = 0; yb < z.dh; yb++) {
         for (int32_t xb = 0; xb < z.dw; xb++) {
           uint32_t src = xb + z.dx + w * (yb + z.dy);
@@ -519,8 +519,8 @@ void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, 
     }
   }
   // else, if a buffer pointer has been provided copy whole image to the buffer
-  else if (buffer != image || swapBytes) {
-    if(swapBytes) {
+  else if (buffer != image || _swapBytes) {
+    if(_swapBytes) {
       for (uint32_t i = 0; i < len; i++) (buffer[i] = image[i] << 8 | image[i] >> 8);
     }
     else {

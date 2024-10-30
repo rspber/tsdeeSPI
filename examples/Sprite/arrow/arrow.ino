@@ -16,12 +16,12 @@ void setup() {
 
   tft.init();
   tft.setRotation(1);
-//  tft.setSwapBytes(true);
+  tft.setSwapBytes(true);
   ar.setColorDepth(8);
   bg.setColorDepth(8);
 
   ar.createSprite(96, 96);
-//  ar.setSwapBytes(true);
+  ar.setSwapBytes(true);
 
   bg.createSprite(320, 100);
 

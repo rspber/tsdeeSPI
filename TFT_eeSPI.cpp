@@ -168,14 +168,15 @@ inline void TFT_eeSPI::end_tft_read(void){
 ***************************************************************************************/
 TFT_eeSPI::TFT_eeSPI()
 {
-  _booted   = true;     // Default attributes
-
   rotation  = 0;
+
+  _swapBytes = false;   // Do not swap colour bytes by default
 
   locked = true;           // Transaction mutex lock flag to ensure begin/endTranaction pairing
   inTransaction = false;   // Flag to prevent multiple sequential functions to keep bus access open
   lockTransaction = false; // start/endWrite lock flag to allow sketch to keep SPI bus access open
 
+  _booted   = true;     // Default attributes
 #if defined (ESP32) && defined (CONFIG_SPIRAM_SUPPORT)
   if (psramFound()) _psram_enable = true; // Enable the use of PSRAM (if available)
   else
@@ -444,9 +445,9 @@ void TFT_eeSPI::setRotation(uint8_t m)
 
   begin_tft_write();
 
-#include "drivers_rotation.hh"
-
   setRotationSizes(m);
+
+#include "drivers_rotation.hh"
 
   delayMicroseconds(10);
 
@@ -961,6 +962,26 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
   // Reinstate the transaction if one was in progress
   if(wasInTransaction) { begin_tft_write(); inTransaction = true; }
 #endif
+}
+
+
+/***************************************************************************************
+** Function name:           setSwapBytes
+** Description:             Used by 16-bit pushImage() to swap byte order in colours
+***************************************************************************************/
+void TFT_eeSPI::setSwapBytes(bool swap)
+{
+  _swapBytes = swap;
+}
+
+
+/***************************************************************************************
+** Function name:           getSwapBytes
+** Description:             Return the swap byte order for colours
+***************************************************************************************/
+bool TFT_eeSPI::getSwapBytes(void)
+{
+  return _swapBytes;
 }
 
 
@@ -1579,12 +1600,12 @@ void TFT_eeSPI::writeColor(rgb_t color, uint32_t len)
 ***************************************************************************************/
 // Assumed that setAddrWindow() has previously been called
 // len is number of bytes, not pixels
-void TFT_eeSPI::pushColors(uint8_t *data, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushColors(uint8_t *data, uint32_t len)
 {
   begin_tft_write();
 
 #ifdef COLOR_565
-  pushPixels16(data, len>>1, swapBytes);
+  pushPixels16(data, len>>1);
 #else
 #endif
 
@@ -1596,12 +1617,12 @@ void TFT_eeSPI::pushColors(uint8_t *data, uint32_t len, bool swapBytes)
 ** Function name:           pushColors
 ** Description:             push an array of pixels, for image drawing
 ***************************************************************************************/
-void TFT_eeSPI::pushColors(uint16_t *data, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushColors(uint16_t *data, uint32_t len)
 {
   begin_tft_write();
 
 #ifdef COLOR_565
-  pushPixels16(data, len, swapBytes);
+  pushPixels16(data, len);
 #else
 #endif
 
@@ -1702,7 +1723,6 @@ void TFT_eeSPI::drawCharRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t wid
               while (j--) {tft_Write_16(textcolor);}
             }
             else {tft_Write_16(textcolor);}
-
             px += textsize;
 
             if (px >= (xd + width * textsize)) {

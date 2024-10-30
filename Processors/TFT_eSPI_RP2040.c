@@ -311,10 +311,10 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for generic processor and parallel display
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes){
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len){
 #if  defined (SPI_18BIT_DRIVER) || (defined (SSD1963_DRIVER) && defined (TFT_PARALLEL_8_BIT))
   uint16_t *data = (uint16_t*)data_in;
-  if (swapBytes) {
+  if (_swapBytes) {
     while ( len-- ) {
       uint32_t col = *data++;
       tft_Write_16(col);
@@ -330,7 +330,7 @@ void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes){
   const uint16_t *data = (uint16_t*)data_in;
 
   // PIO sends MS byte first, so bytes are already swapped on transmit
-  if(swapBytes) {
+  if(_swapBytes) {
     while (len > 4) {
       WAIT_FOR_FIFO_FREE(5);
       TX_FIFO = data[0];
@@ -449,11 +449,11 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for ESP32 or RP2040 RPi TFT
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len)
 {
   uint16_t *data = (uint16_t*)data_in;
 
-  if (swapBytes) while ( len-- ) {tft_Write_16S(*data); data++;}
+  if (_swapBytes) while ( len-- ) {tft_Write_16S(*data); data++;}
   else while ( len-- ) {tft_Write_16(*data); data++;}
 }
 
@@ -498,10 +498,10 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len)
 ** Function name:           pushPixels - for RP2040 and 3 byte RGB display
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes){
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len){
 
   uint16_t *data = (uint16_t*)data_in;
-  if (swapBytes) {
+  if (_swapBytes) {
     while ( len-- ) {
       uint32_t col = *data++;
       tft_Write_16(col);
@@ -535,9 +535,9 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for RP2040
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes){
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len){
   uint16_t *data = (uint16_t*)data_in;
-  if (swapBytes) {
+  if (_swapBytes) {
     while(len--)
     {
       while (!spi_is_writable(SPI_X)){};
@@ -607,13 +607,13 @@ void TFT_eeSPI::dmaWait(void)
 ** Function name:           pushPixelsDMA
 ** Description:             Push pixels to TFT
 ***************************************************************************************/
-void TFT_eeSPI::pushPixelsDMA16(uint16_t* image, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixelsDMA16(uint16_t* image, uint32_t len)
 {
   if ((len == 0) || (!DMA_Enabled)) return;
 
   dmaWait();
 
-  channel_config_set_bswap(&dma_tx_config, !swapBytes);
+  channel_config_set_bswap(&dma_tx_config, !_swapBytes);
 
 #if !defined (RP2040_PIO_INTERFACE)
   dma_channel_configure(dma_tx_channel, &dma_tx_config, &spi_get_hw(SPI_X)->dr, (uint16_t*)image, len, true);
@@ -627,7 +627,7 @@ void TFT_eeSPI::pushPixelsDMA16(uint16_t* image, uint32_t len, bool swapBytes)
 ** Description:             Push image to a window
 ***************************************************************************************/
 // This will clip to the viewport
-void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, bool swapBytes, uint16_t* image, uint16_t* buffer)
+void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t* image, uint16_t* buffer)
 {
   if (!DMA_Enabled) return;
 
@@ -648,7 +648,7 @@ void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, 
     }
   }
   // else, if a buffer pointer has been provided copy whole image to the buffer
-  else if (buffer != image || swapBytes) {
+  else if (buffer != image || _swapBytes) {
     memcpy(buffer, image, len*2);
   }
 
@@ -656,7 +656,7 @@ void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, 
 
   setAddrWindow(z.x, z.y, z.dw, z.dh);
 
-  channel_config_set_bswap(&dma_tx_config, !swapBytes);
+  channel_config_set_bswap(&dma_tx_config, !_swapBytes);
 
 #if !defined (RP2040_PIO_INTERFACE)
   dma_channel_configure(dma_tx_channel, &dma_tx_config, &spi_get_hw(SPI_X)->dr, (uint16_t*)buffer, len, true);

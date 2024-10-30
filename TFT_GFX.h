@@ -160,33 +160,38 @@ public:
   void     drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by, float aw, float bw, rgb_t fg_color, rgb_t bg_color = TFT_WHITE);
 
 
+  // Image rendering
            // Draw bitmap
   void     drawBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t fgcolor),
            drawBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t fgcolor, rgb_t bgcolor),
            drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t fgcolor),
-           drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t fgcolor, rgb_t bgcolor);
+           drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t fgcolor, rgb_t bgcolor),
+           setBitmapColor(uint16_t fgcolor, uint16_t bgcolor); // Define the 2 colours for 1bpp sprites
 
            // Write a block of pixels to the screen which have been read by readRect()
   void     pushRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
 
            // These are used to render images or sprites stored in RAM arrays (used by Sprite class for 16bpp Sprites)
-  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t *data);
-  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t *data, rgb_t transparent);
+  virtual void pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
+  virtual void pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, rgb_t transparent);
 
            // These are used to render images stored in FLASH (PROGMEM)
-  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, const uint16_t *data, rgb_t transparent);
-  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, const uint16_t *data);
+  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, rgb_t transparent);
+  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data);
 
            // These are used by Sprite class pushSprite() member function for 1, 4 and 8 bits per pixel (bpp) colours
            // They are not intended to be used with user sketches (but could be)
            // Set bpp8 true for 8bpp sprites, false otherwise. The cmap pointer must be specified for 4bpp
-  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t fg, rgb_t bg, uint8_t  *data, bool bpp8 = true, rgb_t *cmap = nullptr);
-  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t fg, rgb_t bg, uint8_t  *data, uint8_t  transparent, bool bpp8 = true, rgb_t *cmap = nullptr);
+  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, bool bpp8 = true, rgb_t *cmap = nullptr);
+  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, uint8_t  transparent, bool bpp8 = true, rgb_t *cmap = nullptr);
            // FLASH version
-  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t fg, rgb_t bg, const uint8_t *data, bool bpp8,  rgb_t *cmap = nullptr);
+  void     pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8,  rgb_t *cmap = nullptr);
 
            // Render a 16-bit colour image with a 1bpp mask
-  void     pushMaskedImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t *img, uint8_t *mask);
+  void     pushMaskedImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask);
+
+  uint32_t _bitmap_fg, _bitmap_bg;           // Bitmap foreground (bit=1) and background (bit=0) colours
+
 
  //--------------------------------------- private ------------------------------------//
  private:

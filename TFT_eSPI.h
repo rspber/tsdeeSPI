@@ -320,16 +320,11 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 
 
   // Image rendering
-           // Swap the byte order for pushImage and pushPixels - corrects endianness
-  void     setSwapBytes(bool swap);
-  bool     getSwapBytes(void);
-
            // Draw bitmap
   void     drawBitmap( int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t fgcolor),
            drawBitmap( int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t fgcolor, uint16_t bgcolor),
            drawXBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t fgcolor),
-           drawXBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t fgcolor, uint16_t bgcolor),
-           setBitmapColor(uint16_t fgcolor, uint16_t bgcolor); // Define the 2 colours for 1bpp sprites
+           drawXBitmap(int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t fgcolor, uint16_t bgcolor);
 
            // Set TFT pivot point (use when rendering rotated sprites)
   void     setPivot(int16_t x, int16_t y);
@@ -447,36 +442,12 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   bool     verifySetupID(uint32_t id);
 
 #ifdef COLOR_565
-  #define pushBlock(color, len)       pushBlock16(color, len)
-  #define pushPixels(data, len)       pushPixels16(data, len)
-  #define pushPixelsDMA(data, len)    pushPixelsDMA16(data, len)
-  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data) {
-    pushImage16(x,y,w,h,data);
-  }
-  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, rgb_t transparent) {
-    pushImage16(x,y,w,h,data);
-  }
-  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, rgb_t transparent) {
-    pushImage(x, y, w, h, data, transparent);
-  }
-  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data) {
-    pushImage(x, y, w, h, data);
-  }
-  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, bool bpp8 = true, uint16_t *cmap = nullptr) {
-    pushImage(x, y, w, h, data, bpp8, cmap);
-  }
-  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t  *data, uint8_t  transparent, bool bpp8 = true, uint16_t *cmap = nullptr) {
-    pushImage(x, y, w, h, data, transparent, bpp8, cmap);
-  }
-  inline void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8,  uint16_t *cmap = nullptr) {
-    pushImage(x, y, w, h, data, bpp8, cmap);
-  }
-  inline void pushMaskedImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask) {
-    pushMaskedImage(x, y, w, h, img, mask);
-  }
-
-  #define pushMaskedImage             pushMaskedImage16
-  #define pushImageDMA                pushImageDMA16
+  #define pushBlock          pushBlock16
+  #define pushPixels         pushPixels16
+  #define pushPixelsDMA      pushPixelsDMA16
+  #define pushImage          pushImage16
+  #define pushMaskedImage    pushMaskedImage16
+  #define pushImageDMA       pushImageDMA16
 #else
 #endif
 
@@ -529,7 +500,6 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 
  private:
   rgb_t _textcolor, _textbgcolor;         // Text foreground and background colours
-  rgb_t _bitmap_fg, _bitmap_bg;           // Bitmap foreground (bit=1) and background (bit=0) colours
 
   chr_font_t _font;
 
@@ -557,8 +527,6 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
  private:
   cursor_t _cursor;
   int32_t  _padX;       // Text cursor x,y and padding setting
-
-  bool     _swapBytes; // Swap the byte order for TFT pushImage
 
 /***************************************************************************************
 **                         Section 9: TFT_eSPI class conditional extensions

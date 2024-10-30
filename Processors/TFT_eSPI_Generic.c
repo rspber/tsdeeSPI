@@ -78,10 +78,10 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for gereric processor and parallel display
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes){
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len){
 
   uint16_t *data = (uint16_t*)data_in;
-  if(swapBytes) {
+  if(_swapBytes) {
     while (len>1) {tft_Write_16(*data); data++; tft_Write_16(*data); data++; len -=2;}
     if (len) {tft_Write_16(*data);}
     return;
@@ -163,11 +163,11 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for ESP32 or STM32 RPi TFT
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes)
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len)
 {
   uint16_t *data = (uint16_t*)data_in;
 
-  if (swapBytes) while ( len-- ) {tft_Write_16S(*data); data++;}
+  if (_swapBytes) while ( len-- ) {tft_Write_16S(*data); data++;}
   else while ( len-- ) {tft_Write_16(*data); data++;}
 }
 
@@ -193,10 +193,10 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len)
 ** Function name:           pushPixels - for STM32 and 3 byte RGB display
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes){
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len){
 
   uint16_t *data = (uint16_t*)data_in;
-  if (swapBytes) {
+  if (_swapBytes) {
     while ( len-- ) {
       uint16_t color = *data >> 8 | *data << 8;
       tft_Write_8((color & 0xF800)>>8);
@@ -232,11 +232,11 @@ void TFT_eeSPI::pushBlock16(uint16_t color, uint32_t len){
 ** Function name:           pushPixels - for STM32
 ** Description:             Write a sequence of pixels
 ***************************************************************************************/
-void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len, bool swapBytes){
+void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len){
 
   uint16_t *data = (uint16_t*)data_in;
 
-  if (swapBytes) while ( len-- ) {tft_Write_16(*data); data++;}
+  if (_swapBytes) while ( len-- ) {tft_Write_16(*data); data++;}
   else while ( len-- ) {tft_Write_16S(*data); data++;}
 }
 
@@ -258,6 +258,6 @@ bool TFT_eeSPI::initDMA(void)
 void TFT_eeSPI::deInitDMA(void)
 bool TFT_eeSPI::dmaBusy(void)
 void TFT_eeSPI::pushPixelsDMA16(uint16_t* image, uint32_t len)
-void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* image)
+void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* image)
 
 */

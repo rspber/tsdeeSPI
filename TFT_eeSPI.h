@@ -238,14 +238,14 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
            // Push (aka write pixel) colours to the TFT (use setAddrWindow() first)
   void     pushColor(rgb_t color, uint32_t len),  // Deprecated, use pushBlock
-           pushColors(uint16_t  *data, uint32_t len, bool swapBytes = true), // With byte swap option
-           pushColors(uint8_t  *data, uint32_t len, bool swapBytes); // Deprecated, use pushPixels
+           pushColors(uint16_t  *data, uint32_t len), // With byte swap option
+           pushColors(uint8_t  *data, uint32_t len); // Deprecated, use pushPixels
 
            // Write a solid block of a single colour
   void     pushBlock16(uint16_t color, uint32_t len);
 
-           // Write a set of pixels stored in memory, use setSwapBytes(true/false) function to correct endianess
-  void     pushPixels16(const void * data_in, uint32_t len, bool swapBytes);
+           // Write a set of pixels stored in memory
+  void     pushPixels16(const void * data_in, uint32_t len);
 
            // Support for half duplex (bi-directional SDA) SPI bus where MOSI must be switched to input
            #ifdef TFT_SDA_READ
@@ -255,6 +255,10 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   void     begin_SDA_Read(void); // Begin a read on a half duplex (bi-directional SDA) SPI bus - sets MOSI to input
   void     end_SDA_Read(void);   // Restore MOSI to output
            #endif
+
+           // Swap the byte order for pushImage() and pushPixels() - corrects endianness
+  void     setSwapBytes(bool swap);
+  bool     getSwapBytes(void);
 
            // The next functions can be used as a pair to copy screen blocks (or horizontal/vertical lines) to another location
            // Read a block of pixels to a data buffer, buffer is 16-bit and the size must be at least w * h
@@ -328,14 +332,14 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
            //
            // The function will wait for the last DMA to complete if it is called while a previous DMA is still
            // in progress, this simplifies the sketch and helps avoid "gotchas".
-  void     pushImageDMA16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool swapBytes, uint16_t* data, uint16_t* buffer = nullptr);
+  void     pushImageDMA16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer = nullptr);
 
 #if defined (ESP32) // ESP32 only at the moment
            // For case where pointer is a const and the image data must not be modified (clipped or byte swapped)
   void     pushImageDMA16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t const* data);
 #endif
            // Push a block of pixels into a window set up using setAddrWindow()
-  void     pushPixelsDMA16(uint16_t* image, uint32_t len, bool swapBytes);
+  void     pushPixelsDMA16(uint16_t* image, uint32_t len);
 
            // Check if the DMA is complete - use while(tft.dmaBusy); for a blocking wait
   bool     dmaBusy(void); // returns true if DMA is still in progress
@@ -417,6 +421,8 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
  protected:
 
   int32_t  addr_row, addr_col;        // Window position - used to minimise window commands
+
+  bool     _swapBytes; // Swap the byte order for TFT pushImage()
 
   bool     _booted;    // init() or begin() has already run once
 

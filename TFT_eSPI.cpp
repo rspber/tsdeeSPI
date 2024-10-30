@@ -234,13 +234,11 @@ TFT_eSPI::TFT_eSPI(int16_t w, int16_t h) : TFT_CHAR()
   _cursor.y  = _cursor.x  = _last_cursor_x = _bg_cursor_x = 0;
   _font.font  = 1;
   _font.size  = 1;
-  _textcolor   = _bitmap_fg = 0xFFFF; // White
-  _textbgcolor = _bitmap_bg = 0x0000; // Black
+  _textcolor   = WHITE; // White
+  _textbgcolor = BLACK; // Black
   _padX        = 0;                  // No padding
 
   _textdatum = TL_DATUM; // Top Left text alignment is default
-
-  _swapBytes = false;   // Do not swap colour bytes by default
 
   _xPivot = 0;
   _yPivot = 0;
@@ -315,7 +313,7 @@ void TFT_eSPI::pushRect(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *da
 ***************************************************************************************/
 void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
 {
-  pushImage16(_clip, x, y, w, h, _swapBytes, data);
+  pushImage16(_clip, x, y, w, h, data);
 }
 
 /***************************************************************************************
@@ -324,7 +322,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t 
 ***************************************************************************************/
 void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, rgb_t transp)
 {
-  pushImage16(_clip, x, y, w, h, _swapBytes, data, transp);
+  pushImage16(_clip, x, y, w, h, data, transp);
 }
 
 
@@ -334,7 +332,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t 
 ***************************************************************************************/
 void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data)
 {
-  pushImage16(_clip, x, y, w, h, _swapBytes, data);
+  pushImage16(_clip, x, y, w, h, data);
 }
 
 /***************************************************************************************
@@ -343,7 +341,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uin
 ***************************************************************************************/
 void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, rgb_t transp)
 {
-  pushImage16(_clip, x, y, w, h, _swapBytes, data, transp);
+  pushImage16(_clip, x, y, w, h, data, transp);
 }
 
 /***************************************************************************************
@@ -352,7 +350,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uin
 ***************************************************************************************/
 void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8, rgb_t *cmap)
 {
-  pushImage16(_clip, x, y, w, h, _bitmap_fg, _bitmap_bg, data, bpp8, cmap);
+  pushImage16(_clip, x, y, w, h, data, bpp8, cmap);
 }
 
 
@@ -362,7 +360,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uin
 ***************************************************************************************/
 void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, bool bpp8, rgb_t *cmap)
 {
-  pushImage16(_clip, x, y, w, h, _bitmap_fg, _bitmap_bg, data, bpp8, cmap);
+  pushImage16(_clip, x, y, w, h, data, bpp8, cmap);
 }
 
 
@@ -372,7 +370,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *
 ***************************************************************************************/
 void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, uint8_t transp, bool bpp8, rgb_t *cmap)
 {
-  pushImage16(_clip, x, y, w, h, _bitmap_fg, _bitmap_bg, data, transp, bpp8, cmap);
+  pushImage16(_clip, x, y, w, h, data, transp, bpp8, cmap);
 }
 
 /***************************************************************************************
@@ -382,7 +380,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *
 // Can be used with a 16bpp sprite and a 1bpp sprite for the mask
 void TFT_eSPI::pushMaskedImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask)
 {
-  pushMaskedImage16(_clip, x, y, w, h, _swapBytes, img, mask);
+  pushMaskedImage16(_clip, x, y, w, h, img, mask);
 }
 
 
@@ -401,26 +399,7 @@ void TFT_eSPI::readRectRGB(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *
 ***************************************************************************************/
 void TFT_eSPI::pushImageDMA16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* data, uint16_t* buffer)
 {
-  pushImageDMA16(_clip, x, y, w, h, _swapBytes, data, buffer);
-}
-
-/***************************************************************************************
-** Function name:           setSwapBytes
-** Description:             Used by 16-bit pushImage to swap byte order in colours
-***************************************************************************************/
-void TFT_eSPI::setSwapBytes(bool swap)
-{
-  _swapBytes = swap;
-}
-
-
-/***************************************************************************************
-** Function name:           getSwapBytes
-** Description:             Return the swap byte order for colours
-***************************************************************************************/
-bool TFT_eSPI::getSwapBytes(void)
-{
-  return _swapBytes;
+  pushImageDMA16(_clip, x, y, w, h, data, buffer);
 }
 
 
@@ -697,18 +676,6 @@ int16_t TFT_eSPI::getPivotX(void)
 int16_t TFT_eSPI::getPivotY(void)
 {
   return _yPivot;
-}
-
-
-/***************************************************************************************
-** Function name:           setBitmapColor
-** Description:             Set the foreground foreground and background colour
-***************************************************************************************/
-void TFT_eSPI::setBitmapColor(uint16_t c, uint16_t b)
-{
-  if (c == b) b = ~c;
-  _bitmap_fg = c;
-  _bitmap_bg = b;
 }
 
 

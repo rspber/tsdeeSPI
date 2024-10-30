@@ -452,7 +452,7 @@ bool TFT_eSprite::pushRotated(int16_t angle, rgb_t transp)
         if (pixel_count) {
           // TFT window is already clipped, so this is faster than pushImage
           _tft->setWindow(x - pixel_count, y, pixel_count, 1);
-          _tft->pushPixels16(sline_buffer, pixel_count, false);
+          _tft->pushPixels16(sline_buffer, pixel_count);
           pixel_count = 0;
         }
       }
@@ -463,7 +463,7 @@ bool TFT_eSprite::pushRotated(int16_t angle, rgb_t transp)
     if (pixel_count) {
       // TFT window is already clipped, so this is faster than pushImage
       _tft->setWindow(x - pixel_count, y, pixel_count, 1);
-      _tft->pushPixels16(sline_buffer, pixel_count, false);
+      _tft->pushPixels16(sline_buffer, pixel_count);
     }
   }
 
