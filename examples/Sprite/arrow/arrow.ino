@@ -11,7 +11,7 @@
 
 TFT_eSPI tft;
 TFT_eSprite bg(&tft);
-TFT_eSprite ar(&tft);
+TFT_eSprite ar(&bg);
 
 int x = 20;
 
