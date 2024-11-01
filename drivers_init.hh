@@ -20,7 +20,15 @@
     #include "TFT_Drivers/ILI9486_Init.hh"
 
 #elif defined (ILI9481_DRIVER)
-    #include "TFT_Drivers/ILI9481_Init.hh"
+    #include "TFT_Drivers/ILI9481_1_Init.hh"
+//    #include "TFT_Drivers/ILI9481_AUO317_Init.hh"
+//    #include "TFT_Drivers/ILI9481_CMO35_Init.hh"
+//    #include "TFT_Drivers/ILI9481_CPT29_Init.hh"
+//    #include "TFT_Drivers/ILI9481_Init.hh"
+//    #include "TFT_Drivers/ILI9481_PVI35_Init.hh"
+//    #include "TFT_Drivers/ILI9481_RGB_Init.hh"
+//    #include "TFT_Drivers/ILI9481_YA1_Init.hh"
+//    #include "TFT_Drivers/ILI9481_YA2_Init.hh"
 
 #elif defined (ILI9488_DRIVER)
     #include "TFT_Drivers/ILI9488_Init.hh"
