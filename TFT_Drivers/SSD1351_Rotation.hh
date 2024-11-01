@@ -1,9 +1,7 @@
 
-// This is the command sequence that rotates the SSD1351 driver coordinate frame
-
   rotation = m % 4; // Limit the range of values to 0-3
 
-  uint8_t madctl = 0x64;
+  madctl = 0x64;
 
   switch (rotation) {
     case 0:
@@ -20,7 +18,5 @@
       break;
   }
 
-  writecommand(0xA0); // SETREMAP
-  writedata(madctl);
-  writecommand(0xA1); // STARTLINE
-  writedata(rotation < 2 ? TFT_HEIGHT : 0);
+  sendCmdByte(0xA0, madctl); // SETREMAP
+  sendCmdByte(0xA1, rotation < 2 ? TFT_HEIGHT : 0); // STARTLINE

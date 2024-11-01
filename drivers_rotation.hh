@@ -19,7 +19,7 @@
     #include "TFT_Drivers/ILI9486_Rotation.hh"
 
 #elif defined (ILI9481_DRIVER)
-    #include "TFT_Drivers/ILI9481_Rotation.hh"
+    #include "TFT_Drivers/ILI9x81_Rotation.hh"
 
 #elif defined (ILI9488_DRIVER)
     #include "TFT_Drivers/ILI9488_Rotation.hh"

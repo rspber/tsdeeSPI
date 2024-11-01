@@ -3,10 +3,9 @@
 
   rotation = m % 4;
 
-  writecommand(TFT_MADCTL);
   switch (rotation) {
     case 0: // Portrait
-      writedata(TFT_MAD_BGR);
+      setMADCTL(((0x00) ^ REV) | TFT_MAD_BGR);
 #ifdef CGRAM_OFFSET
       if (_init_width == 128)
       {
@@ -16,7 +15,7 @@
 #endif    
       break;
     case 1: // Landscape (Portrait + 90)
-      writedata(TFT_MAD_MX | TFT_MAD_YX | TFT_MAD_BGR);
+      writedata(((TFT_MAD_MX | TFT_MAD_YX) ^ REV) | TFT_MAD_BGR);
 #ifdef CGRAM_OFFSET
       if (_init_width == 128)
       {
@@ -26,7 +25,7 @@
 #endif
       break;
     case 2: // Inverter portrait
-      writedata(TFT_MAD_MX | TFT_MAD_MY | TFT_MAD_BGR);
+      writedata(((TFT_MAD_MX | TFT_MAD_MY) ^ REV) | TFT_MAD_BGR);
 #ifdef CGRAM_OFFSET
       if (_init_width == 128)
       {
@@ -36,7 +35,7 @@
 #endif
       break;
     case 3: // Inverted landscape
-      writedata(TFT_MAD_YX | TFT_MAD_MY | TFT_MAD_BGR);
+      writedata(((TFT_MAD_YX | TFT_MAD_MY) * REV) | TFT_MAD_BGR);
 #ifdef CGRAM_OFFSET
       if (_init_width == 128)
       {

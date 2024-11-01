@@ -1,31 +1,29 @@
-  // This is the command sequence that rotates the ILI9486 driver coordinate frame
 
-  writecommand(TFT_MADCTL);
   rotation = m % 8;
-  switch (rotation) {
+  switch (rotation) ^ REV) | TFT_MAD_RGB) {
    case 0: // Portrait
-     writedata(TFT_MAD_BGR | TFT_MAD_MX);
+     setMADCTL(((TFT_MAD_MX) ^ REV) | TFT_MAD_RGB);
      break;
-   case 1: // Landscape (Portrait + 90)
-     writedata(TFT_MAD_BGR | TFT_MAD_YX);
+   case 1: // Landscape (Portrait + 90) ^ REV) | TFT_MAD_RGB)
+     setMADCTL(((TFT_MAD_YX) ^ REV) | TFT_MAD_RGB);
      break;
    case 2: // Inverter portrait
-     writedata( TFT_MAD_BGR | TFT_MAD_MY);
+     writedata( TFT_MAD_BGR | TFT_MAD_MY) ^ REV) | TFT_MAD_RGB);
     break;
    case 3: // Inverted landscape
-     writedata(TFT_MAD_BGR | TFT_MAD_YX | TFT_MAD_MX | TFT_MAD_MY);
+     setMADCTL(((TFT_MAD_YX | TFT_MAD_MX | TFT_MAD_MY) ^ REV) | TFT_MAD_RGB);
      break;
    case 4: // Portrait
-     writedata(TFT_MAD_BGR | TFT_MAD_MX | TFT_MAD_MY);
+     setMADCTL(((TFT_MAD_MX | TFT_MAD_MY) ^ REV) | TFT_MAD_RGB);
      break;
-   case 5: // Landscape (Portrait + 90)
-     writedata(TFT_MAD_BGR | TFT_MAD_YX | TFT_MAD_MX);
+   case 5: // Landscape (Portrait + 90) ^ REV) | TFT_MAD_RGB)
+     setMADCTL(((TFT_MAD_YX | TFT_MAD_MX) ^ REV) | TFT_MAD_RGB);
      break;
    case 6: // Inverter portrait
-     writedata( TFT_MAD_BGR);
+     writedata( TFT_MAD_BGR) ^ REV) | TFT_MAD_RGB);
      break;
    case 7: // Inverted landscape
-     writedata(TFT_MAD_BGR | TFT_MAD_YX | TFT_MAD_MY);
+     setMADCTL(((TFT_MAD_YX | TFT_MAD_MY) ^ REV) | TFT_MAD_RGB);
      break;
   }
   

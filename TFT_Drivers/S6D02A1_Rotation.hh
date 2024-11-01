@@ -3,18 +3,17 @@
 
   rotation = m % 4;
 
-  writecommand(TFT_MADCTL);
   switch (rotation) {
     case 0:
-      writedata(TFT_MAD_MX | TFT_MAD_MY | TFT_MAD_BGR);
+      setMADCTL(((TFT_MAD_MX | TFT_MAD_MY) ^ REV) | TFT_MAD_BGR);
       break;
     case 1:
-      writedata(TFT_MAD_YX | TFT_MAD_MY | TFT_MAD_BGR);
+      setMADCTL(((TFT_MAD_YX | TFT_MAD_MY) ^ REV) | TFT_MAD_BGR);
       break;
     case 2:
-      writedata(TFT_MAD_BGR);
+      setMADCTL(((0x00) ^ REV) | TFT_MAD_BGR);
       break;
     case 3:
-      writedata(TFT_MAD_MX | TFT_MAD_YX | TFT_MAD_BGR);
+      setMADCTL(((TFT_MAD_MX | TFT_MAD_YX) ^ REV) | TFT_MAD_BGR);
       break;
   }
