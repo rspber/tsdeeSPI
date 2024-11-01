@@ -27,6 +27,6 @@ Examples from tsdesktop with appropriate support will be added successively<br/>
 
 Main steps to do:
 - change setups to this from tsdesktop: with touch and i2c configuration,
-- color swap by use of TFT_MADCTL function instead of software color swapping,
+- color swap by use of TFT_MADCTL function instead of software color swapping, (if it's possible)
 - enable color 666, for now it's rgb_t type use only,
 

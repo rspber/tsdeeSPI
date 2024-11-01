@@ -362,7 +362,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 #endif
 
   uint8_t rotation;  // Display rotation (0-3)
-  uint8_t madctl;
+  uint8_t _madctl;    // MADCTL set by setRotation function as default for color transfer
 
  //--------------------------------------- private ------------------------------------//
  protected:

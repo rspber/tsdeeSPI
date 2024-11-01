@@ -465,10 +465,10 @@ void TFT_eeSPI::setRotation(uint8_t m, const uint8_t REV)
 ** Function name:           madctl to use instead of setSwapBytes
 ** Description:             tsdeeSPI
 ***************************************************************************************/
-void TFT_eeSPI::setMADCTL(const uint8_t mad)
+void TFT_eeSPI::setMADCTL(const uint8_t madctl)
 {
-  madctl = mad;
-  sendCmdByte(TFT_MADCTL, madctl);
+  _madctl = madctl;
+  sendCmdByte(TFT_MADCTL, _madctl);
 }
 
 
