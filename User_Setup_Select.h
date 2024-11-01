@@ -50,7 +50,7 @@
 
 //#include <User_Setups/Setup19_RM68140_Parallel.h>	 // Setup file configured for RM68140 with parallel bus
 
-#include <User_Setups/Setup20_ILI9488.h>           // Setup file for ESP8266 and ILI9488 SPI bus TFT
+//#include <User_Setups/Setup20_ILI9488.h>           // Setup file for ESP8266 and ILI9488 SPI bus TFT
 //#include <User_Setups/Setup21_ILI9488.h>           // Setup file for ESP32 and ILI9488 SPI bus TFT
 
 //#include <User_Setups/Setup22_TTGO_T4.h>           // Setup file for ESP32 and TTGO T4 version 1.2
@@ -107,7 +107,7 @@
 //#include <User_Setups/Setup100_RP2040_ILI9488_parallel.h> // Setup file for Pico/RP2040 with 8-bit parallel ILI9488
 //#include <User_Setups/Setup101_RP2040_ILI9481_parallel.h> // Setup file for Pico/RP2040 with 8-bit parallel ILI9481
 //#include <User_Setups/Setup102_RP2040_ILI9341_parallel.h> // Setup file for Pico/RP2040 with 8-bit parallel ILI9341
-//#include <User_Setups/Setup103_RP2040_ILI9486_parallel.h> // Setup file for Pico/RP2040 with 8-bit parallel ILI9486
+#include <User_Setups/Setup103_RP2040_ILI9486_parallel.h> // Setup file for Pico/RP2040 with 8-bit parallel ILI9486
 //#include <User_Setups/Setup104_RP2040_ST7796_parallel.h>  // Setup file for Pico/RP2040 with 8-bit parallel ST7796
 
 //#include <User_Setups/Setup105_RP2040_ST7796_16bit_parallel.h>  // Setup file for RP2040 16-bit parallel display
