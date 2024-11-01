@@ -2039,7 +2039,7 @@ void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by
       }
       #ifdef GC9A01_DRIVER
         uint16_t pcol = alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg);
-        drawPixel(xp, yp, pcol);
+        drawPixel(clip, xp, yp, pcol);
         swin = swin;
       #else
         if (swin) { setWindow(xp, yp, x1-xp+1, yp); swin = false; }

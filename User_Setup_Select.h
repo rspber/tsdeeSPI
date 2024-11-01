@@ -113,7 +113,7 @@
 //#include <User_Setups/Setup105_RP2040_ST7796_16bit_parallel.h>  // Setup file for RP2040 16-bit parallel display
 //#include <User_Setups/Setup106_RP2040_ILI9481_16bit_parallel.h> // Setup file for RP2040 16-bit parallel display
 //#include <User_Setups/Setup107_RP2040_ILI9341_16bit_parallel.h> // Setup file for RP2040 16-bit parallel display
-#include <User_Setups/Setup108_RP2040_ST7735.h> // Setup file for Waveshare RP2040 board with onboard ST7735 0.96" 160x80 display
+//#include <User_Setups/Setup108_RP2040_ST7735.h> // Setup file for Waveshare RP2040 board with onboard ST7735 0.96" 160x80 display
 
 //#include <User_Setups/Setup135_ST7789.h>           // Setup file for ESP8266 and ST7789 135 x 240 TFT
 
@@ -122,7 +122,7 @@
 
 //#include <User_Setups/Setup138_Pico_Explorer_Base_RP2040_ST7789.h> // Setup file for Pico Explorer Base by Pimoroni for RP2040 (ST7789 on SPI bus with 240x240 TFT)
 
-//#include <User_Setups/Setup200_GC9A01.h>           // Setup file for ESP32 and GC9A01 240 x 240 TFT
+#include <User_Setups/Setup200_GC9A01.h>           // Setup file for ESP32 and GC9A01 240 x 240 TFT
 
 //#include <User_Setups/Setup201_WT32_SC01.h>        // Setup file for ESP32 based WT32_SC01 from Seeed
 
