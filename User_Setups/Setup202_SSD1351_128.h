@@ -22,6 +22,8 @@
 //   | RST         | TFT_RST    | Hardware reset, can connect to MCU RST pin as well                |
 //   | CS          | TFT_CS     | Chip select, Set to -1 if for manually use with multiple displays |
 //   +-------------+------------+-------------------------------------------------------------------+
+#define TFT_MIS0 -1
+
 #if defined(ESP32)
   #define TFT_MOSI 23
   #define TFT_SCLK 18
@@ -30,6 +32,7 @@
   #define TFT_CS   15
 #elif defined (ARDUINO_ARCH_ESP8266)
 //#define TFT_MOSI PIN_D5 // Can't change
+  #define TFT_SCLK -1
 //#define TFT_SCLK PIN_D7 // Can't change
   #define TFT_DC   PIN_D3
   #define TFT_RST  PIN_D4

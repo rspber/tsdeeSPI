@@ -23,6 +23,8 @@
 #define ILI9341_RDIMGFMT  0x0A
 #define ILI9341_RDSELFDIAG  0x0F
 
+#define ILI9341_GAMMASET    0x26    // Gamma set
+
 #define ILI9341_WRDISBV  0x51
 #define ILI9341_RDDISBV  0x52
 #define ILI9341_WRCTRLD  0x53
@@ -50,3 +52,19 @@
 
 #define ILI9341_GMCTRP1 0xE0
 #define ILI9341_GMCTRN1 0xE1
+#define ILI9341_PVGAMMA     0xE0    // Positive gamma correction
+#define ILI9341_NVGAMMA     0xE1    // Negative gamma correction
+
+#define ILI9341_EF          0xEF    // undocumented
+#define ILI9341_INTFCCTR    0xF6    // Interface control
+#define ILI9341_PUMPRC      0xF7    // Pump ratio control
+#define ILI9341_PWCTR6      0xFC
+
+// retired in version v.1.02
+#define ILI9341_PWCTRA      0xCB    // Power control A
+#define ILI9341_PWCTRB      0xCF    // Power control B
+#define ILI9341_DTCA        0xE8    // Driver timing control A
+// E9
+#define ILI9341_DTCB        0xEA    // Driver timing control B
+#define ILI9341_POSC        0xED    // Power on sequence control
+#define ILI9341_ENABLE3G    0xF2    // Enable 3 gamma control
