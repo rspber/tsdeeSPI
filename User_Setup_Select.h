@@ -75,7 +75,7 @@
 
 //#include <User_Setups/Setup36_RPi_touch_ST7796.h>      // Setup file configured for ESP32 and RPi ST7796 TFT with touch
 
-#include <User_Setups/Setup42_ILI9341_ESP32.h>           // Setup file for ESP32 and SPI ILI9341 240x320
+//#include <User_Setups/Setup42_ILI9341_ESP32.h>           // Setup file for ESP32 and SPI ILI9341 240x320
 //#include <User_Setups/Setup43_ST7735.h>            // Setup file for ESP8266 & ESP32 configured for my ST7735S 80x160
 //#include <User_Setups/Setup44_TTGO_CameraPlus.h>   // Setup file for ESP32 and TTGO T-CameraPlus ST7789 SPI bus TFT    240x240
 //#include <User_Setups/Setup45_TTGO_T_Watch.h>      // Setup file for ESP32 and TTGO T-Watch ST7789 SPI bus TFT  240x240
@@ -88,7 +88,7 @@
 //#include <User_Setups/Setup51_LilyPi_ILI9481.h>    // Setup file for LilyGo LilyPi with ILI9481 display
 //#include <User_Setups/Setup52_LilyPi_ST7796.h>     // Setup file for LilyGo LilyPi with ST7796 display
 
-//#include <User_Setups/Setup60_RP2040_ILI9341.h>              // Setup file for RP2040 with SPI ILI9341
+#include <User_Setups/Setup60_RP2040_ILI9341.h>              // Setup file for RP2040 with SPI ILI9341
 //#include <User_Setups/Setup60_RP2040_ST7789.h>               // Setup file for RP2040 with SPI ST7789
 //#include <User_Setups/Setup61_RP2040_ILI9341_PIO_SPI.h>      // Setup file for RP2040 with PIO SPI ILI9341
 //#include <User_Setups/Setup61_RP2040_ST7789_PIO_SPI.h>       // Setup file for RP2040 with PIO SPI ST7789

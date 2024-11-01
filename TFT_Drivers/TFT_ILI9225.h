@@ -10,6 +10,8 @@
 #define TFT_NOP     0x00
 #define TFT_SWRST   0x28
 
+#define TFT_MADCTL  0
+
 #define TFT_CASET 0
 #define TFT_PASET 0
 
