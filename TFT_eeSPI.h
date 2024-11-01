@@ -420,6 +420,11 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
   bool     locked, inTransaction, lockTransaction; // SPI transaction and mutex lock flags
 
+ protected:
+           // Display variant settings
+  uint8_t  tabcolor,                   // ST7735 screen protector "tab" colour (now invalid)
+           colstart = 0, rowstart = 0; // Screen display area to CGRAM area coordinate offsets
+
  //-------------------------------------- protected ----------------------------------//
  protected:
 

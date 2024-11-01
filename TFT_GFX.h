@@ -194,16 +194,12 @@ public:
 
 
  //--------------------------------------- private ------------------------------------//
- private:
+ protected:
            // Smooth graphics helper
   uint8_t  sqrt_fraction(uint32_t num);
 
            // Helper function: calculate distance of a point from a finite length line between two points
   float    wedgeLineDistance(float pax, float pay, float bax, float bay, float dr);
-
-           // Display variant settings
-  uint8_t  tabcolor,                   // ST7735 screen protector "tab" colour (now invalid)
-           colstart = 0, rowstart = 0; // Screen display area to CGRAM area coordinate offsets
 
 /***************************************************************************************
 **                         Section 9: TFT_eSPI class conditional extensions

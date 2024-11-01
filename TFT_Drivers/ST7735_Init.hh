@@ -37,15 +37,15 @@
           sendCmdData(ST7735_GMCTRP1, (uint8_t*)"\x09\x16\x09\x20\x21\x1B\x13\x19\x17\x15\x1E\x2B\x04\x05\x02\x0E", 16);
           sendCmdData(ST7735_GMCTRN1, (uint8_t*)"\x0B\x14\x08\x1E\x22\x1D\x18\x1E\x1B\x1A\x24\x2B\x06\x06\x02\x0F", 16);
           delay(10);
-          sendCmdData(ST7735_CASET, (uint8_t*)"\x00\x02\x00\x81", 4);
+          sendCmdData(TFT_CASET, (uint8_t*)"\x00\x02\x00\x81", 4);
           //  0x00, 0x02,             //     XSTART = 2
           //  0x00, 0x81,             //     XEND = 129
-          sendCmdData(ST7735_RASET, (uint8_t*)"\x00\x02\x00\x81", 4);
+          sendCmdData(TFT_PASET, (uint8_t*)"\x00\x02\x00\x81", 4);
           //  0x00, 0x02,             //     XSTART = 1
           //  0x00, 0x81,             //     XEND = 160
-          sendCmd(ST7735_NORON);
+          sendCmd(TFT_NORON);
           delay(10);
-          sendCmd(ST7735_DISPON);
+          sendCmd(TFT_DISPON);
           delay(500);
       }
      else
@@ -77,12 +77,12 @@
         sendCmdByte(ST7735_VMCTR1, 0x0E);
         sendCmd(TFT_INVOFF);        // 13: Don't invert display, no args, no delay
         sendCmdByte(TFT_MADCTL, 0xC0 | TFT_MAD_RGB); //     row addr/col addr, bottom to top refresh
-        sendCmd(TFT_PIXFMT, 0x05);  //     16-bit color
+        sendCmdByte(TFT_PIXFMT, 0x05);  //     16-bit color
 
 
        if (tabcolor == INITR_GREENTAB ||
            tabcolor == INITR_GREENTAB2 ||
-           tabcolor == INITR_GREENTAB3) ||
+           tabcolor == INITR_GREENTAB3 ||
            tabcolor == INITR_GREENTAB128 ||
            tabcolor == INITR_GREENTAB160x80 ||
            tabcolor == INITR_ROBOTLCD ||
@@ -92,7 +92,7 @@
           sendCmdData(TFT_CASET, (uint8_t*)"\x00\x02\x00\x81", 4);
           //  0x00, 0x02,             //     XSTART = 0
           //  0x00, 0x7F+0x02,        //     XEND = 127
-          sendCmdData(TFT_RASET, (uint8_t*)"\x00\x01\x00\xA0", 4);
+          sendCmdData(TFT_PASET, (uint8_t*)"\x00\x01\x00\xA0", 4);
           //  0x00, 0x01,             //     XSTART = 0
           //  0x00, 0x9F+0x01,        //     XEND = 159
        }
@@ -104,7 +104,7 @@
        }
        else if (tabcolor == INITR_GREENTAB2)
        {
-         sendCmdByte(ST7735_MADCTL, 0xC0 | TFT_MAD_RGB);
+         sendCmdByte(TFT_MADCTL, 0xC0 | TFT_MAD_RGB);
          colstart = 2;
          rowstart = 1;
        }
@@ -144,13 +144,13 @@
           sendCmdData(TFT_CASET, (uint8_t*)"\x00\x00\x00\x7F", 4);
           //  0x00, 0x00,             //     XSTART = 0
           //  0x00, 0x7F,             //     XEND = 127
-          sendCmdData(TFT_RASET, (uint8_t*)"\x00\x00\x00\x9F", 4);
+          sendCmdData(TFT_PASET, (uint8_t*)"\x00\x00\x00\x9F", 4);
           //  0x00, 0x00,             //     XSTART = 0
           //  0x00, 0x9F,             //     XEND = 159
        }
        else if (tabcolor == INITR_BLACKTAB)
        {
-         sendCmdByte(ST7735_MADCTL, 0xC0 | TFT_MAD_RGB);
+         sendCmdByte(TFT_MADCTL, 0xC0 | TFT_MAD_RGB);
        }
 
       // Rcmd3  Init for 7735R, part 3 (red or green tab)
