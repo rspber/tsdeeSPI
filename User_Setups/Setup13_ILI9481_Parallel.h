@@ -3,8 +3,10 @@
 
 #define TFT_PARALLEL_8_BIT
 
+#define TFT_HEIGHT 100
+#define TFT_WIDTH 100
 
-#define ILI9481_DRIVER
+#define SSD1963_DRIVER
 
 
 // ESP32 pins used for UNO format board

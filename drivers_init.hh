@@ -49,7 +49,10 @@
     #include "TFT_Drivers/SSD1351_Init.hh"
 
 #elif defined (SSD1963_DRIVER)
-    #include "TFT_Drivers/SSD1963_Init.hh"
+    #include "TFT_Drivers/SSD1963_480_Init.hh"
+//    #include "TFT_Drivers/SSD1963_800ALT_Init.hh"
+//    #include "TFT_Drivers/SSD1963_800BD_Init.hh"
+//    #include "TFT_Drivers/SSD1963_800_Init.hh"
 
 #elif defined (GC9A01_DRIVER)
      #include "TFT_Drivers/GC9A01_Init.hh"
