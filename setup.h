@@ -1,4 +1,7 @@
 
+#pragma once
+
+
 #define COLOR_565
 
 #if defined(COLOR_565)

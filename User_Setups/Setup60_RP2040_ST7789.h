@@ -22,7 +22,7 @@
 //#define RPI_DISPLAY_TYPE // 20MHz maximum SPI
 
 // Only define one driver, the other ones must be commented out
-#define ILI9341_DRIVER
+//#define ILI9341_DRIVER
 //#define ST7735_DRIVER      // Define additional parameters below for this display
 //#define ILI9163_DRIVER     // Define additional parameters below for this display
 //#define S6D02A1_DRIVER
@@ -31,7 +31,7 @@
 //#define ILI9481_DRIVER
 //#define ILI9486_DRIVER
 //#define ILI9488_DRIVER     // WARNING: Do not connect ILI9488 display SDO to MISO if other devices share the SPI bus (TFT SDO does NOT tristate when CS is high)
-//#define ST7789_DRIVER
+#define ST7789_DRIVER
 //#define R61581_DRIVER
 //#define RM68140_DRIVER
 //#define ST7796_DRIVER
@@ -118,7 +118,7 @@
 // to be toggled during setup, so in these cases the TFT_CS line must be defined and connected.
 
 // For the Pico use these #define lines
-//#define TFT_MISO  -1
+#define TFT_MISO  -1
 #define TFT_MOSI  19
 #define TFT_SCLK  18
 #define TFT_CS    17  // Chip select control pin

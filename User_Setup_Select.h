@@ -25,6 +25,7 @@
 // Only ONE line below should be uncommented to define your setup.  Add extra lines and files as needed.
 
 #include "setup.h"
+
 //#include <User_Setup.h>           // Default setup is root library folder
 
 //#include <User_Setups/Setup1_ILI9341.h>  // Setup file for ESP8266 configured for my ILI9341
@@ -90,8 +91,7 @@
 //#include <User_Setups/Setup60_RP2040_ILI9341.h>              // Setup file for RP2040 with SPI ILI9341
 //#include <User_Setups/Setup60_RP2040_ST7789.h>               // Setup file for RP2040 with SPI ST7789
 //#include <User_Setups/Setup61_RP2040_ILI9341_PIO_SPI.h>      // Setup file for RP2040 with PIO SPI ILI9341
-#include <User_Setups/Setup61_RP2040_ST7789_3_PIO_SPI.h>       // Setup file for RP2040 with PIO SPI ST7789
-//#include <User_Setups/Setup61_RP2040_ST7789_PIO_SPI.h>       // Setup file for RP2040 with PIO SPI ST7789
+#include <User_Setups/Setup61_RP2040_ST7789_PIO_SPI.h>       // Setup file for RP2040 with PIO SPI ST7789
 //#include <User_Setups/Setup62_RP2040_Nano_Connect_ILI9341.h> // Setup file for RP2040 with SPI ILI9341
 
 //#include <User_Setups/Setup66_Seeed_XIAO_Round.h>     // Setup file for Seeed XIAO with GC9A01 240x240
@@ -172,10 +172,6 @@
 //                                                                                 //
 /////////////////////////////////////////////////////////////////////////////////////
 
-
-// Identical looking TFT displays may have a different colour ordering in the 16-bit colour
-#define TFT_BGR 0   // Colour order Blue-Green-Red
-#define TFT_RGB 1   // Colour order Red-Green-Blue
 
 // Legacy setup support, RPI_DISPLAY_TYPE replaces RPI_DRIVER
 #if defined (RPI_DRIVER)

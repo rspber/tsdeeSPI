@@ -202,7 +202,8 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
   // init() and begin() are equivalent, begin() included for backwards compatibility
   // Sketch defined tab colour option is for ST7735 displays only
-  void     init(uint8_t tc = TAB_COLOUR), begin(uint8_t tc = TAB_COLOUR);
+  void     init(uint8_t tc = TAB_COLOUR, const uint8_t REV = 0),
+           begin(uint8_t tc = TAB_COLOUR, const uint8_t REV = 0);
 
   virtual void     resetViewport(void) {}
 
@@ -224,8 +225,9 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   void sendCmd(const uint8_t cmd);
   void sendCmdData(const uint8_t cmd, const uint8_t* data, const int16_t size);
   void sendCmdByte(const uint8_t cmd, const uint8_t b);
+  void setMADCTL(const uint8_t madctl);
 
-  void     setRotation(uint8_t r); // Set the display image orientation to 0, 1, 2 or 3
+  void     setRotation(uint8_t r, const uint8_t REV = 0); // Set the display image orientation to 0, 1, 2 or 3
   uint8_t  getRotation(void);      // Read the current rotation
 
   virtual void     setRotationSizes(uint8_t r) {};
@@ -360,6 +362,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 #endif
 
   uint8_t rotation;  // Display rotation (0-3)
+  uint8_t madctl;
 
  //--------------------------------------- private ------------------------------------//
  protected:

@@ -1,0 +1,31 @@
+
+// This is the command sequence that rotates the ILI9225 driver coordinate frame
+
+  rotation = m % 4; // Limit the range of values to 0-3
+
+  switch (rotation) {
+    case 0:
+    	writecommand(ILI9225_DRIVER_OUTPUT_CTRL);
+	    writedata(0x01);writedata(0x1C);
+      writecommand(ILI9225_ENTRY_MODE);
+    	writedata(TFT_MAD_RGB);writedata(0x30);
+      break;
+    case 1:
+    	writecommand(ILI9225_DRIVER_OUTPUT_CTRL);
+	    writedata(0x00);writedata(0x1C);
+      writecommand(ILI9225_ENTRY_MODE);
+    	writedata(TFT_MAD_RGB);writedata(0x38);
+      break;
+    case 2:
+    	writecommand(ILI9225_DRIVER_OUTPUT_CTRL);
+	    writedata(0x02);writedata(0x1C);
+      writecommand(ILI9225_ENTRY_MODE);
+    	writedata(TFT_MAD_RGB);writedata(0x30);
+      break;
+    case 3:
+    	writecommand(ILI9225_DRIVER_OUTPUT_CTRL);
+	    writedata(0x03);writedata(0x1C);
+      writecommand(ILI9225_ENTRY_MODE);
+    	writedata(TFT_MAD_RGB);writedata(0x38);
+      break;
+  }

@@ -265,9 +265,9 @@ void TFT_eeSPI::initBus(void) {
 ** Function name:           begin
 ** Description:             Included for backwards compatibility
 ***************************************************************************************/
-void TFT_eeSPI::begin(uint8_t tc)
+void TFT_eeSPI::begin(uint8_t tc, const uint8_t REV)
 {
- init(tc);
+ init(tc, REV);
 }
 
 /***************************************************************************************
@@ -306,7 +306,7 @@ void TFT_eeSPI::sendCmdByte(const uint8_t cmd, const uint8_t b)
 ** Function name:           init (tc is tab colour for ST7735 displays only)
 ** Description:             Reset, then initialise the TFT display registers
 ***************************************************************************************/
-void TFT_eeSPI::init(uint8_t tc)
+void TFT_eeSPI::init(uint8_t tc, const uint8_t REV)
 {
   if (_booted)
   {
@@ -417,7 +417,7 @@ void TFT_eeSPI::init(uint8_t tc)
 
   end_tft_write();
 
-  setRotation(rotation);
+  setRotation(rotation, REV);
 
 #if defined (TFT_BL) && defined (TFT_BACKLIGHT_ON)
   if (TFT_BL >= 0) {
@@ -440,7 +440,7 @@ void TFT_eeSPI::init(uint8_t tc)
 ** Function name:           setRotation
 ** Description:             rotate the screen orientation m = 0-3 or 4-7 for BMP drawing
 ***************************************************************************************/
-void TFT_eeSPI::setRotation(uint8_t m)
+void TFT_eeSPI::setRotation(uint8_t m, const uint8_t REV)
 {
 
   begin_tft_write();
@@ -458,6 +458,17 @@ void TFT_eeSPI::setRotation(uint8_t m)
 
   // Reset the viewport to the whole screen
   resetViewport();
+}
+
+
+/***************************************************************************************
+** Function name:           madctl to use instead of setSwapBytes
+** Description:             tsdeeSPI
+***************************************************************************************/
+void TFT_eeSPI::setMADCTL(const uint8_t mad)
+{
+  madctl = mad;
+  sendCmdByte(TFT_MADCTL, madctl);
 }
 
 

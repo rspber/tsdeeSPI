@@ -274,7 +274,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   // Smooth (anti-aliased) graphics drawing
            // Draw a pixel blended with the background pixel colour (bg_color) specified,  return blended colour
            // If the bg_color is not specified, the background pixel colour will be read from TFT or sprite
-  uint16_t drawPixel(int32_t x, int32_t y, rgb_t color, uint8_t alpha, rgb_t bg_color = 0x00FFFFFF);
+  uint16_t drawPixel(int32_t x, int32_t y, rgb_t color, uint8_t alpha, rgb_t bg_color = WHITE);
 
   using TFT_eeSPI::drawPixel;
 
@@ -296,27 +296,27 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
   
            // Draw an anti-aliased filled circle at x, y with radius r
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
-  void     fillSmoothCircle(int32_t x, int32_t y, int32_t r, rgb_t color, rgb_t bg_color = 0x00FFFFFF);
+  void     fillSmoothCircle(int32_t x, int32_t y, int32_t r, rgb_t color, rgb_t bg_color = WHITE);
 
            // Draw a rounded rectangle that has a line thickness of r-ir+1 and bounding box defined by x,y and w,h
            // The outer corner radius is r, inner corner radius is ir
            // The inside and outside of the border are anti-aliased
-  void     drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, rgb_t fg_color, rgb_t bg_color = 0x00FFFFFF, uint8_t quadrants = 0xF);
+  void     drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, rgb_t fg_color, rgb_t bg_color = WHITE, uint8_t quadrants = 0xF);
 
            // Draw a filled rounded rectangle , corner radius r and bounding box defined by x,y and w,h
-  void     fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, rgb_t color, rgb_t bg_color = 0x00FFFFFF);
+  void     fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, rgb_t color, rgb_t bg_color = WHITE);
 
            // Draw a small anti-aliased filled circle at ax,ay with radius r (uses drawWideLine)
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
-  void     drawSpot(float ax, float ay, float r, rgb_t fg_color, rgb_t bg_color = 0x00FFFFFF);
+  void     drawSpot(float ax, float ay, float r, rgb_t fg_color, rgb_t bg_color = WHITE);
 
            // Draw an anti-aliased wide line from ax,ay to bx,by width wd with radiused ends (radius is wd/2)
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
-  void     drawWideLine(float ax, float ay, float bx, float by, float wd, rgb_t fg_color, rgb_t bg_color = 0x00FFFFFF);
+  void     drawWideLine(float ax, float ay, float bx, float by, float wd, rgb_t fg_color, rgb_t bg_color = WHITE);
 
            // Draw an anti-aliased wide line from ax,ay to bx,by with different width at each end aw, bw and with radiused ends
            // If bg_color is not included the background pixel colour will be read from TFT or sprite
-  void     drawWedgeLine(float ax, float ay, float bx, float by, float aw, float bw, rgb_t fg_color, rgb_t bg_color = 0x00FFFFFF);
+  void     drawWedgeLine(float ax, float ay, float bx, float by, float aw, float bw, rgb_t fg_color, rgb_t bg_color = WHITE);
 
 
   // Image rendering
