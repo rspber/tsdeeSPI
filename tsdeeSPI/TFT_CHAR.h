@@ -170,11 +170,7 @@ typedef struct {
            size;  // Current font size multiplier
 } chr_font_t;
 
-typedef struct {
-
-  int32_t x, y;
-
-} cursor_t;
+#include <t_cursor.h>
 
 /***************************************************************************************
 **                         Section 5: Font datum enumeration

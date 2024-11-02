@@ -89,8 +89,8 @@
 //#include <User_Setups/Setup52_LilyPi_ST7796.h>     // Setup file for LilyGo LilyPi with ST7796 display
 
 //#include <User_Setups/Setup60_RP2040_ILI9341.h>              // Setup file for RP2040 with SPI ILI9341
-//#include <User_Setups/Setup60_RP2040_ST7789.h>               // Setup file for RP2040 with SPI ST7789
-#include <User_Setups/Setup61_RP2040_ILI9341_PIO_SPI.h>      // Setup file for RP2040 with PIO SPI ILI9341
+#include <User_Setups/Setup60_RP2040_ST7789.h>               // Setup file for RP2040 with SPI ST7789
+//#include <User_Setups/Setup61_RP2040_ILI9341_PIO_SPI.h>      // Setup file for RP2040 with PIO SPI ILI9341
 //#include <User_Setups/Setup61_RP2040_ST7789_PIO_SPI.h>       // Setup file for RP2040 with PIO SPI ST7789
 //#include <User_Setups/Setup62_RP2040_Nano_Connect_ILI9341.h> // Setup file for RP2040 with SPI ILI9341
 

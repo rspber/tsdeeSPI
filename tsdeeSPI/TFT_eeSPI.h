@@ -187,7 +187,7 @@
 **                         Section 8: Class member and support functions
 ***************************************************************************************/
 
-#include "aclip.h"
+#include "t_clip.h"
 
 // Class functions and variables
 class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has access to protected members
@@ -225,7 +225,16 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   void sendCmd(const uint8_t cmd);
   void sendCmdData(const uint8_t cmd, const uint8_t* data, const int16_t size);
   void sendCmdByte(const uint8_t cmd, const uint8_t b);
+  virtual void writeAddrWindow(const int16_t x, const int16_t y, const int16_t w, const int16_t h);
+  virtual void writeMDTBuffer(const uint8_t* buffer, const int32_t len);
+  virtual void sendMDTColor1(const mdt_t c);
+  virtual void sendMDTColor(const mdt_t c, const int32_t len);
+  virtual void drawClippedPixel(const int16_t x, const int16_t y, const rgb_t color);
+  virtual void drawClippedPixelRec(const int16_t x, const int16_t y, const int16_t w, const int16_t h, const rgb_t color);
+  virtual void drawMDTBuffer(const int16_t x, const int16_t y, const int16_t w, const int16_t h, const uint8_t* buffer);
   void setMADCTL(const uint8_t madctl);
+
+  void readRegister(uint8_t* buf, const uint8_t reg, int8_t len);
 
   void     setRotation(uint8_t r, const uint8_t REV = 0); // Set the display image orientation to 0, 1, 2 or 3
   uint8_t  getRotation(void);      // Read the current rotation
@@ -351,9 +360,9 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   uint8_t  spiBusyCheck = 0;      // Number of ESP32 transfer buffers to check
 
   // Bare metal functions
-  void     startWrite(void);                         // Begin SPI transaction
+  virtual void     startWrite(void);                         // Begin SPI transaction
   void     writeColor(rgb_t color, uint32_t len);    // Deprecated, use pushBlock
-  void     endWrite(void);                           // End SPI transaction
+  virtual void     endWrite(void);                           // End SPI transaction
 
 
   // Global variables

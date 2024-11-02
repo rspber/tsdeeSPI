@@ -1,10 +1,17 @@
+/*
+  TFT SCREEN
+
+  Copyright (c) 2024, rspber (https://github.com/rspber)
+
+*/
 
 #pragma once
 
-// Common TFT commands
+#include <TSD_SCREEN.h>
+
+// common ILIxxxx commands
 
 #define TFT_NOP         0x00    // No-op register
-#define TFT_SWRST   0x01
 #define TFT_SWRESET     0x01    // Software reset register
 #define TFT_SLPIN       0x10    // Enter sleep mode
 #define TFT_SLPOUT      0x11    // Exit sleep mode
@@ -26,7 +33,6 @@
 #define TFT_VSCRSADD    0x37    // Vertical scrolling start address
 #define TFT_IDLEOFF     0x38    // Exit idle mode
 #define TFT_IDLEON      0x39    // Enter idle mode
-#define TFT_COLMOD  0x3A
 #define TFT_PIXFMT      0x3A    // COLMOD: Pixel format set
 #define TFT_RWRCNT      0x3C    // Write memory continue
 #define TFT_RRDNCT      0x3E    // Read memory continue
@@ -43,35 +49,42 @@
 
 #define TFT_IDXRD       0xD9    // undocumented
 
+class TFT_SCREEN : public TSD_SCREEN {
+public:
+  TFT_SCREEN() : TSD_SCREEN(TFT_WIDTH, TFT_HEIGHT)
+  {
+  }
+//  const char* protocol();
+//  void disp_info(char buf[], const int len, const int width, const int height, const char* ext);
 
-// Delay between some initialisation commands
-#define TFT_INIT_DELAY 0x80 // Not used unless commandlist invoked
+//
+  rgb_t readPixel(clip_t& clip, int16_t x, int16_t y) override { return 0; }
+//  void readRegister(uint8_t* buf, const uint8_t reg, int8_t len);
 
+//  rgb_t innerReadPixel(int16_t x, int16_t y);
 
-// Flags for TFT_MADCTL
-#define TFT_MAD_MY  0x80
-#define TFT_MAD_MX  0x40
-#define TFT_MAD_YX  0x20
-#define TFT_MAD_MV  0x10
-#define TFT_MAD_RGB 0x00
-#define TFT_MAD_BGR 0x08
-#define TFT_MAD_MH  0x04
-#define TFT_MAD_SS  0x02
-#define TFT_MAD_GS  0x01
-
-
-/*
-#ifdef TFT_RGB_ORDER
-  #if (TFT_RGB_ORDER == 1)
-    #define TFT_MAD_COLOR_ORDER TFT_MAD_RGB
-  #else
-    #define TFT_MAD_COLOR_ORDER TFT_MAD_BGR
-  #endif
-#else
-  #ifdef CGRAM_OFFSET
-    #define TFT_MAD_COLOR_ORDER TFT_MAD_BGR
-  #else
-    #define TFT_MAD_COLOR_ORDER TFT_MAD_RGB
-  #endif
+#ifdef OVERLAID
+  void drawClippedPixel(const int16_t x, const int16_t y, const rgb_t color) override {};
+  void drawClippedPixelRec(const int16_t x, const int16_t y, const int16_t w, const int16_t h, const rgb_t color) override {};
 #endif
-*/
+
+  size_t write(uint8_t) override { return 0; };
+
+// --- the DMA ---------------------------------------------------------------
+
+  bool initDMA(bool ctrl_cs = 0);
+  void deInitDMA();
+  void startUsingDMA();
+  void endUsingDMA();
+
+private:
+  void sendMDTBuffer16(const uint8_t* buffer, const int32_t len);
+  void sendMDTBuffer24(const uint8_t* buffer, const int32_t len);
+
+  bool dmaBusy();
+  void dmaWait();
+  void dma_sendMDTBuffer16(const uint8_t* buff, const int32_t len);
+
+  bool dma_enabled;
+  bool useDMA;
+};

@@ -36,19 +36,8 @@
 **                         Section 2: Load library and processor specific header files
 ***************************************************************************************/
 
-#define GNT_LR 1 // horizontal gradient left to right
-#define GNT_TB 2 // vertical gradient top to bottom
-#define GNT_RL 3 // horizontal gradient right to left
-#define GNT_BT 4 // vertical gradient bottom to top
-
-typedef struct {
-  uint8_t deg;  // 1,3 - horizontal, 2,4 -vertical
-  rgb_t color1;
-  int8_t percent; // 0 .. 50 .. 100
-  rgb_t color2;
-//  int8_t gradient = 0;
-} gradient_t;
-
+#include <t_cursor.h>
+#include <t_gradient.h>
 
 /***************************************************************************************
 **                         Section 3: Interface setup
@@ -191,7 +180,6 @@ public:
   void     pushMaskedImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *img, uint8_t *mask);
 
   uint32_t _bitmap_fg, _bitmap_bg;           // Bitmap foreground (bit=1) and background (bit=0) colours
-
 
  //--------------------------------------- private ------------------------------------//
  protected:

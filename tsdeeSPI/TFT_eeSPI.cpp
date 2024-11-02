@@ -301,6 +301,46 @@ void TFT_eeSPI::sendCmdByte(const uint8_t cmd, const uint8_t b)
   writedata(b);
 }
 
+void TFT_eeSPI::writeAddrWindow(const int16_t x, const int16_t y, const int16_t w, const int16_t h)
+{
+  setWindow(x, y, w, h);
+}
+
+void TFT_eeSPI::writeMDTBuffer(const uint8_t* buffer, const int32_t len)
+{
+  pushPixels16(buffer, len);
+}
+
+void TFT_eeSPI::sendMDTColor1(const mdt_t c)
+{
+  tft_Write_16N(c);
+}
+
+void TFT_eeSPI::sendMDTColor(const mdt_t c, const int32_t len)
+{
+  pushBlock16(c, len);
+}
+
+void TFT_eeSPI::drawClippedPixel(const int16_t x, const int16_t y, const rgb_t color)
+{
+  setWindow(x, y, 1, 1);
+  tft_Write_16N(mdt_color(color));
+}
+
+void TFT_eeSPI::drawClippedPixelRec(const int16_t x, const int16_t y, const int16_t w, const int16_t h, const rgb_t color)
+{
+  setWindow(x, y, w, h);
+  pushBlock16(mdt_color(color), w * h);
+}
+
+void TFT_eeSPI::drawMDTBuffer(const int16_t x, const int16_t y, const int16_t w, const int16_t h, const uint8_t* buffer)
+{
+  begin_tft_write();
+  setWindow(x, y, w, h);
+  pushPixels16(buffer, w * h);
+  end_tft_write();
+}
+
 
 /***************************************************************************************
 ** Function name:           init (tc is tab colour for ST7735 displays only)
@@ -682,6 +722,42 @@ uint32_t TFT_eeSPI::readcommand32(uint8_t cmd_function, uint8_t index)
   reg |= ((uint32_t)readcommand8(cmd_function, index + 3) <<  0);
 
   return reg;
+}
+
+
+/**************************************************************************/
+/*!
+    @brief  Read len * 8 bits of data from ILI9341 register.
+       This is highly undocumented, it's really a hack but kinda works?
+    @param    buf  The result, first byte is the reg, rest is a data read
+    @param    reg  The command register to read data from
+    @param    len  The number of bytes to read from register
+ */
+/***********************+***************************************************/
+void TFT_eeSPI::readRegister(uint8_t* buf, const uint8_t reg, int8_t len)
+{
+#if defined(TFT_PARALLEL_8_BIT) || defined(RP2040_PIO_INTERFACE)
+#else
+  begin_tft_read();
+
+  if (reg) {
+    uint8_t index = 0x10 + (len & 0x0f);
+    DC_C; tft_Write_8(TFT_IDXRD);
+    DC_D; tft_Write_8(index);
+  }
+  CS_H; // Some displays seem to need CS to be pulsed here, or is just a delay needed?
+  CS_L;
+
+  DC_C; tft_Write_8(reg);
+  DC_D;
+  int i = 0;
+  buf[i++] = reg;
+  while (--len >= 0) {
+    buf[i++] = tft_Read_8();
+  }
+
+  end_tft_read();
+#endif
 }
 
 
