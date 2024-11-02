@@ -5,11 +5,11 @@ Both: TFT_eSPI and tsdesktop examples work simultaneously, without no correction
 
 This was achieved by the following library configuration:<br/><br/>
 
-               -> TFT_GFX  -> TFT_CHAR  -> TFT_eSPI<br/><br/>
+               -> TFT_GFX  -> TFT_CHAR  -> TFT_eSPI
 
   TFT_eeSPI (processors and protocols handling) -> |<br/><br/>
 
-               -> TSD_GFX  -> TSD_SCREEN  -> TFT_SCREEN<br/><br/>
+               -> TSD_GFX  -> TSD_SCREEN  -> TFT_SCREEN
 
 
 ## Mega TFT_eSPI code reorganization
