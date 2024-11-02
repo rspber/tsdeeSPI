@@ -7,7 +7,7 @@ This was achieved by the following library configuration:<br/><br/>
 
                -> TFT_GFX  -> TFT_CHAR  -> TFT_eSPI
 
-  TFT_eeSPI (processors and protocols handling) -> |<br/><br/>
+  TFT_eeSPI (processor's and protocol's handling) -> |<br/><br/>
 
                -> TSD_GFX  -> TSD_SCREEN  -> TFT_SCREEN
 
