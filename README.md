@@ -1,15 +1,15 @@
 # tsdeeSPI
 
-Both: TFT_eSPI and tsdesktop examples work simultaneously, without no corrections in examples and environment.<br/><br>
+Both: TFT_eSPI and tsdesktop examples work simultaneously, without no corrections in examples and environment.<br/><br/>
 
 
-This was achieved by the following library configuration:<br/><br>
+This was achieved by the following library configuration:<br/><br/>
 
-               -> TFT_GFX  -> TFT_CHAR  -> TFT_eSPI<br/><br>
+               -> TFT_GFX  -> TFT_CHAR  -> TFT_eSPI<br/><br/>
 
-  TFT_eeSPI (processors and protocols handling) -> |<br/><br>
+  TFT_eeSPI (processors and protocols handling) -> |<br/><br/>
 
-               -> TSD_GFX  -> TSD_SCREEN  -> TFT_SCREEN<br/><br>
+               -> TSD_GFX  -> TSD_SCREEN  -> TFT_SCREEN<br/><br/>
 
 
 ## Mega TFT_eSPI code reorganization
@@ -25,7 +25,7 @@ Now tsdeeSPI consists of:
 
 After multiple attempts to port all protocol support from TFT_eSPI to tsdesktop,
 I have decided to continue with this repository in order to obtain a solution
-that will allow to run intact examples from TFT_eSPI and tsdesktop simultaneously.<br/></br>
+that will allow to run intact examples from TFT_eSPI and tsdesktop simultaneously.<br/></br/>
 
 Main steps to do:
 - change setups to this from tsdesktop: with touch and i2c configuration,
