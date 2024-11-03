@@ -25,19 +25,6 @@
 
 #include "TFT_eSPI.h"
 
-void TFT_eSPI::setRotationSizes(uint8_t r)
-{
-  if (r & 1) {
-    _clip.xWidth  = _init_height;
-    _clip.yHeight = _init_width;
-  }
-  else {
-    _clip.xWidth  = _init_width;
-    _clip.yHeight = _init_height;
-  }
-}
-
-
 /***************************************************************************************
 ** Function name:           setViewport
 ** Description:             Set the clipping region for the TFT screen
@@ -223,11 +210,8 @@ void TFT_eSPI::frameViewport(uint16_t color, int32_t w)
 ** Function name:           TFT_eSPI
 ** Description:             Constructor , we must use hardware SPI pins
 ***************************************************************************************/
-TFT_eSPI::TFT_eSPI(int16_t w, int16_t h) : TFT_CHAR()
+TFT_eSPI::TFT_eSPI() : TFT_CHAR()
 {
-  _init_width  = _clip.xWidth  = w; // Set by specific xxxxx_Defines.h file or by users sketch
-  _init_height = _clip.yHeight = h; // Set by specific xxxxx_Defines.h file or by users sketch
-
   // Reset the viewport to the whole screen
   resetViewport();
 

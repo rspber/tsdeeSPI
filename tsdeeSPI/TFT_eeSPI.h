@@ -198,7 +198,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
  //--------------------------------------- public ------------------------------------//
  public:
 
-  TFT_eeSPI();
+  TFT_eeSPI(int16_t _W = TFT_WIDTH, int16_t _H = TFT_HEIGHT);
 
   // init() and begin() are equivalent, begin() included for backwards compatibility
   // Sketch defined tab colour option is for ST7735 displays only
@@ -239,7 +239,7 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
   void     setRotation(uint8_t r, const uint8_t REV = 0); // Set the display image orientation to 0, 1, 2 or 3
   uint8_t  getRotation(void);      // Read the current rotation
 
-  virtual void     setRotationSizes(uint8_t r) {};
+  virtual void     setRotationSizes(uint8_t r);
 
   void     invertDisplay(bool i);  // Tell TFT to invert all displayed colours
 
@@ -436,6 +436,10 @@ class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has a
 
  //-------------------------------------- protected ----------------------------------//
  protected:
+
+  int32_t  _init_width, _init_height; // Display w/h as input, used by setRotation()
+
+  wh_clip_t   _clip;    // Note: x start, y start, x end + 1, y end + 1
 
   int32_t  addr_row, addr_col;        // Window position - used to minimise window commands
 

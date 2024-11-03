@@ -48,6 +48,19 @@
 #endif
 
 
+void TFT_eeSPI::setRotationSizes(uint8_t r)
+{
+  if (r & 1) {
+    _clip.xWidth  = _init_height;
+    _clip.yHeight = _init_width;
+  }
+  else {
+    _clip.xWidth  = _init_width;
+    _clip.yHeight = _init_height;
+  }
+}
+
+
 /***************************************************************************************
 ** Function name:           Legacy - deprecated
 ** Description:             Start/end transaction
@@ -166,8 +179,11 @@ inline void TFT_eeSPI::end_tft_read(void){
 ** Function name:           TFT_eeSPI
 ** Description:             Constructor , we must use hardware SPI pins
 ***************************************************************************************/
-TFT_eeSPI::TFT_eeSPI()
+TFT_eeSPI::TFT_eeSPI(int16_t w, int16_t h)
 {
+  _init_width  = _clip.xWidth  = w; // Set by specific xxxxx_Defines.h file or by users sketch
+  _init_height = _clip.yHeight = h; // Set by specific xxxxx_Defines.h file or by users sketch
+
   rotation  = 0;
 
   _swapBytes = false;   // Do not swap colour bytes by default

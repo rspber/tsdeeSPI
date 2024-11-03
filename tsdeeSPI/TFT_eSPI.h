@@ -212,7 +212,7 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
  //--------------------------------------- public ------------------------------------//
  public:
 
-  TFT_eSPI(int16_t _W = TFT_WIDTH, int16_t _H = TFT_HEIGHT);
+  TFT_eSPI();
 
   // These are virtual so the TFT_eSprite class can override them with sprite specific functions
   void     drawPixel(int32_t x, int32_t y, rgb_t color),
@@ -229,8 +229,6 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 
                    // Read the colour of a pixel at x,y and return value in 565 format
   uint16_t readPixel(int32_t x, int32_t y);
-
-  void     setRotationSizes(uint8_t r) override;
 
   // Change the origin position from the default top left
   // Note: setRotation, setViewport and resetViewport will revert origin to top left corner of screen/sprite
@@ -510,13 +508,10 @@ class TFT_eSPI : public TFT_CHAR { friend class TFT_eSprite; // Sprite class has
 
   //int32_t  win_xe, win_ye;          // Window end coords - not needed
 
-  int32_t  _init_width, _init_height; // Display w/h as input, used by setRotation()
-
   int16_t  _xPivot;   // TFT x pivot point coordinate for rotated Sprites
   int16_t  _yPivot;   // TFT x pivot point coordinate for rotated Sprites
 
   // Viewport variables
-  wh_clip_t   _clip;    // Note: x start, y start, x end + 1, y end + 1
 //  int32_t  _xDatum;
 //  int32_t  _yDatum;
 //  int32_t  _width, _height;           // Display w/h as modified by current rotation

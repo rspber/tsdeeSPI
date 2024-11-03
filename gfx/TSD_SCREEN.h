@@ -54,19 +54,19 @@ class TSD_SCREEN : public TSD_GFX {
 public:
   TSD_SCREEN(const int16_t w, const int16_t h): TSD_GFX(), xWIDTHx(w), yHEIGHTy(h)
   {
-    clip = {0, 0, w, h};
+    _clip = {0, 0, w, h};
   }
 
-  const int16_t width() { return clip.width(); }
-  const int16_t height() { return clip.height(); }
+  const int16_t width() { return _clip.width(); }
+  const int16_t height() { return _clip.height(); }
 
   const int16_t getWIDTH() { return xWIDTHx; }
   const int16_t getHEIGHT() { return yHEIGHTy; }
 
   void setSize(const int16_t w, const int16_t h)
   {
-    clip.x2 = clip.x1 + w;
-    clip.y2 = clip.y1 + h;
+    _clip.x2 = _clip.x1 + w;
+    _clip.y2 = _clip.y1 + h;
   }
 
   void fillScreen(const rgb_t color = BLACK);
@@ -169,5 +169,5 @@ private:
   int16_t xPivotx, yPivoty;
 
 public:
-  clip_t clip;      ///< Display width/height as modified by rotation
+  clip_t _clip;      ///< Display width/height as modified by rotation
 };

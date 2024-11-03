@@ -26,16 +26,16 @@ struct ein_clip {
 
   bool clipClip(int32_t& xs, int32_t& ys, int32_t& xe, int32_t& ye);
 
-  const int16_t width();
-  const int16_t height();
+  int32_t width();
+  int32_t height();
 };
 
 typedef ein_clip clip_t;
 
 struct wh_clip : public ein_clip {
 
-  int16_t xWidth;
-  int16_t yHeight;
+  int32_t xWidth;
+  int32_t yHeight;
 };
 
 typedef wh_clip wh_clip_t;

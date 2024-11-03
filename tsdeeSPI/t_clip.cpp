@@ -1,12 +1,12 @@
 
 #include "t_clip.h"
 
-const int16_t ein_clip::width()
+int32_t ein_clip::width()
 {
   return x2 > x1 ? x2 - x1 : 0;
 }
 
-const int16_t ein_clip::height()
+int32_t ein_clip::height()
 {
   return y2 > y1 ? y2 - y1 : 0;
 }
