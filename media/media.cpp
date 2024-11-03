@@ -15,7 +15,7 @@ void media_begin(uint8_t rotation)
 
   display.setRotation(rotation, TFT_REV);
 
-                     //  display.invertDisplay(true);    // invert display colors  WHITE <-> BLACK
+//  display.invertDisplay(true);    // invert display colors  WHITE <-> BLACK
 
   touch.begin();
 

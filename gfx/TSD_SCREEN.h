@@ -75,40 +75,40 @@ public:
   void pushMDTBuffer(clip_t& window, const uint8_t* buffer);
   void pushMDTBuffer(clip_t& window, const uint8_t* buffer, const rgb_t transparent);
 
-  void drawLine(clip_t& clip, int16_t x1, int16_t y1, int16_t x2, int16_t y2, rgb_t color, int16_t ts, uint8_t mode); // thickness, mode:1 cut
-  void drawRect(clip_t& clip, int16_t x, int16_t y, int16_t w, int16_t h, rgb_t color, int16_t ts); // thickness
-  void drawTriangle(clip_t& clip, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb_t color, int16_t ts, uint8_t mode); // thickness, mode:1 cut
-  void drawRoundRect(clip_t& clip, int16_t x, int16_t y, int16_t w, int16_t h, int16_t radius, rgb_t color, int16_t ts); // thickness
-  void drawCircle(clip_t& clip, int16_t x0, int16_t y0, int16_t r, rgb_t color, int16_t ts); // thickness
-  void drawCircleFragment(clip_t& clip, int16_t x0, int16_t y0, int16_t r, uint8_t corners, rgb_t color, int16_t ts); // thickness
+  void drawLine(clip_t& clip, int32_t x1, int32_t y1, int32_t x2, int32_t y2, rgb_t color, int32_t ts, uint8_t mode); // thickness, mode:1 cut
+  void drawRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color, int32_t ts); // thickness
+  void drawTriangle(clip_t& clip, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, rgb_t color, int32_t ts, uint8_t mode); // thickness, mode:1 cut
+  void drawRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, rgb_t color, int32_t ts); // thickness
+  void drawCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, rgb_t color, int32_t ts); // thickness
+  void drawCircleFragment(clip_t& clip, int32_t x0, int32_t y0, int32_t r, uint8_t corners, rgb_t color, int32_t ts); // thickness
 
-  void drawPixel(int16_t x, int16_t y, rgb_t color);
-  void drawFastVLine(int16_t x, int16_t y, int16_t h, rgb_t color);
-  void drawFastHLine(int16_t x, int16_t y, int16_t w, rgb_t color);
-  void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, rgb_t color, int16_t ts = 1, uint8_t mode = 0); // thickness, mode:1 cut
-  void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, rgb_t color, int16_t ts = 1); // thickness
-  void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, rgb_t color);
-  void fillRectGradient(int16_t x, int16_t y, int16_t w, int16_t h, gradient_t& z);
-  void drawRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t radius, rgb_t color, int16_t ts = 1); // thickness
-  void fillRoundRect(int16_t x, int16_t y, int16_t w, int16_t h, int16_t radius, rgb_t color);
-  void drawCircle(int16_t x0, int16_t y0, int16_t r, rgb_t color, int16_t ts = 1); // thickness
-  void drawCircleFragment(int16_t x0, int16_t y0, int16_t r, uint8_t corners, rgb_t color, int16_t ts = 1); // thickness
-  void fillCircle(int16_t x0, int16_t y0, int16_t r, rgb_t color);
-  void fillCircleFragment(int16_t x0, int16_t y0, int16_t r, uint8_t corners, int16_t delta, rgb_t color);
-  void drawEllipse(int16_t x0, int16_t y0, int16_t rx, int16_t ry, rgb_t color);
-  void fillEllipse(int16_t x0, int16_t y0, int16_t rx, int16_t ry, rgb_t color);
-  void drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb_t color, int16_t ts = 1, uint8_t mode = 0); // thickness, mode:1 cut
-  void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb_t color);
+  void drawPixel(int32_t x, int32_t y, rgb_t color);
+  void drawFastVLine(int32_t x, int32_t y, int32_t h, rgb_t color);
+  void drawFastHLine(int32_t x, int32_t y, int32_t w, rgb_t color);
+  void drawLine(int32_t x1, int32_t y1, int32_t x2, int32_t y2, rgb_t color, int32_t ts = 1, uint8_t mode = 0); // thickness, mode:1 cut
+  void drawRect(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color, int32_t ts = 1); // thickness
+  void fillRect(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color);
+  void fillRectGradient(int32_t x, int32_t y, int32_t w, int32_t h, gradient_t& z);
+  void drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, rgb_t color, int32_t ts = 1); // thickness
+  void fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t radius, rgb_t color);
+  void drawCircle(int32_t x0, int32_t y0, int32_t r, rgb_t color, int32_t ts = 1); // thickness
+  void drawCircleFragment(int32_t x0, int32_t y0, int32_t r, uint8_t corners, rgb_t color, int32_t ts = 1); // thickness
+  void fillCircle(int32_t x0, int32_t y0, int32_t r, rgb_t color);
+  void fillCircleFragment(int32_t x0, int32_t y0, int32_t r, uint8_t corners, int32_t delta, rgb_t color);
+  void drawEllipse(int32_t x0, int32_t y0, int32_t rx, int32_t ry, rgb_t color);
+  void fillEllipse(int32_t x0, int32_t y0, int32_t rx, int32_t ry, rgb_t color);
+  void drawTriangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, rgb_t color, int32_t ts = 1, uint8_t mode = 0); // thickness, mode:1 cut
+  void fillTriangle(int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t x3, int32_t y3, rgb_t color);
 
 public:
-  void drawBitmap(int16_t x, int16_t y, const uint8_t* bitmap, int16_t w, int16_t h, rgb_t color);
-  void drawBitmap(int16_t x, int16_t y, const uint8_t* bitmap, int16_t w, int16_t h, rgb_t color, rgb_t bg);
-  void drawGrayscaleBitmap(int16_t x, int16_t y, const uint8_t* bitmap, int16_t w, int16_t h);
-  void drawGrayscaleBitmap(int16_t x, int16_t y, const uint8_t* bitmap, const uint8_t* mask, int16_t w, int16_t h);
-  void drawRGBBitmap(int16_t x, int16_t y, const uint16_t* bitmap, int16_t w, int16_t h); // 565 color
-  void drawRGBBitmap(int16_t x, int16_t y, const uint16_t* bitmap, const uint8_t *mask, int16_t w, int16_t h); // 565 color
-  void drawRGBBitmap(int16_t x, int16_t y, const uint32_t* bitmap, int16_t w, int16_t h); // 666 color
-  void drawRGBBitmap(int16_t x, int16_t y, const uint32_t* bitmap, const uint8_t *mask, int16_t w, int16_t h); // 666 color
+  void drawBitmap(int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h, rgb_t color);
+  void drawBitmap(int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h, rgb_t color, rgb_t bg);
+  void drawGrayscaleBitmap(int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h);
+  void drawGrayscaleBitmap(int32_t x, int32_t y, const uint8_t* bitmap, const uint8_t* mask, int32_t w, int32_t h);
+  void drawRGBBitmap(int32_t x, int32_t y, const uint16_t* bitmap, int32_t w, int32_t h); // 565 color
+  void drawRGBBitmap(int32_t x, int32_t y, const uint16_t* bitmap, const uint8_t *mask, int32_t w, int32_t h); // 565 color
+  void drawRGBBitmap(int32_t x, int32_t y, const uint32_t* bitmap, int32_t w, int32_t h); // 666 color
+  void drawRGBBitmap(int32_t x, int32_t y, const uint32_t* bitmap, const uint8_t *mask, int32_t w, int32_t h); // 666 color
 
 public:
   void pushImage(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
@@ -119,15 +119,15 @@ public:
   void drawChar(cursor_t& cursor, tsd_font_t& font, const char* c, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing);
   void drawTextLine(cursor_t& cursor, tsd_font_t& font, const char* text, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing);
 
-  void drawText(const int16_t x, const int16_t y, const char* text, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
-  void drawText(const int16_t x, const int16_t y, const char* text, const TSD_GFXfont** gfxFont, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
+  void drawText(const int32_t x, const int32_t y, const char* text, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
+  void drawText(const int32_t x, const int32_t y, const char* text, const TSD_GFXfont** gfxFont, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
 
   // unicode
   void drawChar(cursor_t& cursor, tsd_font_t& font, const uint16_t uchar, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing);
   const uint16_t* drawTextLine(cursor_t& cursor, tsd_font_t& font, const uint16_t* utext, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing);
 
-  void drawText(const int16_t x, const int16_t y, const uint16_t* utext, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
-  void drawText(const int16_t x, const int16_t y, const uint16_t* utext, const TSD_GFXfont** gfxFont, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
+  void drawText(const int32_t x, const int32_t y, const uint16_t* utext, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
+  void drawText(const int32_t x, const int32_t y, const uint16_t* utext, const TSD_GFXfont** gfxFont, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
 
 #include "TSD_Smooth.h.hh"
 
