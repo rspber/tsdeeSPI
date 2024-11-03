@@ -50,13 +50,19 @@
 
 void TFT_eeSPI::setRotationSizes(uint8_t r)
 {
+  _clip.x1 = 0;
+  _clip.y1 = 0;
   if (r & 1) {
     _clip.xWidth  = _init_height;
     _clip.yHeight = _init_width;
+    _clip.x2 = _init_height;
+    _clip.y2 = _init_width;
   }
   else {
     _clip.xWidth  = _init_width;
     _clip.yHeight = _init_height;
+    _clip.x2 = _init_width;
+    _clip.y2 = _init_height;
   }
 }
 
@@ -181,6 +187,11 @@ inline void TFT_eeSPI::end_tft_read(void){
 ***************************************************************************************/
 TFT_eeSPI::TFT_eeSPI(int16_t w, int16_t h)
 {
+  _clip.x1 = 0;
+  _clip.y1 = 0;
+  _clip.x2 = w;
+  _clip.y2 = h;
+
   _init_width  = _clip.xWidth  = w; // Set by specific xxxxx_Defines.h file or by users sketch
   _init_height = _clip.yHeight = h; // Set by specific xxxxx_Defines.h file or by users sketch
 
