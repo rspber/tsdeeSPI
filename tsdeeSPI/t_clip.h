@@ -34,8 +34,8 @@ typedef ein_clip clip_t;
 
 struct wh_clip : public ein_clip {
 
-  int16_t width;
-  int16_t height;
+  int16_t xWidth;
+  int16_t yHeight;
 };
 
 typedef wh_clip wh_clip_t;

@@ -493,11 +493,11 @@ size_t TFT_CHAR::write(wh_clip_t& clip, cursor_t& cursor, chr_font_t& font, uint
     cursor.x  = 0;
   }
   else {
-    if (_textwrapX && (cursor.x + cwidth * font.size > clip.width)) {
+    if (_textwrapX && (cursor.x + cwidth * font.size > clip.xWidth)) {
       cursor.y += cheight;
       cursor.x = 0;
     }
-    if (_textwrapY && (cursor.y >= (int32_t) clip.height)) cursor.y = 0;
+    if (_textwrapY && (cursor.y >= (int32_t) clip.yHeight)) cursor.y = 0;
     cursor.x += drawChar(clip, cursor, font, uniCode, textcolor, textbgcolor);
   }
 
@@ -518,12 +518,12 @@ size_t TFT_CHAR::write(wh_clip_t& clip, cursor_t& cursor, chr_font_t& font, uint
                 h     = pgm_read_byte(&glyph->height);
       if((w > 0) && (h > 0)) { // Is there an associated bitmap?
         int16_t xo = (int8_t)pgm_read_byte(&glyph->xOffset);
-        if(_textwrapX && ((cursor.x + font.size * (xo + w)) > clip.width)) {
+        if(_textwrapX && ((cursor.x + font.size * (xo + w)) > clip.xWidth)) {
           // Drawing character would go off right edge; wrap to new line
           cursor.x  = 0;
           cursor.y += (int16_t)font.size * (uint8_t)pgm_read_byte(&font.gfxFont->yAdvance);
         }
-        if (_textwrapY && (cursor.y >= (int32_t) clip.height)) cursor.y = 0;
+        if (_textwrapY && (cursor.y >= (int32_t) clip.yHeight)) cursor.y = 0;
         drawChar(clip, cursor, font, uniCode, textcolor, textbgcolor);
       }
       cursor.x += pgm_read_byte(&glyph->xAdvance) * (int16_t)font.size;

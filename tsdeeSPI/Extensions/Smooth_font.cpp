@@ -394,7 +394,7 @@ void TFT_CHAR::drawGlyph(wh_clip_t& clip, cursor_t& cursor, uint16_t code, uint3
       _bg_cursor_x = 0;
       _last_cursor_x = 0;
       cursor.y += gFont.yAdvance;
-      if (_textwrapY && (cursor.y >= clip.height)) cursor.y = 0;
+      if (_textwrapY && (cursor.y >= clip.yHeight)) cursor.y = 0;
       return;
     }
   }
@@ -405,13 +405,13 @@ void TFT_CHAR::drawGlyph(wh_clip_t& clip, cursor_t& cursor, uint16_t code, uint3
   if (found)
   {
 
-    if (_textwrapX && (cursor.x + gWidth[gNum] + gdX[gNum] > clip.width))
+    if (_textwrapX && (cursor.x + gWidth[gNum] + gdX[gNum] > clip.xWidth))
     {
       cursor.y += gFont.yAdvance;
       cursor.x = 0;
       _bg_cursor_x = 0;
     }
-    if (_textwrapY && ((cursor.y + gFont.yAdvance) >= clip.height)) cursor.y = 0;
+    if (_textwrapY && ((cursor.y + gFont.yAdvance) >= clip.yHeight)) cursor.y = 0;
     if (cursor.x == 0) cursor.x -= gdX[gNum];
 
     uint8_t* pbuffer = nullptr;

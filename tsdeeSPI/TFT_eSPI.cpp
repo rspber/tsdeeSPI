@@ -28,12 +28,12 @@
 void TFT_eSPI::setRotationSizes(uint8_t r)
 {
   if (r & 1) {
-    _clip.width  = _init_height;
-    _clip.height = _init_width;
+    _clip.xWidth  = _init_height;
+    _clip.yHeight = _init_width;
   }
   else {
-    _clip.width  = _init_width;
-    _clip.height = _init_height;
+    _clip.xWidth  = _init_width;
+    _clip.yHeight = _init_height;
   }
 }
 
@@ -225,8 +225,8 @@ void TFT_eSPI::frameViewport(uint16_t color, int32_t w)
 ***************************************************************************************/
 TFT_eSPI::TFT_eSPI(int16_t w, int16_t h) : TFT_CHAR()
 {
-  _init_width  = _clip.width  = w; // Set by specific xxxxx_Defines.h file or by users sketch
-  _init_height = _clip.height = h; // Set by specific xxxxx_Defines.h file or by users sketch
+  _init_width  = _clip.xWidth  = w; // Set by specific xxxxx_Defines.h file or by users sketch
+  _init_height = _clip.yHeight = h; // Set by specific xxxxx_Defines.h file or by users sketch
 
   // Reset the viewport to the whole screen
   resetViewport();
@@ -471,7 +471,7 @@ void TFT_eSPI::fillEllipse(int16_t x0, int16_t y0, int32_t rx, int32_t ry, uint1
 ***************************************************************************************/
 void TFT_eSPI::fillScreen(rgb_t color)
 {
-  fillRect(0, 0, _clip.width, _clip.height, color);
+  fillRect(0, 0, _clip.xWidth, _clip.yHeight, color);
 }
 
 
@@ -736,7 +736,7 @@ uint8_t TFT_eSPI::getTextDatum(void)
 int16_t TFT_eSPI::width(void)
 {
   if (_vpDatum) return _xWidth;
-  return _clip.width;
+  return _clip.xWidth;
 }
 
 
@@ -747,7 +747,7 @@ int16_t TFT_eSPI::width(void)
 int16_t TFT_eSPI::height(void)
 {
   if (_vpDatum) return _yHeight;
-  return _clip.height;
+  return _clip.yHeight;
 }
 
 
