@@ -82,7 +82,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage
 ** Description:             plot 16-bit sprite or image with 1 colour being transparent
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, rgb_t transp)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, rgb_t transp_)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -92,6 +92,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 
   data += z.dx + z.dy * w;
 
+  uint16_t transp = color24to16(transp_);
 
   uint16_t  lineBuf[z.dw]; // Use buffer to minimise setWindow call count
 
@@ -173,7 +174,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
 ** Description:             plot 16-bit image with 1 colour being transparent
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data, rgb_t transp)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data, rgb_t transp_)
 {
   // Requires 32-bit aligned access, so use PROGMEM 16-bit word functions
   block_t z;
@@ -184,6 +185,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 
   data += z.dx + z.dy * w;
 
+  uint16_t transp = color24to16(transp_);
 
   uint16_t  lineBuf[z.dw];
 
@@ -230,7 +232,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, const uint8_t *data, bool bpp8, rgb_t *cmap)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, const uint8_t *data, bool bpp8, uint16_t *cmap)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -250,7 +252,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 
     uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
 
-    rgb_t _lastColor = -1; // Set to illegal value
+    uint16_t _lastColor = -1; // Set to illegal value
 
     // Used to store last shifted colour
     uint8_t msbColor = 0;
@@ -263,7 +265,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
       uint8_t* linePtr = (uint8_t*)lineBuf;
 
       while(len--) {
-        rgb_t color = pgm_read_byte(ptr++);
+        uint16_t color = pgm_read_byte(ptr++);
 
         // Shifts are slow so check if colour has changed first
         if (color != _lastColor) {
@@ -364,7 +366,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint8_t *data, bool bpp8, rgb_t *cmap)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint8_t *data, bool bpp8, uint16_t *cmap)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -384,7 +386,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 
     uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
 
-    rgb_t _lastColor = -1; // Set to illegal value
+    uint16_t _lastColor = -1; // Set to illegal value
 
     // Used to store last shifted colour
     uint8_t msbColor = 0;
@@ -397,7 +399,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
       uint8_t* linePtr = (uint8_t*)lineBuf;
 
       while(len--) {
-        rgb_t color = *ptr++;
+        uint16_t color = *ptr++;
 
         // Shifts are slow so check if colour has changed first
         if (color != _lastColor) {
@@ -498,7 +500,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage
 ** Description:             plot 8 or 4 or 1 bit image or sprite with a transparent colour
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint8_t *data, uint8_t transp, bool bpp8, rgb_t *cmap)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint8_t *data, uint8_t transp, bool bpp8, uint16_t *cmap)
 {
   block_t z;
   if (!clip.check_block(z, x0, y0, w, h)) return;
@@ -518,7 +520,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 
     uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
 
-    rgb_t _lastColor = -1; // Set to illegal value
+    uint16_t _lastColor = -1; // Set to illegal value
 
     // Used to store last shifted colour
     uint8_t msbColor = 0;
