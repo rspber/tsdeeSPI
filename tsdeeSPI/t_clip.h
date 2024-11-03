@@ -26,6 +26,8 @@ struct ein_clip {
 
   bool clipClip(int32_t& xs, int32_t& ys, int32_t& xe, int32_t& ye);
 
+  void set(const ein_clip c);
+
   int32_t width();
   int32_t height();
 };

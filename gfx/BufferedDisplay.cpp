@@ -44,7 +44,7 @@ static const rgb_t default_4bit_palette[] = {
   BufferedDisplay::BufferedDisplay(clip_t& aClip, const rgb_t aBgColor)
     : TSD_SCREEN(aClip.width(), aClip.height())
   {
-    _clip = aClip;
+    _clip.set(aClip);
     recreate();
     clear(aBgColor);
   }
@@ -60,7 +60,8 @@ static const rgb_t default_4bit_palette[] = {
   BufferedDisplay::BufferedDisplay(const int16_t x1, const int16_t y1, const int16_t x2, const int16_t y2, const rgb_t aBgColor)
     : TSD_SCREEN(x2 - x1, y2 - y1)
   {
-    _clip = {x1, y1, x2, y2};
+    clip_t clip = {x1, y1, x2, y2};
+    _clip.set(clip);
     recreate();
     clear(aBgColor);
   }
@@ -93,7 +94,7 @@ static const rgb_t default_4bit_palette[] = {
       _clip.y2 == aClip.y2
     ) {}
     else {
-      _clip = aClip;
+      _clip.set(aClip);
       recreate();
 //      clear(bgcolor);
     }

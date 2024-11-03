@@ -52,16 +52,18 @@
 
 class TSD_SCREEN : public TSD_GFX {
 public:
-  TSD_SCREEN(const int16_t w, const int16_t h): TSD_GFX(), xWIDTHx(w), yHEIGHTy(h)
+  TSD_SCREEN(const int16_t w, const int16_t h): TSD_GFX()
   {
+    _init_width = w;
+    _init_height = h;
     _clip = {0, 0, w, h};
   }
 
   const int16_t width() { return _clip.width(); }
   const int16_t height() { return _clip.height(); }
 
-  const int16_t getWIDTH() { return xWIDTHx; }
-  const int16_t getHEIGHT() { return yHEIGHTy; }
+  const int16_t getWIDTH() { return _init_width; }
+  const int16_t getHEIGHT() { return _init_height; }
 
   void setSize(const int16_t w, const int16_t h)
   {
@@ -165,9 +167,6 @@ public:
   const int16_t getPivotY() { return yPivoty; }
 
 private:
-  int16_t xWIDTHx, yHEIGHTy;
   int16_t xPivotx, yPivoty;
 
-public:
-  clip_t _clip;      ///< Display width/height as modified by rotation
 };

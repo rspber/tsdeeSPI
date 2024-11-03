@@ -19,6 +19,14 @@ void ein_clip::set(int32_t x1, int32_t  y1, int32_t  x2, int32_t  y2)
   this->y2 = y2;
 }
 
+void ein_clip::set(const ein_clip c)
+{
+  this->x1 = c.x1;
+  this->y1 = c.y1;
+  this->x2 = c.x2;
+  this->y2 = c.y2;
+}
+
 bool ein_clip::check_point(int32_t& x, int32_t& y)
 {
   x += xDatum;
