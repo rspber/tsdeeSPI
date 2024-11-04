@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <TSD_GFX.h>
+#include <TSD_CHAR.h>
 
 //#define BLACK        RGB(    0,    0,    0)
 #define NAVY         RGB(    0,    0, 0x7B)
@@ -50,9 +50,9 @@
 #define LIGHT_YELLOW RGB( 0xFF, 0xFF, 0xE0)
 //#define WHITE        RGB( 0xFF, 0xFF, 0xFF)
 
-class TSD_SCREEN : public TSD_GFX {
+class TSD_SCREEN : public TSD_CHAR {
 public:
-  TSD_SCREEN(const int16_t w, const int16_t h): TSD_GFX()
+  TSD_SCREEN(const int16_t w, const int16_t h): TSD_CHAR()
   {
     _init_width = w;
     _init_height = h;
@@ -154,8 +154,8 @@ public:
   using TSD_GFX::drawBitmap;
   using TSD_GFX::drawGrayscaleBitmap;
   using TSD_GFX::drawRGBBitmap;
-  using TSD_GFX::drawChar;
-  using TSD_GFX::drawTextLine;
+  using TSD_CHAR::drawChar;
+  using TSD_CHAR::drawTextLine;
   using TSD_GFX::pushImage;
 
   void setPivot(const int16_t x, const int16_t y) {

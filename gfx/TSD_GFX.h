@@ -11,9 +11,7 @@
 
 #include <TFT_eeSPI.h>
 #include <t_clip.h>
-#include <t_cursor.h>
 #include <t_gradient.h>
-#include "tsd_font.h"
 #include <stddef.h>
 
 #define BLACK        RGB(    0,    0,    0)
@@ -50,14 +48,6 @@ public:
   void drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint32_t* bitmap, const uint8_t *mask, int32_t w, int32_t h); // 666 color
   void pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);
   void pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transp);
-
-  // utf-8
-  void drawChar(clip_t& clip, cursor_t& cursor, tsd_font_t& font, char** c, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing);
-  const char* drawTextLine(clip_t& clip, cursor_t& cursor, tsd_font_t& font, const char* text, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing);
-
-  // unicode
-  void drawChar(clip_t& clip, cursor_t& cursor, tsd_font_t& font, const uint16_t uchar, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing);
-  const uint16_t* drawTextLine(clip_t& clip, cursor_t& cursor, tsd_font_t& font, const uint16_t* utext, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing);
 
   void fillRectHelper(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color);
   void drawCircleHelper(clip_t& clip, int32_t x, int32_t y, int32_t r, uint8_t corners, rgb_t color);
