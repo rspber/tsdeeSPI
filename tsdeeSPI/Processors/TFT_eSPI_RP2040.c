@@ -627,14 +627,13 @@ void TFT_eeSPI::pushPixelsDMA16(uint16_t* image, uint32_t len)
 ** Description:             Push image to a window
 ***************************************************************************************/
 // This will clip to the viewport
-void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t* image, uint16_t* buffer)
+void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* image, uint16_t* buffer)
 {
   if (!DMA_Enabled) return;
 
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
-  uint32_t len = z.dw*z.dh;
+  uint32_t len = dw*dh;
 
   if (buffer == nullptr) {
     buffer = image;
@@ -642,9 +641,9 @@ void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, 
   }
 
   // If image is clipped, copy pixels into a contiguous block
-  if ( (z.dw != w) || (z.dh != h) ) {
-    for (int32_t yb = 0; yb < z.dh; yb++) {
-      memmove((uint8_t*) (buffer + yb * z.dw), (uint8_t*) (image + z.dx + w * (yb + z.dy)), z.dw << 1);
+  if ( (dw != w) || (dh != h) ) {
+    for (int32_t yb = 0; yb < dh; yb++) {
+      memmove((uint8_t*) (buffer + yb * dw), (uint8_t*) (image + dx + w * (yb + dy)), dw << 1);
     }
   }
   // else, if a buffer pointer has been provided copy whole image to the buffer
@@ -654,7 +653,7 @@ void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, 
 
   dmaWait(); // In case we did not wait earlier
 
-  setAddrWindow(z.x, z.y, z.dw, z.dh);
+  setAddrWindow(x, y, dw, dh);
 
   channel_config_set_bswap(&dma_tx_config, !_swapBytes);
 

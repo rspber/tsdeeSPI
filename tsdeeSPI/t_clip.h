@@ -20,8 +20,6 @@ struct ein_clip {
 
   bool check_point(int32_t& x, int32_t& y);
 
-  bool check_block(block_t& z, const int32_t x, const int32_t y, const int32_t w, const int32_t h);
-
   bool clipRect(int32_t& x, int32_t& y, int32_t& w, int32_t& h);
 
   bool clipClip(int32_t& xs, int32_t& ys, int32_t& xe, int32_t& ye);

@@ -1049,28 +1049,28 @@ rgb_t TFT_eSprite::readPixel(clip_t& clip, int32_t x, int32_t y)
 ** Function name:           pushImage
 ** Description:             push image into a defined area of a sprite
 ***************************************************************************************/
-void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp)
+void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp)
 {
   if (data == nullptr || !_created) return;
 
-  block_t z;
-  if (!_clip.check_block(z, x0, y0, w, h)) return;
+  clip_t& clip = _clip;
+  PI_CLIP;
 
   if (_bpp == 16) // Plot a 16 bpp image into a 16 bpp Sprite
   {
     // Pointer within original image
-    uint8_t *ptro = (uint8_t *)data + ((z.dx + z.dy * w) << 1);
+    uint8_t *ptro = (uint8_t *)data + ((dx + dy * w) << 1);
     // Pointer within sprite image
-    uint8_t *ptrs = (uint8_t *)_img + ((z.x + z.y * _iwidth) << 1);
+    uint8_t *ptrs = (uint8_t *)_img + ((x + y * _iwidth) << 1);
 
     if(_swapBytes)
     {
-      while (z.dh--)
+      while (dh--)
       {
         // Fast copy with a 1 byte shift
-        memcpy(ptrs+1, ptro, (z.dw<<1) - 1);
+        memcpy(ptrs+1, ptro, (dw<<1) - 1);
         // Now correct just the even numbered bytes
-        for (int32_t xp = 0; xp < (z.dw<<1); xp+=2)
+        for (int32_t xp = 0; xp < (dw<<1); xp+=2)
         {
           ptrs[xp] = ptro[xp+1];;
         }
@@ -1080,9 +1080,9 @@ void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uin
     }
     else
     {
-      while (z.dh--)
+      while (dh--)
       {
-        memcpy(ptrs, ptro, z.dw<<1);
+        memcpy(ptrs, ptro, dw<<1);
         ptro += w << 1;
         ptrs += _iwidth << 1;
       }
@@ -1091,13 +1091,13 @@ void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uin
   else if (_bpp == 8 && sbpp == 8) // Plot a 8 bpp image into a 8 bpp Sprite
   {
     // Pointer within original image
-    uint8_t *ptro = (uint8_t *)data + (z.dx + z.dy * w);
+    uint8_t *ptro = (uint8_t *)data + (dx + dy * w);
     // Pointer within sprite image
-    uint8_t *ptrs = (uint8_t *)_img + (z.x + z.y * _iwidth);
+    uint8_t *ptrs = (uint8_t *)_img + (x + y * _iwidth);
 
-    while (z.dh--)
+    while (dh--)
     {
-      memcpy(ptrs, ptro, z.dw);
+      memcpy(ptrs, ptro, dw);
       ptro += w;
       ptrs += _iwidth;
     }
@@ -1106,11 +1106,11 @@ void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uin
   {
     uint16_t lastColor = 0;
     uint8_t  color8    = 0;
-    for (int32_t yp = z.dy; yp < z.dy + z.dh; yp++)
+    for (int32_t yp = dy; yp < dy + dh; yp++)
     {
-      int32_t xyw = z.x + z.y * _iwidth;
-      int32_t dxypw = z.dx + yp * w;
-      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
+      int32_t xyw = x + y * _iwidth;
+      int32_t dxypw = dx + yp * w;
+      for (int32_t xp = dx; xp < dx + dw; xp++)
       {
         uint16_t color = data[dxypw++];
         if (color != lastColor) {
@@ -1121,7 +1121,7 @@ void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uin
         lastColor = color;
         _img8[xyw++] = color8;
       }
-      z.y++;
+      y++;
     }
   }
   else if (_bpp == 4)
@@ -1133,34 +1133,34 @@ void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uin
     int sWidth = (_iwidth >> 1);
     uint8_t *ptr = (uint8_t *)data;
 
-    if ((z.x & 0x01) == 0 && (z.dx & 0x01) == 0 && (z.dw & 0x01) == 0)
+    if ((x & 0x01) == 0 && (dx & 0x01) == 0 && (dw & 0x01) == 0)
     {
-      z.x = (z.x >> 1) + z.y * sWidth;
-      z.dw = (z.dw >> 1);
-      z.dx = (z.dx >> 1) + z.dy * (w>>1);
-      while (z.dh--)
+      x = (x >> 1) + y * sWidth;
+      dw = (dw >> 1);
+      dx = (dx >> 1) + dy * (w>>1);
+      while (dh--)
       {
-        memcpy(_img4 + z.x, ptr + z.dx, z.dw);
-        z.dx += (w >> 1);
-        z.x += sWidth;
+        memcpy(_img4 + x, ptr + dx, dw);
+        dx += (w >> 1);
+        x += sWidth;
       }
     }
     else  // not optimized
     {
-      for (int32_t yp = z.dy; yp < z.dy + z.dh; yp++)
+      for (int32_t yp = dy; yp < dy + dh; yp++)
       {
-        int32_t ox = z.x;
-        for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
+        int32_t ox = x;
+        for (int32_t xp = dx; xp < dx + dw; xp++)
         {
           uint32_t color;
           if ((xp & 0x01) == 0)
             color = (ptr[((xp+yp*w)>>1)] & 0xF0) >> 4; // even index = bits 7 .. 4
           else
             color = ptr[((xp-1+yp*w)>>1)] & 0x0F;      // odd index = bits 3 .. 0.
-          drawPixel(_clip, ox, z.y, color);
+          drawPixel(_clip, ox, y, color);
           ox++;
         }
-        z.y++;
+        y++;
       }
     }
   }
@@ -1170,16 +1170,16 @@ void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uin
     // Plot a 1bpp image into a 1bpp Sprite
     uint32_t ww =  (w+7)>>3; // Width of source image line in bytes
     uint8_t *ptr = (uint8_t *)data;
-    for (int32_t yp = z.dy;  yp < z.dy + z.dh; yp++)
+    for (int32_t yp = dy;  yp < dy + dh; yp++)
     {
       uint32_t yw = yp * ww;              // Byte starting the line containing source pixel
-      int32_t ox = z.x;
-      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
+      int32_t ox = x;
+      for (int32_t xp = dx; xp < dx + dw; xp++)
       {
         uint16_t readPixel = (ptr[(xp>>3) + yw] & (0x80 >> (xp & 0x7)) );
-        drawPixel(_clip, ox++, z.y, readPixel);
+        drawPixel(_clip, ox++, y, readPixel);
       }
-      z.y++;
+      y++;
     }
   }
 }
@@ -1189,46 +1189,46 @@ void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uin
 ** Function name:           pushImage
 ** Description:             push 565 colour FLASH (PROGMEM) image into a defined area
 ***************************************************************************************/
-void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data)
+void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data)
 {
 #ifdef ESP32
-  pushImage16(x0, y0, w, h, (uint16_t*) data);
+  pushImage16(x, y, w, h, (uint16_t*) data);
 #else
   // Partitioned memory FLASH processor
   if (data == nullptr || !_created) return;
 
-  block_t z;
-  if (!_clip.check_block(z, x0, y0, w, h)) return;
+  clip_t& clip = _clip;
+  PI_CLIP;
 
   if (_bpp == 16) // Plot a 16 bpp image into a 16 bpp Sprite
   {
-    for (int32_t yp = z.dy; yp < z.dy + z.dh; yp++)
+    for (int32_t yp = dy; yp < dy + dh; yp++)
     {
-      int32_t ox = z.x;
-      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
+      int32_t ox = x;
+      for (int32_t xp = dx; xp < dx + dw; xp++)
       {
         uint16_t color = pgm_read_word(data + xp + yp * w);
         if(_swapBytes) color = color<<8 | color>>8;
-        _img[ox + z.y * _iwidth] = color;
+        _img[ox + y * _iwidth] = color;
         ox++;
       }
-      z.y++;
+      y++;
     }
   }
 
   else if (_bpp == 8) // Plot a 16 bpp image into a 8 bpp Sprite
   {
-    for (int32_t yp = z.dy; yp < z.dy + z.dh; yp++)
+    for (int32_t yp = dy; yp < dy + dh; yp++)
     {
-      int32_t ox = z.x;
-      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
+      int32_t ox = x;
+      for (int32_t xp = dx; xp < dx + dw; xp++)
       {
         uint16_t color = pgm_read_word(data + xp + yp * w);
         if(_swapBytes) color = color<<8 | color>>8;
-        _img8[ox + z.y * _iwidth] = (uint8_t)((color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3);
+        _img8[ox + y * _iwidth] = (uint8_t)((color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3);
         ox++;
       }
-      z.y++;
+      y++;
     }
   }
 
@@ -1242,26 +1242,26 @@ void  TFT_eSprite::pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, con
 
   else // Plot a 1bpp image into a 1bpp Sprite
   {
-    z.x-= _clip.xDatum;   // Remove offsets, drawPixel will add
-    z.y-= _clip.yDatum;
+    x-= _clip.xDatum;   // Remove offsets, drawPixel will add
+    y-= _clip.yDatum;
     uint16_t bsw =  (w+7) >> 3; // Width in bytes of source image line
-    uint8_t *ptr = ((uint8_t*)data) + z.dy * bsw;
+    uint8_t *ptr = ((uint8_t*)data) + dy * bsw;
     
-    while (z.dh--) {
-      int32_t odx = z.dx;
-      int32_t ox  = z.x;
-      while (odx < z.dx + z.dw) {
+    while (dh--) {
+      int32_t odx = dx;
+      int32_t ox  = x;
+      while (odx < dx + dw) {
         uint8_t pbyte = pgm_read_byte(ptr + (odx>>3));
         uint8_t mask = 0x80 >> (odx & 7);
         while (mask) {
           uint8_t p = pbyte & mask;
           mask = mask >> 1;
-          drawPixel(_clip, ox++, z.y, p);
+          drawPixel(_clip, ox++, y, p);
           odx++;
         }
       }
       ptr += bsw;
-      z.y++;
+      y++;
     }
   }
 #endif // if ESP32 check

@@ -189,6 +189,38 @@
 
 #include "t_clip.h"
 
+#define CLIP_X \
+  if (x < clip.x1) { w -= clip.x1 - x; x = clip.x1; } \
+  if (x + w > clip.x2) { w = clip.x2 - x; }
+
+#define CLIP_Y \
+  if (y < clip.y1) { h -= clip.y1 - y; y = clip.y1; } \
+  if (y + h > clip.y2) { h = clip.y2 - y; }
+
+#define IF_CLIP_X x >= clip.x1 && x < clip.x2
+
+#define IF_CLIP_Y y >= clip.y1 && y < clip.y2
+
+// Clipping macro for pushImage
+#define PI_CLIP                                        \
+  x += clip.xDatum;                                    \
+  y += clip.yDatum;                                    \
+                                                       \
+  if (x >= clip.x2 || y >= clip.y2) return;            \
+                                                       \
+  int32_t dx = 0;                                      \
+  int32_t dy = 0;                                      \
+  int32_t dw = w;                                      \
+  int32_t dh = h;                                      \
+                                                       \
+  if (x < clip.x1) { dx = clip.x1 - x; dw -= dx; x = clip.x1; } \
+  if (y < clip.y1) { dy = clip.y1 - y; dh -= dy; y = clip.y1; } \
+                                                       \
+  if ((x + dw) > clip.x2 ) dw = clip.x2 - x;                 \
+  if ((y + dh) > clip.y2 ) dh = clip.y2 - y;                 \
+                                                       \
+  if (dw < 1 || dh < 1) return
+
 // Class functions and variables
 class TFT_eeSPI : public Print { friend class TFT_eSprite; // Sprite class has access to protected members
 

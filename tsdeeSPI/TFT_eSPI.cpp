@@ -80,12 +80,18 @@ void TFT_eSPI::setViewport(int32_t x, int32_t y, int32_t w, int32_t h, bool vpDa
 ** Description:             Check if any part of specified area is visible in viewport
 ***************************************************************************************/
 // Note: Setting w and h to 1 will check if coordinate x,y is in area
+void checkViewport_(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, bool& ret)
+{
+  ret = false;
+  PI_CLIP;
+  ret = true;
+}
+
 bool TFT_eSPI::checkViewport(int32_t x, int32_t y, int32_t w, int32_t h)
 {
-  block_t z;
-  if (!_clip.check_block(z, x, y, w, h)) return false;
-
-  return true;
+  bool ret;
+  checkViewport_(_clip, x, y, w, h, ret);
+  return ret;
 }
 
 /***************************************************************************************

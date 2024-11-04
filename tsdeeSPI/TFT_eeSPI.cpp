@@ -919,18 +919,17 @@ rgb_t TFT_eeSPI::readPixel(clip_t& clip, int32_t x, int32_t y)
 ** Function name:           read rectangle (for SPI Interface II i.e. IM [3:0] = "1101")
 ** Description:             Read 565 pixel colours from a defined area
 ***************************************************************************************/
-void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data)
+void TFT_eeSPI::readRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
 {
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
 #if defined(TFT_PARALLEL_8_BIT) || defined(RP2040_PIO_INTERFACE)
 
   CS_L;
 
-  readAddrWindow(z.x, z.y, z.dw, z.dh);
+  readAddrWindow(x, y, dw, dh);
 
-  data += z.dx + z.dy * w;
+  data += dx + dy * w;
 
   // Set masked pins D0- D7 to input
   busDir(GPIO_DIR_MASK, INPUT);
@@ -940,8 +939,8 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
     readByte();
 
     // Fetch the 24-bit RGB value
-    while (z.dh--) {
-      int32_t lw = z.dw;
+    while (dh--) {
+      int32_t lw = dw;
       uint16_t* line = data;
       while (lw--) {
         // Assemble the RGB 16-bit colour
@@ -955,8 +954,8 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
 
   #elif  defined (SSD1963_DRIVER)
     // Fetch the 18-bit BRG pixels
-    while (z.dh--) {
-      int32_t lw = z.dw;
+    while (dh--) {
+      int32_t lw = dw;
       uint16_t* line = data;
       while (lw--) {
         uint16_t bgr = ((readByte() & 0xF8) >> 3);; // CS_L adds a small delay
@@ -975,8 +974,8 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
     readByte();
 
     // Fetch the 16-bit BRG pixels
-    while (z.dh--) {
-      int32_t lw = z.dw;
+    while (dh--) {
+      int32_t lw = dw;
       uint16_t* line = data;
       while (lw--) {
       #if defined (ILI9486_DRIVER) || defined (ST7796_DRIVER)
@@ -1011,9 +1010,9 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
 
   begin_tft_read();
 
-  readAddrWindow(z.x, z.y, z.dw, z.dh);
+  readAddrWindow(x, y, dw, dh);
 
-  data += z.dx + z.dy * w;
+  data += dx + dy * w;
 
   #ifdef TFT_SDA_READ
     begin_SDA_Read();
@@ -1023,8 +1022,8 @@ void TFT_eeSPI::readRect(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_
   tft_Read_8();
 
   // Read window pixel 24-bit RGB values
-  while (z.dh--) {
-    int32_t lw = z.dw;
+  while (dh--) {
+    int32_t lw = dw;
     uint16_t* line = data;
     while (lw--) {
 

@@ -38,30 +38,6 @@ bool ein_clip::check_point(int32_t& x, int32_t& y)
   return true;
 }
 
-bool ein_clip::check_block(block_t& z, const int32_t x0, const int32_t y0, const int32_t w, const int32_t h)
-{
-  z.x = x0 + xDatum;
-  z.y = y0 + yDatum;
-
-  if (z.x >= x2 || z.y >= y2) return false;
-
-  z.dx = 0;
-  z.dy = 0;
-  z.dw = w;
-  z.dh = h;
-
-  if (z.x < x1) { z.dx = x1 - z.x; z.dw -= z.dx; z.x = x1; }
-  if (z.y < y1) { z.dy = y1 - z.y; z.dh -= z.dy; z.y = y1; }
-
-  if (z.x + z.dw > x2 ) z.dw = x2 - z.x;
-  if (z.y + z.dh > y2 ) z.dh = y2 - z.y;
-
-  if (z.dw < 1 || z.dh < 1) return false;
-
-  return true;
-}
-
-
 /***************************************************************************************
 ** Function name:           clipWindow
 ** Description:             Clip window xs,yx,xe,ye to screen and viewport

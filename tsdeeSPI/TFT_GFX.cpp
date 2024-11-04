@@ -51,25 +51,24 @@ void TFT_GFX::pushRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h,
 ** Function name:           pushImage
 ** Description:             plot 16-bit colour sprite or image onto TFT
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
 {
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
   begin_tft_write();
   inTransaction = true;
 
-  setWindow(z.x, z.y, z.dw, z.dh);
+  setWindow(x, y, dw, dh);
 
-  data += z.dx + z.dy * w;
+  data += dx + dy * w;
 
   // Check if whole image can be pushed
-  if (z.dw == w) pushPixels16(data, z.dw * z.dh);
+  if (dw == w) pushPixels16(data, dw * dh);
   else {
     // Push line segments to crop image
-    while (z.dh--)
+    while (dh--)
     {
-      pushPixels16(data, z.dw);
+      pushPixels16(data, dw);
       data += w;
     }
   }
@@ -82,28 +81,27 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage
 ** Description:             plot 16-bit sprite or image with 1 colour being transparent
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, rgb_t transp_)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, rgb_t transp_)
 {
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
   begin_tft_write();
   inTransaction = true;
 
-  data += z.dx + z.dy * w;
+  data += dx + dy * w;
 
   uint16_t transp = color24to16(transp_);
 
-  uint16_t  lineBuf[z.dw]; // Use buffer to minimise setWindow call count
+  uint16_t  lineBuf[dw]; // Use buffer to minimise setWindow call count
 
   // The little endian transp color must be byte swapped if the image is big endian
   if (!_swapBytes) transp = transp >> 8 | transp << 8;
 
-  while (z.dh--)
+  while (dh--)
   {
-    int32_t len = z.dw;
+    int32_t len = dw;
     uint16_t* ptr = data;
-    int32_t px = z.x, sx = z.x;
+    int32_t px = x, sx = x;
     bool move = true;
     uint16_t np = 0;
 
@@ -120,7 +118,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
         move = true;
         if (np)
         {
-          setWindow(sx, z.y, np, 1);
+          setWindow(sx, y, np, 1);
           pushPixels16((uint16_t*)lineBuf, np);
           np = 0;
         }
@@ -128,9 +126,9 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
       px++;
       ptr++;
     }
-    if (np) { setWindow(sx, z.y, np, 1); pushPixels16((uint16_t*)lineBuf, np); }
+    if (np) { setWindow(sx, y, np, 1); pushPixels16((uint16_t*)lineBuf, np); }
 
-    z.y++;
+    y++;
     data += w;
   }
 
@@ -143,27 +141,26 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
 ** Description:             plot 16-bit image
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data)
 {
   // Requires 32-bit aligned access, so use PROGMEM 16-bit word functions
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
   begin_tft_write();
   inTransaction = true;
 
-  data += z.dx + z.dy * w;
+  data += dx + dy * w;
 
-  uint16_t  buffer[z.dw];
+  uint16_t  buffer[dw];
 
-  setWindow(z.x, z.y, z.dw, z.dh);
+  setWindow(x, y, dw, dh);
 
   // Fill and send line buffers to TFT
-  for (int32_t i = 0; i < z.dh; i++) {
-    for (int32_t j = 0; j < z.dw; j++) {
+  for (int32_t i = 0; i < dh; i++) {
+    for (int32_t j = 0; j < dw; j++) {
       buffer[j] = pgm_read_word(&data[i * w + j]);
     }
-    pushPixels16(buffer, z.dw);
+    pushPixels16(buffer, dw);
   }
 
   inTransaction = lockTransaction;
@@ -174,28 +171,27 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage - for FLASH (PROGMEM) stored images
 ** Description:             plot 16-bit image with 1 colour being transparent
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, const uint16_t *data, rgb_t transp_)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data, rgb_t transp_)
 {
   // Requires 32-bit aligned access, so use PROGMEM 16-bit word functions
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
   begin_tft_write();
   inTransaction = true;
 
-  data += z.dx + z.dy * w;
+  data += dx + dy * w;
 
   uint16_t transp = color24to16(transp_);
 
-  uint16_t  lineBuf[z.dw];
+  uint16_t  lineBuf[dw];
 
   // The little endian transp color must be byte swapped if the image is big endian
   if (!_swapBytes) transp = transp >> 8 | transp << 8;
 
-  while (z.dh--) {
-    int32_t len = z.dw;
+  while (dh--) {
+    int32_t len = dw;
     uint16_t* ptr = (uint16_t*)data;
-    int32_t px = z.x, sx = z.x;
+    int32_t px = x, sx = x;
     bool move = true;
 
     uint16_t np = 0;
@@ -210,7 +206,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
       else {
         move = true;
         if (np) {
-          setWindow(sx, z.y, np, 1);
+          setWindow(sx, y, np, 1);
           pushPixels16(lineBuf, np);
           np = 0;
         }
@@ -218,9 +214,9 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
       px++;
       ptr++;
     }
-    if (np) { setWindow(sx, z.y, np, 1); pushPixels16(lineBuf, np); }
+    if (np) { setWindow(sx, y, np, 1); pushPixels16(lineBuf, np); }
 
-    z.y++;
+    y++;
     data += w;
   }
 
@@ -232,19 +228,18 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, const uint8_t *data, bool bpp8, uint16_t *cmap)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8, uint16_t *cmap)
 {
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
   begin_tft_write();
   inTransaction = true;
   bool swap = _swapBytes;
 
-  setWindow(z.x, z.y, z.dw, z.dh); // Sets CS low and sent RAMWR
+  setWindow(x, y, dw, dh); // Sets CS low and sent RAMWR
 
   // Line buffer makes plotting faster
-  uint16_t  lineBuf[z.dw];
+  uint16_t  lineBuf[dw];
 
   if (bpp8)
   {
@@ -258,9 +253,9 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
     uint8_t msbColor = 0;
     uint8_t lsbColor = 0;
 
-    data += z.dx + z.dy * w;
-    while (z.dh--) {
-      uint32_t len = z.dw;
+    data += dx + dy * w;
+    while (dh--) {
+      uint32_t len = dw;
       uint8_t* ptr = (uint8_t*)data;
       uint8_t* linePtr = (uint8_t*)lineBuf;
 
@@ -280,7 +275,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
        *linePtr++ = lsbColor;
       }
 
-      pushPixels16(lineBuf, z.dw);
+      pushPixels16(lineBuf, dw);
 
       data += w;
     }
@@ -291,17 +286,17 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
     _swapBytes = true;
 
     w = (w+1) & 0xFFFE;   // if this is a sprite, w will already be even; this does no harm.
-    bool splitFirst = (z.dx & 0x01) != 0; // split first means we have to push a single px from the left of the sprite / image
+    bool splitFirst = (dx & 0x01) != 0; // split first means we have to push a single px from the left of the sprite / image
 
     if (splitFirst) {
-      data += ((z.dx - 1 + z.dy * w) >> 1);
+      data += ((dx - 1 + dy * w) >> 1);
     }
     else {
-      data += ((z.dx + z.dy * w) >> 1);
+      data += ((dx + dy * w) >> 1);
     }
 
-    while (z.dh--) {
-      uint32_t len = z.dw;
+    while (dh--) {
+      uint32_t len = dw;
       uint8_t * ptr = (uint8_t*)data;
       uint16_t *linePtr = lineBuf;
       uint8_t colors; // two colors in one byte
@@ -332,7 +327,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
         ptr++;
       }
 
-      pushPixels16(lineBuf, z.dw);
+      pushPixels16(lineBuf, dw);
       data += (w >> 1);
     }
     _swapBytes = swap; // Restore old value
@@ -342,17 +337,17 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
     _swapBytes = false;
     uint8_t * ptr = (uint8_t*)data;
     uint32_t ww =  (w+7)>>3; // Width of source image line in bytes
-    for (int32_t yp = z.dy;  yp < z.dy + z.dh; yp++)
+    for (int32_t yp = dy;  yp < dy + dh; yp++)
     {
       uint8_t* linePtr = (uint8_t*)lineBuf;
-      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
+      for (int32_t xp = dx; xp < dx + dw; xp++)
       {
         uint16_t col = (pgm_read_byte(ptr + (xp>>3)) & (0x80 >> (xp & 0x7)) );
         if (col) {*linePtr++ = _bitmap_fg>>8; *linePtr++ = (uint8_t) _bitmap_fg;}
         else     {*linePtr++ = _bitmap_bg>>8; *linePtr++ = (uint8_t) _bitmap_bg;}
       }
       ptr += ww;
-      pushPixels16(lineBuf, z.dw);
+      pushPixels16(lineBuf, dw);
     }
   }
 
@@ -366,19 +361,18 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint8_t *data, bool bpp8, uint16_t *cmap)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, bool bpp8, uint16_t *cmap)
 {
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
   begin_tft_write();
   inTransaction = true;
   bool swap = _swapBytes;
 
-  setWindow(z.x, z.y, z.dw, z.dh); // Sets CS low and sent RAMWR
+  setWindow(x, y, dw, dh); // Sets CS low and sent RAMWR
 
   // Line buffer makes plotting faster
-  uint16_t  lineBuf[z.dw];
+  uint16_t  lineBuf[dw];
 
   if (bpp8)
   {
@@ -392,9 +386,9 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
     uint8_t msbColor = 0;
     uint8_t lsbColor = 0;
 
-    data += z.dx + z.dy * w;
-    while (z.dh--) {
-      uint32_t len = z.dw;
+    data += dx + dy * w;
+    while (dh--) {
+      uint32_t len = dw;
       uint8_t* ptr = data;
       uint8_t* linePtr = (uint8_t*)lineBuf;
 
@@ -414,7 +408,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
        *linePtr++ = lsbColor;
       }
 
-      pushPixels16(lineBuf, z.dw);
+      pushPixels16(lineBuf, dw);
 
       data += w;
     }
@@ -425,17 +419,17 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
     _swapBytes = true;
 
     w = (w+1) & 0xFFFE;   // if this is a sprite, w will already be even; this does no harm.
-    bool splitFirst = (z.dx & 0x01) != 0; // split first means we have to push a single px from the left of the sprite / image
+    bool splitFirst = (dx & 0x01) != 0; // split first means we have to push a single px from the left of the sprite / image
 
     if (splitFirst) {
-      data += ((z.dx - 1 + z.dy * w) >> 1);
+      data += ((dx - 1 + dy * w) >> 1);
     }
     else {
-      data += ((z.dx + z.dy * w) >> 1);
+      data += ((dx + dy * w) >> 1);
     }
 
-    while (z.dh--) {
-      uint32_t len = z.dw;
+    while (dh--) {
+      uint32_t len = dw;
       uint8_t * ptr = data;
       uint16_t *linePtr = lineBuf;
       uint8_t colors; // two colors in one byte
@@ -466,7 +460,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
         ptr++;
       }
 
-      pushPixels16(lineBuf, z.dw);
+      pushPixels16(lineBuf, dw);
       data += (w >> 1);
     }
     _swapBytes = swap; // Restore old value
@@ -476,17 +470,17 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
     _swapBytes = false;
 
     uint32_t ww =  (w+7)>>3; // Width of source image line in bytes
-    for (int32_t yp = z.dy;  yp < z.dy + z.dh; yp++)
+    for (int32_t yp = dy;  yp < dy + dh; yp++)
     {
       uint8_t* linePtr = (uint8_t*)lineBuf;
-      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
+      for (int32_t xp = dx; xp < dx + dw; xp++)
       {
         uint16_t col = (data[(xp>>3)] & (0x80 >> (xp & 0x7)) );
         if (col) {*linePtr++ = _bitmap_fg>>8; *linePtr++ = (uint8_t) _bitmap_fg;}
         else     {*linePtr++ = _bitmap_bg>>8; *linePtr++ = (uint8_t) _bitmap_bg;}
       }
       data += ww;
-      pushPixels16(lineBuf, z.dw);
+      pushPixels16(lineBuf, dw);
     }
   }
 
@@ -500,10 +494,9 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 ** Function name:           pushImage
 ** Description:             plot 8 or 4 or 1 bit image or sprite with a transparent colour
 ***************************************************************************************/
-void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint8_t *data, uint8_t transp, bool bpp8, uint16_t *cmap)
+void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, uint8_t transp, bool bpp8, uint16_t *cmap)
 {
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
   begin_tft_write();
   inTransaction = true;
@@ -511,12 +504,12 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
 
 
   // Line buffer makes plotting faster
-  uint16_t  lineBuf[z.dw];
+  uint16_t  lineBuf[dw];
 
   if (bpp8) { // 8 bits per pixel
     _swapBytes = false;
 
-    data += z.dx + z.dy * w;
+    data += dx + dy * w;
 
     uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
 
@@ -526,12 +519,12 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
     uint8_t msbColor = 0;
     uint8_t lsbColor = 0;
 
-    while (z.dh--) {
-      int32_t len = z.dw;
+    while (dh--) {
+      int32_t len = dw;
       uint8_t* ptr = data;
       uint8_t* linePtr = (uint8_t*)lineBuf;
 
-      int32_t px = z.x, sx = z.x;
+      int32_t px = x, sx = x;
       bool move = true;
       uint16_t np = 0;
 
@@ -555,7 +548,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
         else {
           move = true;
           if (np) {
-            setWindow(sx, z.y, np, 1);
+            setWindow(sx, y, np, 1);
             pushPixels16(lineBuf, np);
             linePtr = (uint8_t*)lineBuf;
             np = 0;
@@ -565,8 +558,8 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
         ptr++;
       }
 
-      if (np) { setWindow(sx, z.y, np, 1); pushPixels16(lineBuf, np); }
-      z.y++;
+      if (np) { setWindow(sx, y, np, 1); pushPixels16(lineBuf, np); }
+      y++;
       data += w;
     }
   }
@@ -575,19 +568,19 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
     _swapBytes = true;
 
     w = (w+1) & 0xFFFE; // here we try to recreate iwidth from dwidth.
-    bool splitFirst = ((z.dx & 0x01) != 0);
+    bool splitFirst = ((dx & 0x01) != 0);
     if (splitFirst) {
-      data += ((z.dx - 1 + z.dy * w) >> 1);
+      data += ((dx - 1 + dy * w) >> 1);
     }
     else {
-      data += ((z.dx + z.dy * w) >> 1);
+      data += ((dx + dy * w) >> 1);
     }
 
-    while (z.dh--) {
-      uint32_t len = z.dw;
+    while (dh--) {
+      uint32_t len = dw;
       uint8_t * ptr = data;
 
-      int32_t px = z.x, sx = z.x;
+      int32_t px = x, sx = x;
       bool move = true;
       uint16_t np = 0;
 
@@ -621,7 +614,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
         else {
           move = true;
           if (np) {
-            setWindow(sx, z.y, np, 1);
+            setWindow(sx, y, np, 1);
             pushPixels16(lineBuf, np);
             np = 0;
           }
@@ -641,7 +634,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
           else {
             move = true;
             if (np) {
-              setWindow(sx, z.y, np, 1);
+              setWindow(sx, y, np, 1);
               pushPixels16(lineBuf, np);
               np = 0;
             }
@@ -655,12 +648,12 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
       }
 
       if (np) {
-        setWindow(sx, z.y, np, 1);
+        setWindow(sx, y, np, 1);
         pushPixels16(lineBuf, np);
         np = 0;
       }
       data += (w>>1);
-      z.y++;
+      y++;
     }
   }
   else { // 1 bit per pixel
@@ -669,11 +662,11 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
     uint32_t ww =  (w+7)>>3; // Width of source image line in bytes
     uint16_t np = 0;
 
-    for (int32_t yp = z.dy;  yp < z.dy + z.dh; yp++)
+    for (int32_t yp = dy;  yp < dy + dh; yp++)
     {
-      int32_t px = z.x, sx = z.x;
+      int32_t px = x, sx = x;
       bool move = true;
-      for (int32_t xp = z.dx; xp < z.dx + z.dw; xp++)
+      for (int32_t xp = dx; xp < dx + dw; xp++)
       {
         if (data[(xp>>3)] & (0x80 >> (xp & 0x7))) {
           if (move) {
@@ -685,15 +678,15 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32
         else {
           move = true;
           if (np) {
-            setWindow(sx, z.y, np, 1);
+            setWindow(sx, y, np, 1);
             pushBlock16(mdt_color(_bitmap_fg), np);
             np = 0;
           }
         }
         px++;
       }
-      if (np) { setWindow(sx, z.y, np, 1); pushBlock16(mdt_color(_bitmap_fg), np); np = 0; }
-      z.y++;
+      if (np) { setWindow(sx, y, np, 1); pushBlock16(mdt_color(_bitmap_fg), np); np = 0; }
+      y++;
       data += ww;
     }
   }

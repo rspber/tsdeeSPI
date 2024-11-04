@@ -718,14 +718,13 @@ void TFT_eeSPI::pushImageDMA16(int32_t x, int32_t y, int32_t w, int32_t h, uint1
 ** Description:             Push image to a window (w*h must be less than 65536)
 ***************************************************************************************/
 // This will clip and also swap bytes if setSwapBytes(true) was called by sketch
-void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t* image, uint16_t* buffer)
+void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t* image, uint16_t* buffer)
 {
   if (!DMA_Enabled) return;
 
-  block_t z;
-  if (!clip.check_block(z, x0, y0, w, h)) return;
+  PI_CLIP;
 
-  uint32_t len = z.dw*z.dh;
+  uint32_t len = dw*dh;
 
   if (buffer == nullptr) {
     buffer = image;
@@ -733,18 +732,18 @@ void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, 
   }
 
   // If image is clipped, copy pixels into a contiguous block
-  if ( (z.dw != w) || (z.dh != h) ) {
+  if ( (dw != w) || (dh != h) ) {
     if(_swapBytes) {
-      for (int32_t yb = 0; yb < z.dh; yb++) {
-        for (int32_t xb = 0; xb < z.dw; xb++) {
-          uint32_t src = xb + z.dx + w * (yb + z.dy);
-          (buffer[xb + yb * z.dw] = image[src] << 8 | image[src] >> 8);
+      for (int32_t yb = 0; yb < dh; yb++) {
+        for (int32_t xb = 0; xb < dw; xb++) {
+          uint32_t src = xb + dx + w * (yb + dy);
+          (buffer[xb + yb * dw] = image[src] << 8 | image[src] >> 8);
         }
       }
     }
     else {
-      for (int32_t yb = 0; yb < z.dh; yb++) {
-        memcpy((uint8_t*) (buffer + yb * z.dw), (uint8_t*) (image + z.dx + w * (yb + z.dy)), z.dw << 1);
+      for (int32_t yb = 0; yb < dh; yb++) {
+        memcpy((uint8_t*) (buffer + yb * dw), (uint8_t*) (image + dx + w * (yb + dy)), dw << 1);
       }
     }
   }
@@ -760,7 +759,7 @@ void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x0, int32_t y0, int32_t w, 
 
   if (spiBusyCheck) dmaWait(); // In case we did not wait earlier
 
-  setAddrWindow(z.x, z.y, z.dw, z.dh);
+  setAddrWindow(x, y, dw, dh);
 
   // DMA byte count for transmit is 64Kbytes maximum, so to avoid this constraint
   // small transfers are performed using a blocking call until DMA capacity is reached.

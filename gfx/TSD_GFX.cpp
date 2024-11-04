@@ -31,34 +31,90 @@
     b = t;     \
   }
 
-#define CLIP_X \
-  if (x < clip.x1) { w -= clip.x1 - x; x = clip.x1; } \
-  if (x + w > clip.x2) { w = clip.x2 - x; }
 
-#define CLIP_Y \
-  if (y < clip.y1) { h -= clip.y1 - y; y = clip.y1; } \
-  if (y + h > clip.y2) { h = clip.y2 - y; }
+/***************************************************************************************
+** Function name:           pushImage
+** Description:             plot 16-bit colour sprite or image onto TFT
+***************************************************************************************/
+void TSD_GFX::pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
+{
+  PI_CLIP;
 
-#define IF_CLIP_X x >= clip.x1 && x < clip.x2
+  startWrite();
+  writeAddrWindow(x, y, dw, dh);
 
-#define IF_CLIP_Y y >= clip.y1 && y < clip.y2
+  data += dx + dy * w;
 
-// Clipping macro for pushImage
-#define PI_CLIP                                        \
-  if (x >= clip.x2 || y >= clip.y2) return;            \
-                                                       \
-  int32_t dx = 0;                                      \
-  int32_t dy = 0;                                      \
-  int32_t dw = w;                                      \
-  int32_t dh = h;                                      \
-                                                       \
-  if (x < clip.x1) { dx = clip.x1 - x; dw -= dx; x = clip.x1; } \
-  if (y < clip.y1) { dy = clip.y1 - y; dh -= dy; y = clip.y1; } \
-                                                       \
-  if ((x + dw) > clip.x2 ) dw = clip.x2 - x;                 \
-  if ((y + dh) > clip.y2 ) dh = clip.y2 - y;                 \
-                                                       \
-  if (dw < 1 || dh < 1) return;
+  // Check if whole image can be pushed
+  if (dw == w) {
+    writeMDTBuffer((const uint8_t*)data, dw * dh);
+  }
+  else {
+    // Push line segments to crop image
+    while (dh--) {
+      writeMDTBuffer((const uint8_t*)data, dw);
+      data += w;
+    }
+  }
+
+  endWrite();
+}
+
+
+void TSD_GFX::pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transp)
+{
+  PI_CLIP;
+
+  startWrite();
+
+  data += dx + dy * w;
+
+
+  uint16_t  lineBuf[dw]; // Use buffer to minimise setWindow call count
+
+  // The little endian transp color must be byte swapped if the image is big endian
+//  if (!_swapBytes) transp = transp >> 8 | transp << 8;
+
+  while (dh--)
+  {
+    int32_t len = dw;
+    uint16_t* ptr = data;
+    int32_t px = x, sx = x;
+    bool move = true;
+    uint16_t np = 0;
+
+    while (len--)
+    {
+      if (transp != *ptr)
+      {
+        if (move) { move = false; sx = px; }
+        lineBuf[np] = *ptr;
+        np++;
+      }
+      else
+      {
+        move = true;
+        if (np)
+        {
+          writeAddrWindow(sx, y, np, 1);
+          writeMDTBuffer((const uint8_t*)lineBuf, np);
+          np = 0;
+        }
+      }
+      px++;
+      ptr++;
+    }
+    if (np) {
+      writeAddrWindow(sx, y, np, 1);
+      writeMDTBuffer((const uint8_t*)lineBuf, np);
+    }
+
+    y++;
+    data += w;
+  }
+
+  endWrite();
+}
 
 
 /**************************************************************************/
@@ -726,89 +782,6 @@ void TSD_GFX::drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint32_t* 
   }
   endWrite();
 }
-
-
-
-void TSD_GFX::pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data)
-{
-  PI_CLIP;
-
-  startWrite();
-  writeAddrWindow(x, y, dw, dh);
-
-  data += dx + dy * w;
-
-  // Check if whole image can be pushed
-  if (dw == w) {
-    writeMDTBuffer((const uint8_t*)data, dw * dh);
-  }
-  else {
-    // Push line segments to crop image
-    while (dh--) {
-      writeMDTBuffer((const uint8_t*)data, dw);
-      data += w;
-    }
-  }
-
-  endWrite();
-}
-
-
-void TSD_GFX::pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transp)
-{
-  PI_CLIP;
-
-  startWrite();
-
-  data += dx + dy * w;
-
-
-  uint16_t  lineBuf[dw]; // Use buffer to minimise setWindow call count
-
-  // The little endian transp color must be byte swapped if the image is big endian
-//  if (!_swapBytes) transp = transp >> 8 | transp << 8;
-
-  while (dh--)
-  {
-    int32_t len = dw;
-    uint16_t* ptr = data;
-    int32_t px = x, sx = x;
-    bool move = true;
-    uint16_t np = 0;
-
-    while (len--)
-    {
-      if (transp != *ptr)
-      {
-        if (move) { move = false; sx = px; }
-        lineBuf[np] = *ptr;
-        np++;
-      }
-      else
-      {
-        move = true;
-        if (np)
-        {
-          writeAddrWindow(sx, y, np, 1);
-          writeMDTBuffer((const uint8_t*)lineBuf, np);
-          np = 0;
-        }
-      }
-      px++;
-      ptr++;
-    }
-    if (np) {
-      writeAddrWindow(sx, y, np, 1);
-      writeMDTBuffer((const uint8_t*)lineBuf, np);
-    }
-
-    y++;
-    data += w;
-  }
-
-  endWrite();
-}
-
 
 
 
