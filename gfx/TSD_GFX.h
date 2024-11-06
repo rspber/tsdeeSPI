@@ -14,9 +14,6 @@
 #include <t_gradient.h>
 #include <stddef.h>
 
-#define BLACK        RGB(    0,    0,    0)
-#define WHITE        RGB( 0xFF, 0xFF, 0xFF)
-
 class TSD_GFX : public TFT_eeSPI {
 public:
   TSD_GFX() : TFT_eeSPI() {}

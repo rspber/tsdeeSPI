@@ -34,6 +34,9 @@ inline rgb_t unrgb8(const uint8_t color) {
 #define TFT_WHITE RGB(0xFF, 0xFF, 0xFF)
 #define TFT_BLACK RGB(0x00, 0x00, 0x00)
 
+#define WHITE RGB(0xFF, 0xFF, 0xFF)
+#define BLACK RGB(0x00, 0x00, 0x00)
+
 inline rgb_t RGB(uint8_t R, uint8_t G, uint8_t B) { return ((uint32_t)(R) << 16) | ((uint16_t)(G) << 8) | B; }
 
 inline uint16_t RGB565(uint8_t R, uint8_t G, uint8_t B) { return ((uint16_t)(R >> 3) << 11) | ((uint16_t)(G >> 2) << 5) | (B >> 3); }

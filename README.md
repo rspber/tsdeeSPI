@@ -5,7 +5,7 @@ Both: TFT_eSPI and tsdesktop examples work simultaneously, without no correction
 
 This was achieved by the following library configuration:<br/><br/>
 
-                             -> TFT_GFX  -> TFT_CHAR  -> TFT_eSPI
+                             -> TFT_GFX  -> TFT_CHAR  -> TFT_Print  -> TFT_eSPI
 
   TFT_eeSPI (processor's and protocol's handling) -> |<br/><br/>
 
@@ -17,6 +17,7 @@ This was achieved by the following library configuration:<br/><br/>
 Now tsdeeSPI consists of:
 
 * TFT_eSPI  :: top level class, entire TFT_eSPI interface is preserved
+* TFT_Print :: string printing class
 * TFT_CHAR  :: character drawing class
 * TFT_GFX   :: basic graphics, rectangles, circles, triangles and similar
 * TFT_eeSPI :: low level procedures: processors and protocols
