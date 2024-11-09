@@ -329,7 +329,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uin
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8, uint16_t *cmap)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint8_t *data, bool bpp8, cmap_t& cmap)
 {
   pushImage16(_clip, x, y, w, h, data, bpp8, cmap);
 }
@@ -339,7 +339,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uin
 ** Function name:           pushImage
 ** Description:             plot 8-bit or 4-bit or 1 bit image or sprite using a line buffer
 ***************************************************************************************/
-void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, bool bpp8, uint16_t *cmap)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, bool bpp8, cmap_t& cmap)
 {
   pushImage16(_clip, x, y, w, h, data, bpp8, cmap);
 }
@@ -349,7 +349,7 @@ void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *
 ** Function name:           pushImage
 ** Description:             plot 8 or 4 or 1 bit image or sprite with a transparent colour
 ***************************************************************************************/
-void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, uint8_t transp, bool bpp8, uint16_t *cmap)
+void TFT_eSPI::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t *data, rgb_t transp, bool bpp8, cmap_t& cmap)
 {
   pushImage16(_clip, x, y, w, h, data, transp, bpp8, cmap);
 }
@@ -1034,6 +1034,11 @@ void TFT_eSPI::getSetup(setup_t &tft_settings)
 #include "Extensions/Button.cpp"
 
 #include "Extensions/Sprite.cpp"
+#include "Extensions/Sprite_CHAR.cpp"
+
+#ifdef SMOOTH_FONT
+  #include "Extensions/Sprite_Smooth_font.cpp"
+#endif
 
 #ifdef SMOOTH_FONT
   #include "Extensions/Smooth_font_show.cpp"

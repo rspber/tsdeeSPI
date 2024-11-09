@@ -45,7 +45,8 @@ TFT_eSprite::TFT_eSprite(TFT_eSPI *tft) : TFT_eSPI()
   _xptr = 0; // pushColor coordinate
   _yptr = 0;
 
-  _colorMap = nullptr;
+  _cmap.cMap = nullptr;
+  _cmap.len = 0;
 
   _psram_enable = true;
   
@@ -61,6 +62,7 @@ TFT_eSprite::TFT_eSprite(TFT_eSPI *tft) : TFT_eSPI()
 // cast returned value to (uint8_t*) for 8-bit or (uint16_t*) for 16-bit colours
 void* TFT_eSprite::createSprite(int16_t w, int16_t h, uint8_t frames)
 {
+  Serial.println("createSprite");
 
   if ( _created ) return _img8_1;
 
@@ -108,7 +110,7 @@ void* TFT_eSprite::createSprite(int16_t w, int16_t h, uint8_t frames)
 
   if (_img8) {
     _created = true;
-    if ( (_bpp == 4) && (_colorMap == nullptr)) createPalette(default_4bit_palette);
+    if ( (_bpp == 4) && (_cmap.cMap == nullptr)) createPalette(default_4bit_palette);
 
     rotation = 0;
     setViewport(0, 0, _dwidth, _dheight);
@@ -161,6 +163,8 @@ TFT_eSprite::~TFT_eSprite(void)
 ***************************************************************************************/
 void* TFT_eSprite::callocSprite(int16_t w, int16_t h, uint8_t frames)
 {
+  Serial.println("callocSprite");
+
   // Add one extra "off screen" pixel to point out-of-bounds setWindow() coordinates
   // this means push/writeColor functions do not need additional bounds checks and
   // hence will run faster in normal circumstances.
@@ -230,8 +234,10 @@ void* TFT_eSprite::callocSprite(int16_t w, int16_t h, uint8_t frames)
 ** Function name:           createPalette (from RAM array)
 ** Description:             Set a palette for a 4-bit per pixel sprite
 ***************************************************************************************/
-void TFT_eSprite::createPalette(uint16_t colorMap[], uint8_t colors)
+void TFT_eSprite::createPalette(rgb_t colorMap[], uint8_t colors)
 {
+  Serial.println("createPalette 1");
+
   if (!_created) return;
 
   if (colorMap == nullptr) {
@@ -240,14 +246,16 @@ void TFT_eSprite::createPalette(uint16_t colorMap[], uint8_t colors)
     return;
   }
 
-  // Allocate and clear memory for 16 color map
-  if (_colorMap == nullptr) _colorMap = (uint16_t *)calloc(16, sizeof(uint16_t));
-
   if (colors > 16) colors = 16;
+  _cmap.len = colors;
+  _cmap.rLen = 0;
+
+  // Allocate and clear memory for 16 color map
+  _cmap.cMap = (rgb_t *)realloc(_cmap.cMap, colors*3 * sizeof(rgb_t));
 
   // Copy map colors
-  for (uint8_t i = 0; i < colors; i++) {
-    _colorMap[i] = colorMap[i];
+  for (int i = 0; i < colors; i++) {
+    _cmap.cMap[i] = colorMap[i];
   }
 }
 
@@ -256,8 +264,10 @@ void TFT_eSprite::createPalette(uint16_t colorMap[], uint8_t colors)
 ** Function name:           createPalette (from FLASH array)
 ** Description:             Set a palette for a 4-bit per pixel sprite
 ***************************************************************************************/
-void TFT_eSprite::createPalette(const uint16_t colorMap[], uint8_t colors)
+void TFT_eSprite::createPalette(const rgb_t colorMap[], uint8_t colors)
 {
+  Serial.println("createPalette 2");
+
   if (!_created) return;
 
   if (colorMap == nullptr)
@@ -266,14 +276,16 @@ void TFT_eSprite::createPalette(const uint16_t colorMap[], uint8_t colors)
     colorMap = default_4bit_palette;
   }
 
-  // Allocate and clear memory for 16 color map
-  if (_colorMap == nullptr) _colorMap = (uint16_t *)calloc(16, sizeof(uint16_t));
-
   if (colors > 16) colors = 16;
+  _cmap.len = colors;
+  _cmap.rLen = 0;
+
+  // Allocate and clear memory for 16 color map
+  _cmap.cMap = (rgb_t *)realloc(_cmap.cMap, colors*3 * sizeof(rgb_t));
 
   // Copy map colors
   for (uint8_t i = 0; i < colors; i++) {
-    _colorMap[i] = pgm_read_word(colorMap++);
+    _cmap.cMap[i] = color16to24(pgm_read_word(colorMap++));
   }
 }
 
@@ -285,6 +297,8 @@ void TFT_eSprite::createPalette(const uint16_t colorMap[], uint8_t colors)
 // Frames are numbered 1 and 2
 void* TFT_eSprite::frameBuffer(int8_t f)
 {
+  Serial.println("frameBuffer");
+
   if (!_created) return nullptr;
 
   if ( f == 2 ) _img8 = _img8_2;
@@ -306,6 +320,8 @@ void* TFT_eSprite::frameBuffer(int8_t f)
 ***************************************************************************************/
 void* TFT_eSprite::setColorDepth(int8_t b)
 {
+  Serial.println("setColorDepth");
+
   // Do not re-create the sprite if the colour depth does not change
   if (_bpp == b) return _img8_1;
 
@@ -331,6 +347,8 @@ void* TFT_eSprite::setColorDepth(int8_t b)
 ***************************************************************************************/
 int8_t TFT_eSprite::getColorDepth(void)
 {
+  Serial.println("getColorDepth");
+
   if (_created) return _bpp;
   else return 0;
 }
@@ -342,6 +360,8 @@ int8_t TFT_eSprite::getColorDepth(void)
 ***************************************************************************************/
 void TFT_eSprite::setBitmapColor(rgb_t c, rgb_t b)
 {
+  Serial.println("setBitmapColor");
+
   if (c == b) b = ~c;
   _tft->_bitmap_fg = c;
   _tft->_bitmap_bg = b;
@@ -354,9 +374,11 @@ void TFT_eSprite::setBitmapColor(rgb_t c, rgb_t b)
 ***************************************************************************************/
 void TFT_eSprite::setPaletteColor(uint8_t index, rgb_t color)
 {
-  if (_colorMap == nullptr || index > 15) return; // out of bounds
+  Serial.println("setPaletteColor");
 
-  _colorMap[index] = color24to16(color);
+  if (_cmap.cMap == nullptr || index >= _cmap.len) return; // out of bounds
+
+  _cmap.cMap[index] = color;
 }
 
 
@@ -366,9 +388,11 @@ void TFT_eSprite::setPaletteColor(uint8_t index, rgb_t color)
 ***************************************************************************************/
 uint16_t TFT_eSprite::getPaletteColor(uint8_t index)
 {
-  if (_colorMap == nullptr || index > 15) return 0; // out of bounds
+  Serial.println("getPaletteColor");
 
-  return _colorMap[index];
+  if (_cmap.cMap == nullptr || index >= _cmap.len) return 0; // out of bounds
+
+  return _cmap.cMap[index];
 }
 
 
@@ -378,10 +402,14 @@ uint16_t TFT_eSprite::getPaletteColor(uint8_t index)
 ***************************************************************************************/
 void TFT_eSprite::deleteSprite(void)
 {
-  if (_colorMap != nullptr) {
-    free(_colorMap);
-    _colorMap = nullptr;
+  Serial.println("deleteSprite");
+
+  if (_cmap.cMap != nullptr) {
+    free(_cmap.cMap);
+    _cmap.cMap = nullptr;
   }
+  _cmap.len = 0;
+  _cmap.rLen = 0;
 
   if (_created) {
     free(_img8_1);
@@ -398,8 +426,10 @@ void TFT_eSprite::deleteSprite(void)
 ** Description:             Push rotated Sprite to TFT screen
 ***************************************************************************************/
 #define FP_SCALE 10
-bool TFT_eSprite::pushRotated(int16_t angle, rgb_t transp_)
+bool TFT_eSprite::pushRotated(int16_t angle, rgb_t transp)
 {
+  Serial.println("pushRotated 1");
+
   if ( !_created) return false;
 
   // Bounding box parameters
@@ -411,20 +441,13 @@ bool TFT_eSprite::pushRotated(int16_t angle, rgb_t transp_)
   // Get the bounding box of this rotated source Sprite relative to Sprite pivot
   if ( !getRotatedBounds(angle, &min_x, &min_y, &max_x, &max_y) ) return false;
 
-  uint16_t transp = color24to16(transp_);
-
   uint16_t sline_buffer[max_x - min_x + 1];
 
   int32_t xt = min_x - _tft->_xPivot;
   int32_t yt = min_y - _tft->_yPivot;
   uint32_t xe = _dwidth << FP_SCALE;
   uint32_t ye = _dheight << FP_SCALE;
-  uint16_t tpcolor = transp;
 
-  if (transp != color24to16(WHITE)) {
-    if (_bpp == 4) tpcolor = _colorMap[transp & 0x0F];
-    tpcolor = tpcolor>>8 | tpcolor<<8; // Working with swapped color bytes
-  }
   _tft->startWrite(); // Avoid transaction overhead for every tft pixel
 
   // Scan destination bounding box and fetch transformed pixels from source Sprite
@@ -438,17 +461,16 @@ bool TFT_eSprite::pushRotated(int16_t angle, rgb_t transp_)
 
     uint32_t pixel_count = 0;
     do {
-      uint32_t rp;
       int32_t xp = xs >> FP_SCALE;
       int32_t yp = ys >> FP_SCALE;
+      rgb_t rp;
       if (_bpp == 16) {
-        rp = _img[xp + yp * _iwidth];
+        rp = color16to24(_img[xp + yp * _iwidth]);
       }
       else {
         rp = readPixel(_clip, xp, yp);
-        rp = (uint16_t)(rp>>8 | rp<<8);
       }
-      if (transp != color24to16(WHITE) && tpcolor == rp) {
+      if (!eqColorsFC(transp, WHITE) && eqColorsFC(transp, rp)) {
         if (pixel_count) {
           // TFT window is already clipped, so this is faster than pushImage
           _tft->setWindow(x - pixel_count, y, pixel_count, 1);
@@ -457,7 +479,7 @@ bool TFT_eSprite::pushRotated(int16_t angle, rgb_t transp_)
         }
       }
       else {
-        sline_buffer[pixel_count++] = rp;
+        sline_buffer[pixel_count++] = color24to16(rp);
       }
     } while (++x < max_x && (xs += _cosra) < xe && (ys += _sinra) < ye);
     if (pixel_count) {
@@ -478,8 +500,10 @@ bool TFT_eSprite::pushRotated(int16_t angle, rgb_t transp_)
 ** Description:             Push a rotated copy of the Sprite to another Sprite
 ***************************************************************************************/
 // Not compatible with 4bpp
-bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, rgb_t transp_)
+bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, rgb_t transp)
 {
+  Serial.println("pushRotated 2");
+
   if ( !_created  || _bpp == 4) return false; // Check this Sprite is created
   if ( !spr->_created  || spr->_bpp == 4) return false;  // Ckeck destination Sprite is created
 
@@ -492,21 +516,13 @@ bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, rgb_t transp_)
   // Get the bounding box of this rotated source Sprite
   if ( !getRotatedBounds(spr, angle, &min_x, &min_y, &max_x, &max_y) ) return false;
 
-  uint16_t transp = color24to16(transp_);
-
   uint16_t sline_buffer[max_x - min_x + 1];
 
   int32_t xt = min_x - spr->_xPivot;
   int32_t yt = min_y - spr->_yPivot;
   uint32_t xe = _dwidth << FP_SCALE;
   uint32_t ye = _dheight << FP_SCALE;
-  uint16_t tpcolor = transp;
   
-  if (transp != color24to16(WHITE)) {
-    if (_bpp == 4) tpcolor = _colorMap[transp & 0x0F];
-    tpcolor = tpcolor>>8 | tpcolor<<8; // Working with swapped color bytes
-  }
-
   bool oldSwapBytes = spr->getSwapBytes();
   spr->setSwapBytes(false);
 
@@ -521,24 +537,23 @@ bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, rgb_t transp_)
 
     uint32_t pixel_count = 0;
     do {
-      uint32_t rp;
       int32_t xp = xs >> FP_SCALE;
       int32_t yp = ys >> FP_SCALE;
+      rgb_t rp;
       if (_bpp == 16) {
-        rp = _img[xp + yp * _iwidth];
+        rp = color16to24(_img[xp + yp * _iwidth]);
       }
       else {
         rp = readPixel(_clip, xp, yp);
-        rp = (uint16_t)(rp>>8 | rp<<8);
       }
-      if (transp != color24to16(WHITE) && tpcolor == rp) {
+      if (!eqColorsFC(transp, WHITE) && eqColorsFC(transp, rp)) {
         if (pixel_count) {
           spr->pushImage16(x - pixel_count, y, pixel_count, 1, sline_buffer);
           pixel_count = 0;
         }
       }
       else {
-        sline_buffer[pixel_count++] = rp;
+        sline_buffer[pixel_count++] = color24to16(rp);
       }
     } while (++x < max_x && (xs += _cosra) < xe && (ys += _sinra) < ye);
     if (pixel_count) spr->pushImage16(x - pixel_count, y, pixel_count, 1, sline_buffer);
@@ -555,6 +570,8 @@ bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, rgb_t transp_)
 bool TFT_eSprite::getRotatedBounds(int16_t angle, int16_t *min_x, int16_t *min_y,
                                                   int16_t *max_x, int16_t *max_y)
 {
+//  Serial.println("getRotatedBounds 1");
+
   // Get the bounding box of this rotated source Sprite relative to Sprite pivot
   getRotatedBounds(angle, width(), height(), _xPivot, _yPivot, min_x, min_y, max_x, max_y);
 
@@ -587,6 +604,8 @@ bool TFT_eSprite::getRotatedBounds(int16_t angle, int16_t *min_x, int16_t *min_y
 bool TFT_eSprite::getRotatedBounds(TFT_eSprite *spr, int16_t angle, int16_t *min_x, int16_t *min_y,
                                                                     int16_t *max_x, int16_t *max_y)
 {
+//  Serial.println("getRotatedBounds 2");
+
   // Get the bounding box of this rotated source Sprite relative to Sprite pivot
   getRotatedBounds(angle, width(), height(), _xPivot, _yPivot, min_x, min_y, max_x, max_y);
 
@@ -624,6 +643,8 @@ bool TFT_eSprite::getRotatedBounds(TFT_eSprite *spr, int16_t angle, int16_t *min
 void TFT_eSprite::getRotatedBounds(int16_t angle, int16_t w, int16_t h, int16_t xp, int16_t yp,
                                    int16_t *min_x, int16_t *min_y, int16_t *max_x, int16_t *max_y)
 {
+//  Serial.println("getRotatedBounds 3");
+
   // Trig values for the rotation
   float radAngle = -angle * 0.0174532925; // Convert degrees to radians
   float sina = sin(radAngle);
@@ -677,6 +698,8 @@ void TFT_eSprite::getRotatedBounds(int16_t angle, int16_t w, int16_t h, int16_t 
 ***************************************************************************************/
 void TFT_eSprite::pushSprite(int32_t x, int32_t y)
 {
+  Serial.println("pushSprite 1");
+
   if (!_created) return;
 
   if (_bpp == 16) {
@@ -686,9 +709,12 @@ void TFT_eSprite::pushSprite(int32_t x, int32_t y)
     _tft->setSwapBytes(oldSwapBytes);
   }
   else if (_bpp == 4) {
-    _tft->pushImage16(x, y, _dwidth, _dheight, _img4, false, _colorMap);
+    _tft->pushImage16(x, y, _dwidth, _dheight, _img4, false, _cmap);
   }
-  else _tft->pushImage16(x, y, _dwidth, _dheight, _img8, (bool)(_bpp == 8));
+  else {
+    cmap_t tmp = {0};
+    _tft->pushImage16(x, y, _dwidth, _dheight, _img8, (bool)(_bpp == 8), tmp);
+  }
 }
 
 
@@ -696,26 +722,29 @@ void TFT_eSprite::pushSprite(int32_t x, int32_t y)
 ** Function name:           pushSprite
 ** Description:             Push the sprite to the TFT at x, y with transparent colour
 ***************************************************************************************/
-void TFT_eSprite::pushSprite(int32_t x, int32_t y, rgb_t transp_)
+void TFT_eSprite::pushSprite(int32_t x, int32_t y, rgb_t transp)
 {
-  if (!_created) return;
+  Serial.println("pushSprite 2");
 
-  uint16_t transp = color24to16(transp_);
+  if (!_created) return;
 
   if (_bpp == 16) {
     bool oldSwapBytes = _tft->getSwapBytes();
     _tft->setSwapBytes(false);
-    _tft->pushImage16(x, y, _dwidth, _dheight, _img, transp_);
+    _tft->pushImage16(x, y, _dwidth, _dheight, _img, transp);
     _tft->setSwapBytes(oldSwapBytes);
   }
   else if (_bpp == 8) {
-    transp = (uint8_t)((transp & 0xE000)>>8 | (transp & 0x0700)>>6 | (transp & 0x0018)>>3);
-    _tft->pushImage16(x, y, _dwidth, _dheight, _img8, (uint8_t)transp, (bool)true);
+    cmap_t tmp = {0};
+    _tft->pushImage16(x, y, _dwidth, _dheight, _img8, transp, (bool)true, tmp);
   }
   else if (_bpp == 4) {
-    _tft->pushImage16(x, y, _dwidth, _dheight, _img4, (uint8_t)(transp & 0x0F), false, _colorMap);
+    _tft->pushImage16(x, y, _dwidth, _dheight, _img4, transp, false, _cmap);
   }
-  else _tft->pushImage16(x, y, _dwidth, _dheight, _img8, 0, (bool)false);
+  else {
+    cmap_t tmp = {0};
+    _tft->pushImage16(x, y, _dwidth, _dheight, _img8, 0, (bool)false, tmp);
+  }
 }
 
 
@@ -733,6 +762,8 @@ void TFT_eSprite::pushSprite(int32_t x, int32_t y, rgb_t transp_)
 
 bool TFT_eSprite::pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y)
 {
+  Serial.println("pushToSprite 1");
+
   if (!_created) return false;
   if (!dspr->created()) return false;
 
@@ -763,8 +794,10 @@ bool TFT_eSprite::pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y)
 //     8bpp  ->  8bpp
 //     1bpp  ->  1bpp
 
-bool TFT_eSprite::pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, rgb_t transp_)
+bool TFT_eSprite::pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, rgb_t transp)
 {
+  Serial.println("pushToSprite 2");
+
   if ( !_created  || !dspr->_created) return false; // Check Sprites exist
 
   // Check destination sprite compatibility
@@ -777,26 +810,22 @@ bool TFT_eSprite::pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, rgb_t tr
   bool oldSwapBytes = dspr->getSwapBytes();
   uint16_t sline_buffer[width()];
 
-  uint16_t transp = color24to16(transp_);
-  transp = transp>>8 | transp<<8;
-
   // Scan destination bounding box and fetch transformed pixels from source Sprite
   for (int32_t ys = 0; ys < height(); ys++) {
     int32_t ox = x;
     uint32_t pixel_count = 0;
 
     for (int32_t xs = 0; xs < width(); xs++) {
-      uint16_t rp = 0;
+      rgb_t rp = 0;
       if (_bpp == 16) {
-        rp = _img[xs + ys * width()];
+        rp = color16to24(_img[xs + ys * width()]);
       }
       else {
-        rp = color24to16(readPixel(_clip, xs, ys));
-        rp = rp>>8 | rp<<8;
+        rp = readPixel(_clip, xs, ys);
       }
       //dspr->drawPixel(xs, ys, rp);
 
-      if (transp == rp) {
+      if (eqColorsFC(transp, rp) ) {
         if (pixel_count) {
           dspr->pushImage16(ox, y, pixel_count, 1, sline_buffer);
           ox += pixel_count;
@@ -805,7 +834,7 @@ bool TFT_eSprite::pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, rgb_t tr
         ox++;
       }
       else {
-        sline_buffer[pixel_count++] = rp;
+        sline_buffer[pixel_count++] = color24to16(rp);
       }
     }
     if (pixel_count) dspr->pushImage16(ox, y, pixel_count, 1, sline_buffer);
@@ -822,6 +851,8 @@ bool TFT_eSprite::pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, rgb_t tr
 ***************************************************************************************/
 bool TFT_eSprite::pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int32_t sw, int32_t sh)
 {
+  Serial.println("pushSprite");
+
   if (!_created) return false;
 
   // Perform window boundary checks and crop if needed
@@ -856,17 +887,19 @@ bool TFT_eSprite::pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int
   else if (_bpp == 8) {
     // Check if a faster block copy to screen is possible
     if ( sx == 0 && sw == _dwidth) {
-      _tft->pushImage16(tx, ty, sw, sh, _img8 + _iwidth * _ys, (bool)true );
+      cmap_t tmp = {0};
+      _tft->pushImage16(tx, ty, sw, sh, _img8 + _iwidth * _ys, (bool)true, tmp);
     }
     else // Render line by line
     while (sh--) {
-      _tft->pushImage16(tx, ty++, sw, 1, _img8 + _xs + _iwidth * _ys++, (bool)true );
+      cmap_t tmp = {0};
+      _tft->pushImage16(tx, ty++, sw, 1, _img8 + _xs + _iwidth * _ys++, (bool)true, tmp);
     }
   }
   else if (_bpp == 4) {
     // Check if a faster block copy to screen is possible
     if ( sx == 0 && sw == _dwidth) {
-      _tft->pushImage16(tx, ty, sw, sh, _img4 + (_iwidth>>1) * _ys, false, _colorMap );
+      _tft->pushImage16(tx, ty, sw, sh, _img4 + (_iwidth>>1) * _ys, false, _cmap );
     }
     else { // Render line by line
       int32_t ds = _xs&1; // Odd x start pixel
@@ -882,7 +915,7 @@ bool TFT_eSprite::pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int
       _tft->startWrite();
       while (sh--) {
         if (ds) _tft->drawPixel(tx, ty, readPixel(_clip, _xs, _ys) );
-        if (dm) _tft->pushImage16(tx + ds, ty, dm, 1, _img4 + yp, false, _colorMap );
+        if (dm) _tft->pushImage16(tx + ds, ty, dm, 1, _img4 + yp, false, _cmap );
         if (de) _tft->drawPixel(tx + sw, ty, readPixel(_clip, _xe, _ys) );
         _ys++;
         ty++;
@@ -894,12 +927,14 @@ bool TFT_eSprite::pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int
   else { // 1bpp
     // Check if a faster block copy to screen is possible
     if ( sx == 0 && sw == _dwidth) {
-      _tft->pushImage16(tx, ty, sw, sh, _img8 + (_bitwidth>>3) * _ys, (bool)false );
+      cmap_t tmp = {0};
+      _tft->pushImage16(tx, ty, sw, sh, _img8 + (_bitwidth>>3) * _ys, (bool)false, tmp);
     }
     else { // Render line by line
       _tft->startWrite();
       while (sh--) {
-        _tft->pushImage16(tx, ty++, sw, 1, _img8 + (_bitwidth>>3) * _ys++, (bool)false );
+        cmap_t tmp = {0};
+        _tft->pushImage16(tx, ty++, sw, 1, _img8 + (_bitwidth>>3) * _ys++, (bool)false, tmp);
       }
       _tft->endWrite();
     }
@@ -913,9 +948,11 @@ bool TFT_eSprite::pushSprite(int32_t tx, int32_t ty, int32_t sx, int32_t sy, int
 ** Function name:           readPixelValue
 ** Description:             Read the color map index of a pixel at defined coordinates
 ***************************************************************************************/
-uint16_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
+rgb_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
 {
-  if (!_created) return 0xFF;
+//  Serial.println("readPixelValue");
+
+  if (!_created) return TFT_BLACK;
 
   x+= _clip.xDatum;
   y+= _clip.yDatum;
@@ -930,15 +967,18 @@ uint16_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
 
   if (_bpp == 8) {
     // Return the pixel byte value
-    return _img8[x + y * _iwidth];
+    uint8_t c8 = _img8[x + y * _iwidth];
+    rgb_t c24 = color8to24(c8);
+    Serial.printf(" c8:%02x=%08x", c8, c24);
+    return c24;
   }
 
   if (_bpp == 4) {
-    if (x >= _dwidth) return 0xFF;
+    if (x >= _dwidth) return TFT_WHITE;
     if ((x & 0x01) == 0)
-      return _img4[((x+y*_iwidth)>>1)] >> 4;   // even index = bits 7 .. 4
+      return _cmap.cMap[_img4[((x+y*_iwidth)>>1)] >> 4];   // even index = bits 7 .. 4
     else
-      return _img4[((x+y*_iwidth)>>1)] & 0x0F; // odd index = bits 3 .. 0.
+      return _cmap.cMap[_img4[((x+y*_iwidth)>>1)] & 0x0F]; // odd index = bits 3 .. 0.
   }
 
   if (_bpp == 1) {
@@ -958,11 +998,15 @@ uint16_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
       y = _dwidth - tx - 1;
     }
     // Return 1 or 0
-    return (_img8[(x + y * _bitwidth)>>3] >> (7-(x & 0x7))) & 0x01;
+    return _cmap.cMap[(_img8[(x + y * _bitwidth)>>3] >> (7-(x & 0x7))) & 0x01];
   }
 
   return 0;
 }
+
+namespace {
+  uint8_t  blue[] = {0, 0x5F, 0xAF, 0xFF};
+};
 
 /***************************************************************************************
 ** Function name:           readPixel
@@ -970,42 +1014,38 @@ uint16_t TFT_eSprite::readPixelValue(int32_t x, int32_t y)
 ***************************************************************************************/
 rgb_t TFT_eSprite::readPixel(clip_t& clip, int32_t x, int32_t y)
 {
+//  Serial.println("readPixel");
+
   if (!_created) return 0xFFFF;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
 
   // Range checking
-  if ((x < clip.x1) || (y < clip.y1) ||(x >= clip.x2) || (y >= clip.y2)) return 0xFFFF;
+  if ((x < clip.x1) || (y < clip.y1) ||(x >= clip.x2) || (y >= clip.y2)) return TFT_WHITE;
 
   if (_bpp == 16) {
-    uint16_t color = _img[x + y * _iwidth];
-    return (color >> 8) | (color << 8);
+    return color16to24(_img[x + y * _iwidth]);
   }
 
   if (_bpp == 8) {
-    uint16_t color = _img8[x + y * _iwidth];
-    if (color != 0) {
-      uint8_t  blue[] = {0, 11, 21, 31};
-
-      color =   (color & 0xE0)<<8 | (color & 0xC0)<<5
-              | (color & 0x1C)<<6 | (color & 0x1C)<<3
-              | blue[color & 0x03];
-      return color16to24(color);
+    uint8_t c8 = _img8[x + y * _iwidth];
+    if (c8 != 0) {
+      uint32_t c24 = (c8 & 0xE0)<<16 | (c8 & 0xC0)<<13 | (c8 & 0x1C)<<11 | (c8 & 0x1C)<<8 | blue[c8 & 0x03];
+      Serial.printf(" c8:%02x=%08x", c8, c24);
+      return c24;
     }
-    return color;
+    return TFT_BLACK;
   }
 
   if (_bpp == 4) {
-    if (x >= _dwidth) return 0xFFFF;
-    uint16_t color;
+    if (x >= _dwidth) return TFT_WHITE;
     if ((x & 0x01) == 0) {
-      color = _colorMap[_img4[((x+y*_iwidth)>>1)] >> 4];   // even index = bits 7 .. 4
+      return _cmap.cMap[_img4[((x+y*_iwidth)>>1)] >> 4];   // even index = bits 7 .. 4
     }
     else {
-      color = _colorMap[_img4[((x+y*_iwidth)>>1)] & 0x0F]; // odd index = bits 3 .. 0.
+      return _cmap.cMap[_img4[((x+y*_iwidth)>>1)] & 0x0F]; // odd index = bits 3 .. 0.
     }
-    return color16to24(color);
   }
 
   // Note: Must be 1bpp
@@ -1025,9 +1065,9 @@ rgb_t TFT_eSprite::readPixel(clip_t& clip, int32_t x, int32_t y)
     y = _dwidth - tx - 1;
   }
 
-  uint16_t color = (_img8[(x + y * _bitwidth)>>3] << (x & 0x7)) & 0x80;
+  uint8_t idx = (_img8[(x + y * _bitwidth)>>3] << (x & 0x7)) & 0x80;
 
-  if (color) return _tft->_bitmap_fg;
+  if (idx) return _tft->_bitmap_fg;
   else       return _tft->_bitmap_bg;
 }
 
@@ -1038,6 +1078,8 @@ rgb_t TFT_eSprite::readPixel(clip_t& clip, int32_t x, int32_t y)
 ***************************************************************************************/
 void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp)
 {
+  Serial.println("pushImage 1");
+
   if (data == nullptr || !_created) return;
 
   clip_t& clip = _clip;
@@ -1082,20 +1124,12 @@ void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint1
     }
   }
   else if (_bpp == 8) { // Plot a 16 bpp image into a 8 bpp Sprite
-    uint16_t lastColor = 0;
-    uint8_t  color8    = 0;
     for (int32_t yp = dy; yp < dy + dh; yp++) {
       int32_t xyw = x + y * _iwidth;
       int32_t dxypw = dx + yp * w;
       for (int32_t xp = dx; xp < dx + dw; xp++) {
         uint16_t color = data[dxypw++];
-        if (color != lastColor) {
-          // When data source is a sprite, the bytes are already swapped
-          if(!_swapBytes) color8 = (uint8_t)((color & 0xE0) | (color & 0x07)<<2 | (color & 0x1800)>>11);
-          else color8 = (uint8_t)((color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3);
-        }
-        lastColor = color;
-        _img8[xyw++] = color8;
+        _img8[xyw++] = color16to8(color);
       }
       y++;
     }
@@ -1122,12 +1156,12 @@ void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint1
       for (int32_t yp = dy; yp < dy + dh; yp++) {
         int32_t ox = x;
         for (int32_t xp = dx; xp < dx + dw; xp++) {
-          uint32_t color;
+          int idx;
           if ((xp & 0x01) == 0)
-            color = (ptr[((xp+yp*w)>>1)] & 0xF0) >> 4; // even index = bits 7 .. 4
+            idx = (ptr[((xp+yp*w)>>1)] & 0xF0) >> 4; // even index = bits 7 .. 4
           else
-            color = ptr[((xp-1+yp*w)>>1)] & 0x0F;      // odd index = bits 3 .. 0.
-          drawPixel(_clip, ox, y, color);
+            idx = ptr[((xp-1+yp*w)>>1)] & 0x0F;      // odd index = bits 3 .. 0.
+          drawPixel(_clip, ox, y, _cmap.cMap[idx]);
           ox++;
         }
         y++;
@@ -1143,8 +1177,8 @@ void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint1
       uint32_t yw = yp * ww;              // Byte starting the line containing source pixel
       int32_t ox = x;
       for (int32_t xp = dx; xp < dx + dw; xp++) {
-        uint16_t readPixel = (ptr[(xp>>3) + yw] & (0x80 >> (xp & 0x7)) );
-        drawPixel(_clip, ox++, y, readPixel);
+        int idx = (ptr[(xp>>3) + yw] & (0x80 >> (xp & 0x7)) );
+        drawPixel(_clip, ox++, y, _cmap.cMap[idx]);
       }
       y++;
     }
@@ -1158,6 +1192,8 @@ void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, uint1
 ***************************************************************************************/
 void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data)
 {
+  Serial.println("pushImage 2");
+
 #ifdef ESP32
   pushImage16(x, y, w, h, (uint16_t*) data);
 #else
@@ -1186,7 +1222,7 @@ void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const
       for (int32_t xp = dx; xp < dx + dw; xp++) {
         uint16_t color = pgm_read_word(data + xp + yp * w);
         if(_swapBytes) color = color<<8 | color>>8;
-        _img8[ox + y * _iwidth] = (uint8_t)((color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3);
+        _img8[ox + y * _iwidth] = color16to8(color);
         ox++;
       }
       y++;
@@ -1215,7 +1251,7 @@ void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const
         while (mask) {
           uint8_t p = pbyte & mask;
           mask = mask >> 1;
-          drawPixel(_clip, ox++, y, p);
+          drawPixel(_clip, ox++, y, _cmap.cMap[p != 0 ? 1 : 0]);
           odx++;
         }
       }
@@ -1234,6 +1270,8 @@ void  TFT_eSprite::pushImage16(int32_t x, int32_t y, int32_t w, int32_t h, const
 // Intentionally not constrained to viewport area, does not manage 1bpp rotations
 void TFT_eSprite::setWindow(int32_t x1, int32_t y1, int32_t w, int32_t h)
 {
+//  Serial.println("setWindow");
+
   int32_t x2 = x1 + w - 1;
   int32_t y2 = y1 + h - 1;
 
@@ -1265,26 +1303,29 @@ void TFT_eSprite::setWindow(int32_t x1, int32_t y1, int32_t w, int32_t h)
 ** Function name:           pushColor
 ** Description:             Send a new pixel to the set window
 ***************************************************************************************/
-void TFT_eSprite::pushColor(rgb_t color_)
+void TFT_eSprite::pushColor(rgb_t color)
 {
-  if (!_created ) return;
+  Serial.printf("pushColor 1 %08x\n", color);
 
-  uint16_t color = color24to16(color_);
+  if (!_created ) return;
 
   // Write the colour to RAM in set window
   if (_bpp == 16) {
-    _img [_xptr + _yptr * _iwidth] = (uint16_t) (color >> 8) | (color << 8);
+    _img [_xptr + _yptr * _iwidth] = color24to16(color);
   }
   else  if (_bpp == 8) {
-    _img8[_xptr + _yptr * _iwidth] = (uint8_t )((color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3);
+     uint8_t c8 = color24to8(color);
+     Serial.printf("c8:%02x ", c8);
+    _img8[_xptr + _yptr * _iwidth] = c8;
   }
   else if (_bpp == 4) {
-    uint8_t c = (uint8_t)color & 0x0F;
+    int idx = _cmap.getMapColorIdx(color);
+    int index =  (_xptr + _yptr * _iwidth)>>1;
     if ((_xptr & 0x01) == 0) {
-      _img4[(_xptr + _yptr * _iwidth)>>1] = (c << 4) | (_img4[(_xptr + _yptr * _iwidth)>>1] & 0x0F);  // new color is in bits 7 .. 4
+      _img4[index] = (idx << 4) | (_img4[index] & 0x0F);  // new color is in bits 7 .. 4
     }
     else {
-      _img4[(_xptr + _yptr * _iwidth)>>1] = (_img4[(_xptr + _yptr * _iwidth)>>1] & 0xF0) | c; // new color is the low bits
+      _img4[index] = (_img4[index] & 0xF0) | idx; // new color is the low bits
     }
   }
 
@@ -1307,21 +1348,11 @@ void TFT_eSprite::pushColor(rgb_t color_)
 ** Function name:           pushColor
 ** Description:             Send a "len" new pixels to the set window
 ***************************************************************************************/
-void TFT_eSprite::pushColor(rgb_t color_, uint32_t len)
+void TFT_eSprite::pushColor(rgb_t pixelColor, uint32_t len)
 {
+  Serial.println("pushColor 2");
+
   if (!_created ) return;
-
-  uint16_t color = color24to16(color_);
-
-  uint16_t pixelColor;
-
-  if (_bpp == 16) {
-    pixelColor = (uint16_t) (color >> 8) | (color << 8);
-  }
-  else  if (_bpp == 8) {
-    pixelColor = (color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3;
-  }
-  else pixelColor = (uint16_t) color; // for 1bpp or 4bpp
 
   while(len--) writeColor(pixelColor);
 }
@@ -1331,26 +1362,29 @@ void TFT_eSprite::pushColor(rgb_t color_, uint32_t len)
 ** Function name:           writeColor
 ** Description:             Write a pixel with pre-formatted colour to the set window
 ***************************************************************************************/
-void TFT_eSprite::writeColor(rgb_t color_)
+void TFT_eSprite::writeColor(rgb_t color)
 {
-  if (!_created ) return;
+  Serial.printf(" %08x", color);
 
-  uint16_t color = color24to16(color_);
+  if (!_created ) return;
 
   // Write 16-bit RGB 565 encoded colour to RAM
   if (_bpp == 16) {
-    _img [_xptr + _yptr * _iwidth] = color;
+    _img [_xptr + _yptr * _iwidth] = color24to16(color);
   }
   // Write 8-bit RGB 332 encoded colour to RAM
   else if (_bpp == 8) {
-    _img8[_xptr + _yptr * _iwidth] = (uint8_t) color;
+    uint8_t c8 = color24to8(color);
+    Serial.printf("c8:%02x ", c8);
+    _img8[_xptr + _yptr * _iwidth] = c8;
   }
   else if (_bpp == 4) {
-    uint8_t c = (uint8_t)color & 0x0F;
+    int idx = _cmap.getMapColorIdx(color);
+    int index = (_xptr + _yptr * _iwidth)>>1;
     if ((_xptr & 0x01) == 0)
-      _img4[(_xptr + _yptr * _iwidth)>>1] = (c << 4) | (_img4[(_xptr + _yptr * _iwidth)>>1] & 0x0F);  // new color is in bits 7 .. 4
+      _img4[index] = (idx << 4) | (_img4[index] & 0x0F);  // new color is in bits 7 .. 4
     else
-      _img4[(_xptr + _yptr * _iwidth)>>1] = (_img4[(_xptr + _yptr * _iwidth)>>1] & 0xF0) | c; // new color is the low bits (x is odd)
+      _img4[index] = (_img4[index] & 0xF0) | idx; // new color is the low bits (x is odd)
   }
 
   else drawPixel(_clip, _xptr, _yptr, color);
@@ -1374,6 +1408,8 @@ void TFT_eSprite::writeColor(rgb_t color_)
 // Intentionally not constrained to viewport area
 void TFT_eSprite::setScrollRect(int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
 {
+  Serial.println("setScrollRect");
+
   if ((x >= _iwidth) || (y >= _iheight) || !_created ) return;
 
   if (x < 0) { w += x; x = 0; }
@@ -1399,6 +1435,8 @@ void TFT_eSprite::setScrollRect(int32_t x, int32_t y, int32_t w, int32_t h, rgb_
 ***************************************************************************************/
 void TFT_eSprite::scroll(int16_t dx, int16_t dy)
 {
+  Serial.println("scroll");
+
   if (abs(dx) >= _sw || abs(dy) >= _sh) {
     fillRect (_clip, _sx, _sy, _sw, _sh, _scolor);
     return;
@@ -1483,31 +1521,34 @@ void TFT_eSprite::scroll(int16_t dx, int16_t dy)
 ** Function name:           fillSprite
 ** Description:             Fill the whole sprite with defined colour
 ***************************************************************************************/
-void TFT_eSprite::fillSprite(rgb_t color_)
+void TFT_eSprite::fillSprite(rgb_t color)
 {
+  Serial.println("fillSprite");
+
   if (!_created) return;
 
-  uint16_t color = color24to16(color_);
+  Serial.printf("color = %08x   bpp = %d\n", color, _bpp);
 
   // Use memset if possible as it is super fast
   if(_clip.xDatum == 0 && _clip.yDatum == 0  &&  _xWidth == width()) {
     if(_bpp == 16) {
-      if ( (uint8_t)color == (uint8_t)(color>>8) ) {
-        memset(_img,  (uint8_t)color, _iwidth * _yHeight * 2);
-      }
-      else fillRect(_clip, _clip.x1, _clip.y1, _xWidth, _yHeight, color);
+      fillRect(_clip, _clip.x1, _clip.y1, _xWidth, _yHeight, color);
     }
     else if (_bpp == 8) {
-      color = (color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3;
-      memset(_img8, (uint8_t)color, _iwidth * _yHeight);
+      uint8_t c8 = color24to8(color);
+      Serial.printf("c8:%02x ", c8);
+      memset(_img8, c8, _iwidth * _yHeight);
     }
     else if (_bpp == 4) {
-      uint8_t c = ((color & 0x0F) | (((color & 0x0F) << 4) & 0xF0));
-      memset(_img4, c, (_iwidth * _yHeight) >> 1);
+      int idx = _cmap.getMapColorIdx(color);
+      Serial.printf("idx = %02x\n", idx);
+      uint8_t c2 = (idx & 0x0F) | ((idx & 0x0F) << 4);
+      memset(_img4, idx, (_iwidth * _yHeight) >> 1);
     }
     else if (_bpp == 1) {
-      if(color) memset(_img8, 0xFF, (_bitwidth>>3) * _dheight + 1);
-      else      memset(_img8, 0x00, (_bitwidth>>3) * _dheight + 1);
+      int idx = _cmap.getMapColorIdx(color);
+      Serial.printf("idx = %02x\n", idx);
+      memset(_img8, idx == 1 ? 0xFF : 0x00, (_bitwidth>>3) * _dheight + 1);
     }
   }
   else {
@@ -1523,6 +1564,8 @@ void TFT_eSprite::fillSprite(rgb_t color_)
 // Return the size of the sprite
 int16_t TFT_eSprite::width(void)
 {
+//  Serial.println("width");
+
   if (!_created ) return 0;
 
   if (_bpp > 1) {
@@ -1546,6 +1589,8 @@ int16_t TFT_eSprite::width(void)
 ***************************************************************************************/
 int16_t TFT_eSprite::height(void)
 {
+//  Serial.println("height");
+
   if (!_created ) return 0;
 
   if (_bpp > 1) {
@@ -1570,6 +1615,8 @@ int16_t TFT_eSprite::height(void)
 // Does nothing for 4, 8 and 16 bpp sprites.
 void TFT_eSprite::setRotation(uint8_t r)
 {
+  Serial.println("setRotation");
+
   if (_bpp != 1) return;
 
   rotation = r;
@@ -1597,11 +1644,11 @@ uint8_t TFT_eSprite::getRotation(void)
 ** Function name:           drawPixel
 ** Description:             push a single pixel at an arbitrary position
 ***************************************************************************************/
-void TFT_eSprite::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color_)
+void TFT_eSprite::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color)
 {
-  if (!_created) return;
+  Serial.println("drawPixel");
 
-  uint16_t color = color24to16(color_);
+  if (!_created) return;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
@@ -1610,20 +1657,21 @@ void TFT_eSprite::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color_)
   if ((x < clip.x1) || (y < clip.y1) ||(x >= clip.x2) || (y >= clip.y2)) return;
 
   if (_bpp == 16) {
-    color = (color >> 8) | (color << 8);
-    _img[x+y*_iwidth] = (uint16_t) color;
+    _img[x+y*_iwidth] = color24to16(color);
   }
   else if (_bpp == 8) {
-    _img8[x+y*_iwidth] = (uint8_t)((color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3);
+      uint8_t c8 = color24to8(color);
+      Serial.printf("c8:%02 ", c8);
+    _img8[x+y*_iwidth] = c8;
   }
   else if (_bpp == 4) {
-    uint8_t c = color & 0x0F;
-    int index = (x+y*_iwidth)>>1;;
+    int idx = _cmap.getMapColorIdx(color);
+    int index = (x + y*_iwidth)>>1;;
     if ((x & 0x01) == 0) {
-      _img4[index] = (uint8_t)((c << 4) | (_img4[index] & 0x0F));
+      _img4[index] = ((idx & 0x0F) << 4) | (_img4[index] & 0x0F);
     }
     else {
-      _img4[index] =  (uint8_t)(c | (_img4[index] & 0xF0));
+      _img4[index] =  (idx & 0x0F) | (_img4[index] & 0xF0);
     }
   }
   else { // 1 bpp
@@ -1654,6 +1702,8 @@ void TFT_eSprite::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color_)
 ***************************************************************************************/
 void TFT_eSprite::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, rgb_t color)
 {
+  Serial.println("drawLine");
+
   if (!_created) return;
 
   //_xDatum and _yDatum Not added here, it is added by drawPixel & drawFastxLine
@@ -1709,11 +1759,11 @@ void TFT_eSprite::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int
 ** Function name:           drawFastVLine
 ** Description:             draw a vertical line
 ***************************************************************************************/
-void TFT_eSprite::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, rgb_t color_)
+void TFT_eSprite::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, rgb_t color)
 {
-  if (!_created) return;
+  Serial.println("drawFastVLine");
 
-  uint16_t color = color24to16(color_);
+  if (!_created) return;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
@@ -1728,26 +1778,28 @@ void TFT_eSprite::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, r
   if (h < 1) return;
 
   if (_bpp == 16) {
-    color = (color >> 8) | (color << 8);
+    uint16_t c = color24to16(color);
     int32_t yp = x + _iwidth * y;
-    while (h--) {_img[yp] = (uint16_t) color; yp += _iwidth;}
+    while (h--) {_img[yp] = c; yp += _iwidth;}
   }
   else if (_bpp == 8) {
-    color = (color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3;
-    while (h--) _img8[x + _iwidth * y++] = (uint8_t) color;
+    uint8_t c8 = color24to8(color);
+    Serial.printf("c8:%02x ", c8);
+    while (h--) _img8[x + _iwidth * y++] = c8;
   }
   else if (_bpp == 4) {
+    int idx = _cmap.getMapColorIdx(color);
     if ((x & 0x01) == 0) {
-      uint8_t c = (uint8_t) (color & 0xF) << 4;
       while (h--) {
-        _img4[(x + _iwidth * y)>>1] = (uint8_t) (c | (_img4[(x + _iwidth * y)>>1] & 0x0F));
+        int index = (x + _iwidth * y)>>1;
+        _img4[index] = ((idx & 0x0F) << 4) | (_img4[index] & 0x0F);
         y++;
       }
     }
     else {
-      uint8_t c = (uint8_t)color & 0xF;
       while (h--) {
-        _img4[(x + _iwidth * y)>>1] = (uint8_t) (c | (_img4[(x + _iwidth * y)>>1] & 0xF0)); // x is odd; new color goes into the low bits.
+        int index = (x + _iwidth * y)>>1;
+        _img4[index] = (idx & 0x0F) | (_img4[index] & 0xF0); // x is odd; new color goes into the low bits.
         y++;
       }
     }
@@ -1756,7 +1808,7 @@ void TFT_eSprite::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, r
     x -= clip.xDatum; // Remove any offset as it will be added by drawPixel
     y -= clip.yDatum;
     while (h--) {
-      drawPixel(clip, x, y++, color_);
+      drawPixel(clip, x, y++, color);
     }
   }
 }
@@ -1766,11 +1818,11 @@ void TFT_eSprite::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, r
 ** Function name:           drawFastHLine
 ** Description:             draw a horizontal line
 ***************************************************************************************/
-void TFT_eSprite::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, rgb_t color_)
+void TFT_eSprite::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, rgb_t color)
 {
-  if (!_created) return;
+  Serial.println("drawFastHLine");
 
-  uint16_t color = color24to16(color_);
+  if (!_created) return;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
@@ -1785,16 +1837,15 @@ void TFT_eSprite::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, r
   if (w < 1) return;
 
   if (_bpp == 16) {
-    color = (color >> 8) | (color << 8);
-    while (w--) _img[_iwidth * y + x++] = (uint16_t) color;
+    uint16_t c = color24to16(color);
+    while (w--) _img[_iwidth * y + x++] = c;
   }
   else if (_bpp == 8) {
-    color = (color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3;
-    memset(_img8+_iwidth * y + x, (uint8_t)color, w);
+    uint8_t c8 = color24to8(color);
+    Serial.printf("c8:%02x ", c8);
+    memset(_img8+_iwidth * y + x, c8, w);
   }
   else if (_bpp == 4) {
-    uint8_t c = (uint8_t)color & 0x0F;
-    uint8_t c2 = (c | ((c << 4) & 0xF0));
     if ((x & 0x01) == 1) {
       drawPixel(clip, x - clip.xDatum, y - clip.yDatum, color);
       x++; w--;
@@ -1808,6 +1859,8 @@ void TFT_eSprite::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, r
       w--;
       if (w < 1) return;
     }
+    int idx = _cmap.getMapColorIdx(color);
+    uint8_t c2 = (idx & 0x0F) | ((idx & 0x0F) << 4);
     memset(_img4 + ((_iwidth * y + x) >> 1), c2, (w >> 1));
   }
   else {
@@ -1815,7 +1868,7 @@ void TFT_eSprite::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, r
     y -= clip.yDatum;
 
     while (w--) {
-      drawPixel(clip, x++, y, color_);
+      drawPixel(clip, x++, y, color);
     }
   }
 }
@@ -1825,11 +1878,11 @@ void TFT_eSprite::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, r
 ** Function name:           fillRect
 ** Description:             draw a filled rectangle
 ***************************************************************************************/
-void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color_)
+void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
 {
-  if (!_created) return;
+//  Serial.printf("fillRect %d,%d  %d*%d\n", x, y, w, h);
 
-  uint16_t color = color24to16(color_);
+  if (!_created) return;
 
   x+= clip.xDatum;
   y+= clip.yDatum;
@@ -1848,10 +1901,10 @@ void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_
   int32_t yp = _iwidth * y + x;
 
   if (_bpp == 16) {
-    color = (color >> 8) | (color << 8);
+    uint8_t c = color24to16(color);
     uint32_t iw = w;
     int32_t ys = yp;
-    if(h--)  {while (iw--) _img[yp++] = (uint16_t) color;}
+    if(h--)  {while (iw--) _img[yp++] = c;}
     yp = ys;
     while (h--) {
       yp += _iwidth;
@@ -1859,15 +1912,16 @@ void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_
     }
   }
   else if (_bpp == 8) {
-    color = (color & 0xE000)>>8 | (color & 0x0700)>>6 | (color & 0x0018)>>3;
+    uint8_t c8 = color24to8(color);
+    Serial.printf("c8:%02x ", c8);
     while (h--) {
-      memset(_img8 + yp, (uint8_t)color, w);
+      memset(_img8 + yp, c8, w);
       yp += _iwidth;
     }
   }
   else if (_bpp == 4) {
-    uint8_t c1 = (uint8_t)color & 0x0F;
-    uint8_t c2 = c1 | ((c1 << 4) & 0xF0);
+    int idx = _cmap.getMapColorIdx(color);
+    uint8_t c2 = (idx & 0x0F) | ((idx & 0x0F) << 4);
     if ((x & 0x01) == 0 && (w & 0x01) == 0) {
       yp = (yp >> 1);
       while (h--) {
@@ -1875,7 +1929,7 @@ void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_
         yp += (_iwidth >> 1);
       }
     }
-    else if ((x & 0x01) == 0) {
+    else if ((x & 0x01) == 0) {   // (w & 0x01) == 1
 
       // same as above but you have a hangover on the right.
       yp = (yp >> 1);
@@ -1883,25 +1937,25 @@ void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_
         if (w > 1)
           memset(_img4 + yp, c2, (w-1)>>1);
         // handle the rightmost pixel by calling drawPixel
-        drawPixel(clip, x+w-1-clip.xDatum, y+h-clip.yDatum, c1);
+        drawPixel(clip, x+w-1-clip.xDatum, y+h-clip.yDatum, color);
         yp += (_iwidth >> 1);
       }
     }
-    else if ((w & 0x01) == 1) {
+    else if ((w & 0x01) == 1) {   // (x & 0x01) == 0
       yp = (yp + 1) >> 1;
       while (h--) {
-        drawPixel(clip, x-clip.xDatum, y+h-clip.yDatum, color & 0x0F);
+        drawPixel(clip, x-clip.xDatum, y+h-clip.yDatum, color);
         if (w > 1)
           memset(_img4 + yp, c2, (w-1)>>1);
         // same as above but you have a hangover on the left instead
         yp += (_iwidth >> 1);
       }
     }
-    else {
+    else {    // ((x & 0x01) == 1 && (w & 0x01) == 1)
       yp = (yp + 1) >> 1;
       while (h--) {
-        drawPixel(clip, x-clip.xDatum, y+h-clip.yDatum, color & 0x0F);
-        if (w > 1) drawPixel(clip, x+w-1-clip.xDatum, y+h-clip.yDatum, color & 0x0F);
+        drawPixel(clip, x-clip.xDatum, y+h-clip.yDatum, color);
+        if (w > 1) drawPixel(clip, x+w-1-clip.xDatum, y+h-clip.yDatum, color);
         if (w > 2)
           memset(_img4 + yp, c2, (w-2)>>1);
         // maximal hacking, single pixels on left and right.
@@ -1915,642 +1969,8 @@ void TFT_eSprite::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_
     while (h--) {
       int32_t ww = w;
       int32_t xx = x;
-      while (ww--) drawPixel(clip, xx++, y, color_);
+      while (ww--) drawPixel(clip, xx++, y, color);
       y++;
     }
   }
 }
-
-
-/***************************************************************************************
-** Function name:           drawChar
-** Description:             draw a single character in the Adafruit GLCD or freefont
-***************************************************************************************/
-void TFT_eSprite::drawChar_GLCD_GFXFF(clip_t& clip, cursor_t& cursor, chr_font_t& font, uint16_t c, rgb_t color, rgb_t bg)
-{
-  if ( !_created ) return;
-
-  if (c < 32) return;
-#ifdef LOAD_GLCD
-//>>>>>>>>>>>>>>>>>>
-#ifdef LOAD_GFXFF
-  if (!font.gfxFont) { // 'Classic' built-in font
-#endif
-//>>>>>>>>>>>>>>>>>>
-
-  int32_t xd = cursor.x + clip.xDatum;
-  int32_t yd = cursor.y + clip.yDatum;
-
-  if ((xd >= clip.x2) || // Clip right
-      (yd >= clip.y2))   // Clip bottom
-    return;
-
-  if ((xd + 6 * font.size - 1 < clip.x1) || // Clip left
-      (yd + 8 * font.size - 1 < clip.y1))   // Clip top
-    return;
-
-  if (c > 255) return;
-  if (!_cp437 && c > 175) c++;
-
-  bool fillbg = (bg != color);
-
-  if (font.size == 1 && fillbg)
-  {
-    uint8_t column[6];
-    uint8_t mask = 0x1;
-
-    for (int8_t i = 0; i < 5; i++ ) column[i] = pgm_read_byte(glcdfont + (c * 5) + i);
-    column[5] = 0;
-
-    int8_t j, k;
-    for (j = 0; j < 8; j++) {
-      for (k = 0; k < 5; k++ ) {
-        if (column[k] & mask) {
-          drawPixel(clip, cursor.x + k, cursor.y + j, color);
-        }
-        else {
-          drawPixel(clip, cursor.x + k, cursor.y + j, bg);
-        }
-      }
-
-      mask <<= 1;
-
-      drawPixel(clip, cursor.x + k, cursor.y + j, bg);
-    }
-  }
-  else
-  {
-    for (int8_t i = 0; i < 6; i++ ) {
-      uint8_t line;
-      if (i == 5)
-        line = 0x0;
-      else
-        line = pgm_read_byte(glcdfont + (c * 5) + i);
-
-      if (font.size == 1) // default size
-      {
-        for (int8_t j = 0; j < 8; j++) {
-          if (line & 0x1) drawPixel(clip, cursor.x + i, cursor.y + j, color);
-          line >>= 1;
-        }
-      }
-      else {  // big size
-        for (int8_t j = 0; j < 8; j++) {
-          if (line & 0x1) fillRect(clip, cursor.x + (i * font.size), cursor.y + (j * font.size), font.size, font.size, color);
-          else if (fillbg) fillRect(clip, cursor.x + i * font.size, cursor.y + j * font.size, font.size, font.size, bg);
-          line >>= 1;
-        }
-      }
-    }
-  }
-
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#ifdef LOAD_GFXFF
-  } else { // Custom font
-#endif
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>
-#endif // LOAD_GLCD
-
-#ifdef LOAD_GFXFF
-    // Filter out bad characters not present in font
-    if ((c >= pgm_read_word(&font.gfxFont->first)) && (c <= pgm_read_word(&font.gfxFont->last )))
-    {
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-      c -= pgm_read_word(&font.gfxFont->first);
-      GFXglyph *glyph  = &(((GFXglyph *)pgm_read_dword(&font.gfxFont->glyph))[c]);
-
-      uint8_t  w  = pgm_read_byte(&glyph->width),
-               h  = pgm_read_byte(&glyph->height);
-      int8_t   xo = pgm_read_byte(&glyph->xOffset),
-               yo = pgm_read_byte(&glyph->yOffset);
-
-      if ((cursor.x + xo + w * font.size - 1 + clip.xDatum < clip.x1) || // Clip left
-          (cursor.y + yo + h * font.size - 1 + clip.yDatum < clip.y1))   // Clip top
-        return;
-
-      uint8_t  *bitmap = (uint8_t *)pgm_read_dword(&font.gfxFont->bitmap);
-      uint32_t bo = pgm_read_word(&glyph->bitmapOffset);
-
-      uint8_t  xx, yy, bits=0, bit=0;
-      //uint8_t  xa = pgm_read_byte(&glyph->xAdvance);
-      int16_t  xo16 = 0, yo16 = 0;
-
-      if(font.size > 1) {
-        xo16 = xo;
-        yo16 = yo;
-      }
-
-      uint16_t hpc = 0; // Horizontal foreground pixel count
-      for(yy=0; yy<h; yy++) {
-        for(xx=0; xx<w; xx++) {
-          if(bit == 0) {
-            bits = pgm_read_byte(&bitmap[bo++]);
-            bit  = 0x80;
-          }
-          if(bits & bit) hpc++;
-          else {
-            if (hpc) {
-              if(font.size == 1) drawFastHLine(clip, cursor.x+xo+xx-hpc, cursor.y+yo+yy, hpc, color);
-              else fillRect(clip, cursor.x+(xo16+xx-hpc)*font.size, cursor.y+(yo16+yy)*font.size, font.size*hpc, font.size, color);
-              hpc=0;
-            }
-          }
-          bit >>= 1;
-        }
-        // Draw pixels for this line as we are about to increment yy
-        if (hpc) {
-          if(font.size == 1) drawFastHLine(clip, cursor.x+xo+xx-hpc, cursor.y+yo+yy, hpc, color);
-          else fillRect(clip, cursor.x+(xo16+xx-hpc)*font.size, cursor.y+(yo16+yy)*font.size, font.size*hpc, font.size, color);
-          hpc=0;
-        }
-      }
-    }
-#endif
-  }
-}
-
-void TFT_eSprite::drawCharRLEfont(int32_t xd, int32_t yd, int32_t pY, uint16_t width, uint16_t height, int16_t textsize, rgb_t textcolor, uint32_t flash_address)
-{
-    int32_t w = width;
-    w *= height; // Now w is total number of pixels in the character
-
-      int32_t px = 0, py = pY; // To hold character block start and end column and row values
-      int32_t pc = 0; // Pixel count
-      int16_t np = textsize * textsize; // Number of pixels in a drawn pixel
-
-      // 16-bit pixel count so maximum font size is equivalent to 180x180 pixels in area
-      // w is total number of pixels to plot to fill character block
-      while (pc < w) {
-        uint8_t line = pgm_read_byte((uint8_t *)flash_address);
-        flash_address++;
-        if (line & 0x80) {
-          line &= 0x7F;
-          line++;
-          if (textsize > 1) {
-            px = xd + textsize * (pc % width); // Keep these px and py calculations outside the loop as they are slow
-            py = yd + textsize * (pc / width);
-          }
-          else {
-            px = xd + pc % width; // Keep these px and py calculations outside the loop as they are slow
-            py = yd + pc / width;
-          }
-          while (line--) { // In this case the while(line--) is faster
-            pc++; // This is faster than putting pc+=line before while()?
-            setWindow(px, py, textsize, textsize);
-
-            if (textsize > 1) {
-              int16_t j = np;
-              while (j--) writeColor(textcolor);
-            }
-            else writeColor(textcolor);
-
-            px += textsize;
-
-            if (px >= xd + width * textsize) {
-              px = xd;
-              py += textsize;
-            }
-          }
-        }
-        else {
-          line++;
-          pc += line;
-        }
-      }
-}
-
-
-void TFT_eSprite::drawCharRLE_1(int32_t width, int32_t height, rgb_t textcolor, rgb_t textbgcolor, uint32_t flash_address)
-{
-        int32_t w = width;
-        w *= height; // Now w is total number of pixels in the character
-
-        // Maximum font size is equivalent to 180x180 pixels in area
-        while (w > 0) {
-          uint8_t line = pgm_read_byte((uint8_t *)flash_address++); // 8 bytes smaller when incrementing here
-          if (line & 0x80) {
-            line &= 0x7F;
-            line++; w -= line;
-            while (line--) writeColor(textcolor);
-          }
-          else {
-            line++; w -= line;
-            while (line--) writeColor(textbgcolor);
-          }
-        }
-}
-
-/***************************************************************************************
-** Function name:           drawChar
-** Description:             draw a unicode glyph into the sprite
-***************************************************************************************/
-  // TODO: Rationalise with TFT_eSPI
-  // Any UTF-8 decoding must be done before calling drawChar()
-int16_t TFT_eSprite::drawChar(clip_t& clip, cursor_t& cursor, chr_font_t& font, uint16_t uniCode, rgb_t textcolor, rgb_t textbgcolor)
-{
-  if (!uniCode) return 0;
-
-  if (font.font == 1) {
-#ifdef LOAD_GLCD
-  #ifndef LOAD_GFXFF
-    drawChar_GLCD_GFXFF(clip, cursor, font, uniCode, textcolor, textbgcolor);
-    return 6 * font.size;
-  #endif
-#else
-  #ifndef LOAD_GFXFF
-    return 0;
-  #endif
-#endif
-
-#ifdef LOAD_GFXFF
-    drawChar_GLCD_GFXFF(clip, cursor, font, uniCode, textcolor, textbgcolor);
-    if (!font.gfxFont) { // 'Classic' built-in font
-    #ifdef LOAD_GLCD
-      return 6 * font.size;
-    #else
-      return 0;
-    #endif
-    }
-    else {
-      if((uniCode >= pgm_read_word(&font.gfxFont->first)) && (uniCode <= pgm_read_word(&font.gfxFont->last) )) {
-        uint16_t   c2    = uniCode - pgm_read_word(&font.gfxFont->first);
-        GFXglyph *glyph = &(((GFXglyph *)pgm_read_dword(&font.gfxFont->glyph))[c2]);
-        return pgm_read_byte(&glyph->xAdvance) * font.size;
-      }
-      else {
-        return 0;
-      }
-    }
-#endif
-  }
-
-  if ((font.font > 1) && (font.font < 9) && ((uniCode < 32) || (uniCode > 127))) return 0;
-
-  int32_t width  = 0;
-  int32_t height = 0;
-  uint32_t flash_address = 0;
-  uniCode -= 32;
-
-#ifdef LOAD_FONT2
-  if (font.font == 2) {
-    flash_address = pgm_read_dword(&chrtbl_f16[uniCode]);
-    width = pgm_read_byte(widtbl_f16 + uniCode);
-    height = chr_hgt_f16;
-  }
-  #ifdef LOAD_RLE
-  else
-  #endif
-#endif
-
-#ifdef LOAD_RLE
-  {
-    if ((font.font>2) && (font.font<9)) {
-      flash_address = pgm_read_dword( (const void*)(pgm_read_dword( &(fontdata[font.font].chartbl ) ) + uniCode*sizeof(void *)) );
-      width = pgm_read_byte( (uint8_t *)pgm_read_dword( &(fontdata[font.font].widthtbl ) ) + uniCode );
-      height= pgm_read_byte( &fontdata[font.font].height );
-    }
-  }
-#endif
-
-  int32_t xd = cursor.x + clip.xDatum;
-  int32_t yd = cursor.y + clip.yDatum;
-
-  if ((xd + width * font.size < clip.x1 || xd >= clip.x2) && (yd + height * font.size < clip.y1 || yd >= clip.y2)) return width * font.size ;
-
-  bool offclip = xd < clip.x1 || xd + width  * font.size >= clip.x2 || yd < clip.y1 || yd + height * font.size >= clip.y2;
-
-#ifdef LOAD_FONT2 // chop out code if we do not need it
-  if (font.font == 2) {
-    drawCharFont2(clip, cursor, width, height, font.size, textcolor, textbgcolor, flash_address);
-  }
-
-  #ifdef LOAD_RLE
-  else
-  #endif
-#endif  //FONT2
-
-#ifdef LOAD_RLE  //674 bytes of code
-  // Font is not 2 and hence is RLE encoded
-  {
-    int16_t color = textcolor;
-    if (_bpp == 16) color = (textcolor >> 8) | (textcolor << 8);
-    else if (_bpp == 8) color = rgb8(textcolor);
-
-    int16_t bgcolor = textbgcolor;
-    if (_bpp == 16) bgcolor = (textbgcolor >> 8) | (textbgcolor << 8);
-    else if (_bpp == 8) bgcolor = rgb8(textbgcolor);
-
-    if (textcolor == textbgcolor && !offclip && _bpp != 1) {
-      drawCharRLEfont(xd, yd, cursor.y, width, height, font.size, color, flash_address);
-    }
-    else {
-      // Text colour != background and font.size = 1 and character is within viewport area
-      // so use faster drawing of characters and background using block write
-      if (textcolor != textbgcolor && font.size == 1 && !offclip && _bpp != 1) {
-        setWindow(xd, yd, width, height);
-        drawCharRLE_1(width, height, textcolor, textbgcolor, flash_address);
-      }
-      else {
-        drawCharRLE_3(clip, cursor, width, height, font.size, textcolor, textbgcolor, flash_address);
-      }
-    }
-  }
-  // End of RLE font rendering
-#endif
-
-  return width * font.size;    // x +
-}
-
-
-#ifdef SMOOTH_FONT
-/***************************************************************************************
-** Function name:           drawGlyph
-** Description:             Write a character to the sprite cursor position
-***************************************************************************************/
-//
-void TFT_eSprite::drawGlyph(wh_clip_t& clip, cursor_t& cursor, uint16_t code, rgb_t textcolor, rgb_t textbgcolor)
-{
-  uint16_t fg = textcolor;
-  uint16_t bg = textbgcolor;
-  bool getBG  = false;
-  if (fg == bg) getBG = true;
-
-  // Check if cursor has moved
-  if (_last_cursor_x != cursor.x)
-  {
-    _bg_cursor_x = cursor.x;
-    _last_cursor_x = cursor.x;
-  }
-
-  if (code < 0x21)
-  {
-    if (code == 0x20) {
-      if (_fillbg) fillRect(clip, _bg_cursor_x, cursor.y, (cursor.x + gFont.spaceWidth) - _bg_cursor_x, gFont.yAdvance, bg);
-      cursor.x += gFont.spaceWidth;
-      _bg_cursor_x = cursor.x;
-      _last_cursor_x = cursor.x;
-      return;
-    }
-
-    if (code == '\n') {
-      cursor.x = 0;
-      _bg_cursor_x = 0;
-      _last_cursor_x = 0;
-      cursor.y += gFont.yAdvance;
-      if (_textwrapY && (cursor.y >= height())) cursor.y = 0;
-      return;
-    }
-  }
-
-  uint16_t gNum = 0;
-  bool found = getUnicodeIndex(code, &gNum);
-
-  if (found)
-  {
-
-    bool newSprite = !_created;
-
-    if (newSprite)
-    {
-      createSprite(gWidth[gNum], gFont.yAdvance);
-      if(fg != bg) fillSprite(bg);
-      cursor.x = -gdX[gNum];
-      _bg_cursor_x = cursor.x;
-      _last_cursor_x = cursor.x;
-      cursor.y = 0;
-    }
-    else
-    {
-      if (_textwrapX && ((cursor.x + gWidth[gNum] + gdX[gNum]) > width())) {
-        cursor.y += gFont.yAdvance;
-        cursor.x = 0;
-        _bg_cursor_x = 0;
-        _last_cursor_x = 0;
-      }
-
-      if (_textwrapY && ((cursor.y + gFont.yAdvance) > height())) cursor.y = 0;
-      if (cursor.x == 0) cursor.x -= gdX[gNum];
-    }
-
-    uint8_t* pbuffer = nullptr;
-    const uint8_t* gPtr = (const uint8_t*) gFont.gArray;
-
-#ifdef FONT_FS_AVAILABLE
-    if (fs_font) {
-      fontFile.seek(gBitmap[gNum], fs::SeekSet); // This is slow for a significant position shift!
-      pbuffer =  (uint8_t*)malloc(gWidth[gNum]);
-    }
-#endif
-
-    int16_t cy = cursor.y + gFont.maxAscent - gdY[gNum];
-    int16_t cx = cursor.x + gdX[gNum];
-
-    //  if (cx > width() && bg_cursor_x > width()) return;
-    //  if (cursor_y > height()) return;
-
-    int16_t  fxs = cx;
-    uint32_t fl = 0;
-    int16_t  bxs = cx;
-    uint32_t bl = 0;
-    int16_t  bx = 0;
-    uint8_t pixel = 0;
-
-    int16_t fillwidth  = 0;
-    int16_t fillheight = 0;
-
-    // Fill area above glyph
-    if (_fillbg) {
-      fillwidth  = (cursor.x + gxAdvance[gNum]) - _bg_cursor_x;
-      if (fillwidth > 0) {
-        fillheight = gFont.maxAscent - gdY[gNum];
-        if (fillheight > 0) {
-          fillRect(clip, _bg_cursor_x, cursor.y, fillwidth, fillheight, textbgcolor);
-        }
-      }
-      else {
-        // Could be negative
-        fillwidth = 0;
-      }
-
-      // Fill any area to left of glyph                              
-      if (_bg_cursor_x < cx) fillRect(clip, _bg_cursor_x, cy, cx - _bg_cursor_x, gHeight[gNum], textbgcolor);
-      // Set x position in glyph area where background starts
-      if (_bg_cursor_x > cx) bx = _bg_cursor_x - cx;
-      // Fill any area to right of glyph
-      if (cx + gWidth[gNum] < cursor.x + gxAdvance[gNum]) {
-        fillRect(clip, cx + gWidth[gNum], cy, (cursor.x + gxAdvance[gNum]) - (cx + gWidth[gNum]), gHeight[gNum], textbgcolor);
-      }
-    }
-
-    for (int32_t y = 0; y < gHeight[gNum]; y++)
-    {
-#ifdef FONT_FS_AVAILABLE
-      if (fs_font) {
-        fontFile.read(pbuffer, gWidth[gNum]);
-      }
-#endif
-
-      for (int32_t x = 0; x < gWidth[gNum]; x++)
-      {
-#ifdef FONT_FS_AVAILABLE
-        if (fs_font) pixel = pbuffer[x];
-        else
-#endif
-        pixel = pgm_read_byte(gPtr + gBitmap[gNum] + x + gWidth[gNum] * y);
-
-        if (pixel)
-        {
-          if (bl) { drawFastHLine(clip, bxs, y + cy, bl, bg); bl = 0; }
-          if (pixel != 0xFF)
-          {
-            if (fl) {
-              if (fl==1) drawPixel(clip, fxs, y + cy, fg);
-              else drawFastHLine(clip, fxs, y + cy, fl, fg);
-              fl = 0;
-            }
-            if (getBG) bg = readPixel(clip, x + cx, y + cy);
-            drawPixel(clip, x + cx, y + cy, alphaBlend(pixel, fg, bg));
-          }
-          else
-          {
-            if (fl==0) fxs = x + cx;
-            fl++;
-          }
-        }
-        else
-        {
-          if (fl) { drawFastHLine(clip, fxs, y + cy, fl, fg); fl = 0; }
-          if (_fillbg) {
-            if (x >= bx) {
-              if (bl==0) bxs = x + cx;
-              bl++;
-            }
-          }
-        }
-      }
-      if (fl) { drawFastHLine(clip, fxs, y + cy, fl, fg); fl = 0; }
-      if (bl) { drawFastHLine(clip, bxs, y + cy, bl, bg); bl = 0; }
-    }
-
-    // Fill area below glyph
-    if (fillwidth > 0) {
-      fillheight = (cursor.y + gFont.yAdvance) - (cy + gHeight[gNum]);
-      if (fillheight > 0) {
-        fillRect(clip, _bg_cursor_x, cy + gHeight[gNum], fillwidth, fillheight, textbgcolor);
-      }
-    }
-
-    if (pbuffer) free(pbuffer);
-    cursor.x += gxAdvance[gNum];
-
-    if (newSprite)
-    {
-      pushSprite(cx, cursor.y);
-      deleteSprite();
-    }
-  }
-  else
-  {
-    // Not a Unicode in font so draw a rectangle and move on cursor
-    drawRect(clip, cursor.x, cursor.y + gFont.maxAscent - gFont.ascent, gFont.spaceWidth, gFont.ascent, fg);
-    cursor.x += gFont.spaceWidth + 1;
-  }
-  _bg_cursor_x = cursor.x;
-  _last_cursor_x = cursor.x;
-}
-
-
-/***************************************************************************************
-** Function name:           printToSprite
-** Description:             Write a string to the sprite cursor position
-***************************************************************************************/
-void TFT_eSprite::printToSprite(String string)
-{
-  if(!fontLoaded) return;
-  printToSprite((char*)string.c_str(), string.length());
-}
-
-
-/***************************************************************************************
-** Function name:           printToSprite
-** Description:             Write a string to the sprite cursor position
-***************************************************************************************/
-void TFT_eSprite::printToSprite(char *cbuffer, uint16_t len) //String string)
-{
-  if(!fontLoaded) return;
-
-  uint16_t n = 0;
-  bool newSprite = !_created;
-  int16_t  cursorX = _tft->getCursorX();
-
-  if (newSprite)
-  {
-    int16_t sWidth = 0;
-    uint16_t index = 0;
-    bool     first = true;
-    while (n < len)
-    {
-      uint16_t unicode = decodeUTF8((uint8_t*)cbuffer, &n, len - n);
-      if (getUnicodeIndex(unicode, &index))
-      {
-        if (first) {
-          first = false;
-          sWidth -= gdX[index];
-          cursorX += gdX[index];
-        }
-        if (n == len) sWidth += ( gWidth[index] + gdX[index]);
-        else sWidth += gxAdvance[index];
-      }
-      else sWidth += gFont.spaceWidth + 1;
-    }
-
-    createSprite(sWidth, gFont.yAdvance);
-
-    if (_textcolor != _textbgcolor) fillSprite(_textbgcolor);
-  }
-
-  n = 0;
-
-  while (n < len)
-  {
-    uint16_t unicode = decodeUTF8((uint8_t*)cbuffer, &n, len - n);
-    //Serial.print("Decoded Unicode = 0x");Serial.println(unicode,HEX);
-    //Serial.print("n = ");Serial.println(n);
-    drawGlyph(_clip, _cursor, unicode, _textcolor, _textbgcolor);
-  }
-
-  if (newSprite)
-  { // The sprite had to be created so place at TFT cursor
-    pushSprite(cursorX, _tft->getCursorY());
-    deleteSprite();
-  }
-}
-
-
-/***************************************************************************************
-** Function name:           printToSprite
-** Description:             Print character in a Sprite, create sprite if needed
-***************************************************************************************/
-int16_t TFT_eSprite::printToSprite(int16_t x, int16_t y, uint16_t index)
-{
-  bool newSprite = !_created;
-  int16_t sWidth = gWidth[index];
-
-  if (newSprite)
-  {
-    createSprite(sWidth, gFont.yAdvance);
-
-    if (_textcolor != _textbgcolor) fillSprite(_textbgcolor);
-
-    drawGlyph(_clip, _cursor, gUnicode[index], _textcolor, _textbgcolor);
-
-    pushSprite(x + gdX[index], y, _textbgcolor);
-    deleteSprite();
-  }
-
-  else drawGlyph(_clip, _cursor, gUnicode[index], _textcolor, _textbgcolor);
-
-  return gxAdvance[index];
-}
-#endif

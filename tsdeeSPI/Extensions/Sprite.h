@@ -39,23 +39,23 @@
 **                         Section 6: Colour enumeration
 ***************************************************************************************/
 // Default palette for 4-bit colour sprites
-static const uint16_t default_4bit_palette[] PROGMEM = {
-  color24to16(TFT_BLACK),    //  0  ^
-  color24to16(TFT_BROWN),    //  1  |
-  color24to16(TFT_RED),      //  2  |
-  color24to16(TFT_ORANGE),   //  3  |
-  color24to16(TFT_YELLOW),   //  4  Colours 0-9 follow the resistor colour code!
-  color24to16(TFT_GREEN),    //  5  |
-  color24to16(TFT_BLUE),     //  6  |
-  color24to16(TFT_PURPLE),   //  7  |
-  color24to16(TFT_DARKGREY), //  8  |
-  color24to16(TFT_WHITE),    //  9  v
-  color24to16(TFT_CYAN),     // 10  Blue+green mix
-  color24to16(TFT_MAGENTA),  // 11  Blue+red mix
-  color24to16(TFT_MAROON),   // 12  Darker red colour
-  color24to16(TFT_DARKGREEN),// 13  Darker green colour
-  color24to16(TFT_NAVY),     // 14  Darker blue colour
-  color24to16(TFT_PINK)      // 15
+static const rgb_t default_4bit_palette[] PROGMEM = {
+  TFT_BLACK,    //  0  ^
+  TFT_BROWN,    //  1  |
+  TFT_RED,      //  2  |
+  TFT_ORANGE,   //  3  |
+  TFT_YELLOW,   //  4  Colours 0-9 follow the resistor colour code!
+  TFT_GREEN,    //  5  |
+  TFT_BLUE,     //  6  |
+  TFT_PURPLE,   //  7  |
+  TFT_DARKGREY, //  8  |
+  TFT_WHITE,    //  9  v
+  TFT_CYAN,     // 10  Blue+green mix
+  TFT_MAGENTA,  // 11  Blue+red mix
+  TFT_MAROON,   // 12  Darker red colour
+  TFT_DARKGREEN,// 13  Darker green colour
+  TFT_NAVY,     // 14  Darker blue colour
+  TFT_PINK      // 15
 };
 
 /***************************************************************************************
@@ -103,8 +103,8 @@ class TFT_eSprite : public TFT_eSPI {
   int8_t   getColorDepth(void);
 
            // Set the palette for a 4-bit depth sprite.  Only the first 16 colours in the map are used.
-  void     createPalette(uint16_t *palette = nullptr, uint8_t colors = 16);       // Palette in RAM
-  void     createPalette(const uint16_t *palette = nullptr, uint8_t colors = 16); // Palette in FLASH
+  void     createPalette(rgb_t *palette = nullptr, uint8_t colors = 16);       // Palette in RAM
+  void     createPalette(const rgb_t *palette = nullptr, uint8_t colors = 16); // Palette in FLASH
 
            // Set a single palette index to the given color
   void     setPaletteColor(uint8_t index, rgb_t color);
@@ -175,7 +175,7 @@ class TFT_eSprite : public TFT_eSPI {
 
            // return the numerical value of the pixel at x,y (used when scrolling)
            // 16bpp = colour, 8bpp = byte, 4bpp = colour index, 1bpp = 1 or 0
-  uint16_t readPixelValue(int32_t x, int32_t y);
+  rgb_t    readPixelValue(int32_t x, int32_t y);
 
            // Write an image (colour bitmap) to the sprite.
   void     pushImage16(int32_t x0, int32_t y0, int32_t w, int32_t h, uint16_t *data, uint8_t sbpp = 0);
@@ -240,7 +240,7 @@ class TFT_eSprite : public TFT_eSPI {
   uint8_t  *_img8_1; // pointer to frame 1
   uint8_t  *_img8_2; // pointer to frame 2
 
-  uint16_t *_colorMap; // color map pointer: 16 entries, used with 4-bit color map.
+  cmap_t  _cmap; // color map pointer: 16 entries, used with 4-bit color map.
 
   int32_t  _sinra;   // Sine of rotation angle in fixed point
   int32_t  _cosra;   // Cosine of rotation angle in fixed point

@@ -581,3 +581,13 @@ inline uint16_t color24to16(rgb_t color888)
 
   return (r | g | b);
 }
+
+inline rgb_t color8to24(uint8_t color)
+{
+  return color16to24(color8to16(color));
+}
+
+inline uint8_t color24to8(rgb_t color)
+{
+  return color16to8(color24to16(color));
+}
