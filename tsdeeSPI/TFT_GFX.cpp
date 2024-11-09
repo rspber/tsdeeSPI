@@ -97,27 +97,22 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
   // The little endian transp color must be byte swapped if the image is big endian
   if (!_swapBytes) transp = transp >> 8 | transp << 8;
 
-  while (dh--)
-  {
+  while (dh--) {
     int32_t len = dw;
     uint16_t* ptr = data;
     int32_t px = x, sx = x;
     bool move = true;
     uint16_t np = 0;
 
-    while (len--)
-    {
-      if (transp != *ptr)
-      {
+    while (len--) {
+      if (transp != *ptr) {
         if (move) { move = false; sx = px; }
         lineBuf[np] = *ptr;
         np++;
       }
-      else
-      {
+      else {
         move = true;
-        if (np)
-        {
+        if (np) {
           setWindow(sx, y, np, 1);
           pushPixels16((uint16_t*)lineBuf, np);
           np = 0;
@@ -126,7 +121,10 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
       px++;
       ptr++;
     }
-    if (np) { setWindow(sx, y, np, 1); pushPixels16((uint16_t*)lineBuf, np); }
+    if (np) {
+      setWindow(sx, y, np, 1);
+      pushPixels16((uint16_t*)lineBuf, np);
+    }
 
     y++;
     data += w;
@@ -214,7 +212,10 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
       px++;
       ptr++;
     }
-    if (np) { setWindow(sx, y, np, 1); pushPixels16(lineBuf, np); }
+    if (np) {
+      setWindow(sx, y, np, 1);
+      pushPixels16(lineBuf, np);
+    }
 
     y++;
     data += w;
@@ -241,8 +242,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
   // Line buffer makes plotting faster
   uint16_t  lineBuf[dw];
 
-  if (bpp8)
-  {
+  if (bpp8) {
     _swapBytes = false;
 
     uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
@@ -281,8 +281,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
     }
     _swapBytes = swap; // Restore old value
   }
-  else if (cmap != nullptr) // Must be 4bpp
-  {
+  else if (cmap != nullptr) { // Must be 4bpp
     _swapBytes = true;
 
     w = (w+1) & 0xFFFE;   // if this is a sprite, w will already be even; this does no harm.
@@ -310,14 +309,12 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
         ptr++;
       }
 
-      while (len--)
-      {
+      while (len--) {
         colors = pgm_read_byte(ptr);
         index = ((colors & 0xF0) >> 4) & 0x0F;
         *linePtr++ = cmap[index];
 
-        if (len--)
-        {
+        if (len--) {
           index = colors & 0x0F;
           *linePtr++ = cmap[index];
         } else {
@@ -332,16 +329,14 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
     }
     _swapBytes = swap; // Restore old value
   }
-  else // Must be 1bpp
-  {
+  else { // Must be 1bpp
+
     _swapBytes = false;
     uint8_t * ptr = (uint8_t*)data;
     uint32_t ww =  (w+7)>>3; // Width of source image line in bytes
-    for (int32_t yp = dy;  yp < dy + dh; yp++)
-    {
+    for (int32_t yp = dy;  yp < dy + dh; yp++) {
       uint8_t* linePtr = (uint8_t*)lineBuf;
-      for (int32_t xp = dx; xp < dx + dw; xp++)
-      {
+      for (int32_t xp = dx; xp < dx + dw; xp++) {
         uint16_t col = (pgm_read_byte(ptr + (xp>>3)) & (0x80 >> (xp & 0x7)) );
         if (col) {*linePtr++ = _bitmap_fg>>8; *linePtr++ = (uint8_t) _bitmap_fg;}
         else     {*linePtr++ = _bitmap_bg>>8; *linePtr++ = (uint8_t) _bitmap_bg;}
@@ -374,8 +369,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
   // Line buffer makes plotting faster
   uint16_t  lineBuf[dw];
 
-  if (bpp8)
-  {
+  if (bpp8) {
     _swapBytes = false;
 
     uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
@@ -414,8 +408,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
     }
     _swapBytes = swap; // Restore old value
   }
-  else if (cmap != nullptr) // Must be 4bpp
-  {
+  else if (cmap != nullptr) { // Must be 4bpp
     _swapBytes = true;
 
     w = (w+1) & 0xFFFE;   // if this is a sprite, w will already be even; this does no harm.
@@ -443,14 +436,12 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
         ptr++;
       }
 
-      while (len--)
-      {
+      while (len--) {
         colors = *ptr;
         index = ((colors & 0xF0) >> 4) & 0x0F;
         *linePtr++ = cmap[index];
 
-        if (len--)
-        {
+        if (len--) {
           index = colors & 0x0F;
           *linePtr++ = cmap[index];
         } else {
@@ -465,16 +456,14 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
     }
     _swapBytes = swap; // Restore old value
   }
-  else // Must be 1bpp
-  {
+  else { // Must be 1bpp
+
     _swapBytes = false;
 
     uint32_t ww =  (w+7)>>3; // Width of source image line in bytes
-    for (int32_t yp = dy;  yp < dy + dh; yp++)
-    {
+    for (int32_t yp = dy;  yp < dy + dh; yp++) {
       uint8_t* linePtr = (uint8_t*)lineBuf;
-      for (int32_t xp = dx; xp < dx + dw; xp++)
-      {
+      for (int32_t xp = dx; xp < dx + dw; xp++) {
         uint16_t col = (data[(xp>>3)] & (0x80 >> (xp & 0x7)) );
         if (col) {*linePtr++ = _bitmap_fg>>8; *linePtr++ = (uint8_t) _bitmap_fg;}
         else     {*linePtr++ = _bitmap_bg>>8; *linePtr++ = (uint8_t) _bitmap_bg;}
@@ -558,13 +547,16 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
         ptr++;
       }
 
-      if (np) { setWindow(sx, y, np, 1); pushPixels16(lineBuf, np); }
+      if (np) {
+        setWindow(sx, y, np, 1);
+        pushPixels16(lineBuf, np);
+      }
       y++;
       data += w;
     }
   }
-  else if (cmap != nullptr) // 4bpp with color map
-  {
+  else if (cmap != nullptr) { // 4bpp with color map
+
     _swapBytes = true;
 
     w = (w+1) & 0xFFFE; // here we try to recreate iwidth from dwidth.
@@ -597,8 +589,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
         len--;
       }
 
-      while (len--)
-      {
+      while (len--) {
         uint8_t color = *ptr;
 
         // find the actual color you care about.  There will be two pixels here!
@@ -621,13 +612,12 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
         }
         px++;
 
-        if (len--)
-        {
+        if (len--) {
           index = color & 0x0F; // the odd number is 3 .. 0
           if (index != transp) {
             if (move) {
               move = false; sx = px;
-             }
+            }
             lineBuf[np] = cmap[index];
             np++;
           }
@@ -662,12 +652,10 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
     uint32_t ww =  (w+7)>>3; // Width of source image line in bytes
     uint16_t np = 0;
 
-    for (int32_t yp = dy;  yp < dy + dh; yp++)
-    {
+    for (int32_t yp = dy;  yp < dy + dh; yp++) {
       int32_t px = x, sx = x;
       bool move = true;
-      for (int32_t xp = dx; xp < dx + dw; xp++)
-      {
+      for (int32_t xp = dx; xp < dx + dw; xp++) {
         if (data[(xp>>3)] & (0x80 >> (xp & 0x7))) {
           if (move) {
             move = false;
@@ -685,7 +673,11 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
         }
         px++;
       }
-      if (np) { setWindow(sx, y, np, 1); pushBlock16(mdt_color(_bitmap_fg), np); np = 0; }
+      if (np) {
+        setWindow(sx, y, np, 1);
+        pushBlock16(mdt_color(_bitmap_fg), np);
+        np = 0;
+      }
       y++;
       data += ww;
     }
@@ -1447,7 +1439,9 @@ constexpr float deg2rad      = 3.14159265359/180.0;
 ***************************************************************************************/
 uint16_t TFT_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color, uint8_t alpha, rgb_t bg_color)
 {
-  if (bg_color == 0x00FFFFFF) bg_color = readPixel(clip, x, y);
+  if (bg_color == 0x00FFFFFF) {
+    bg_color = readPixel(clip, x, y);
+  }
   color = alphaBlend(alpha, color, bg_color);
   drawPixel(clip, x, y, color);
   return color;
@@ -1985,7 +1979,10 @@ void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by
         #ifdef GC9A01_DRIVER
           drawPixel(clip, xp, yp, fg_color);
         #else
-          if (swin) { setWindow(xp, yp, x1-xp+1, 1); swin = false; }
+          if (swin) {
+            setWindow(xp, yp, x1-xp+1, 1);
+            swin = false;
+          }
           pushColor(fg_color);
         #endif
         continue;
@@ -1999,7 +1996,10 @@ void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by
         drawPixel(clip, xp, yp, pcol);
         swin = swin;
       #else
-        if (swin) { setWindow(xp, yp, x1-xp+1, 1); swin = false; }
+        if (swin) {
+          setWindow(xp, yp, x1-xp+1, 1);
+          swin = false;
+        }
         pushColor(alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
       #endif
     }
@@ -2023,7 +2023,10 @@ void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by
         #ifdef GC9A01_DRIVER
           drawPixel(clip, xp, yp, fg_color);
         #else
-          if (swin) { setWindow(xp, yp, x1-xp+1, yp); swin = false; }
+          if (swin) {
+            setWindow(xp, yp, x1-xp+1, yp);
+            swin = false;
+          }
           pushColor(fg_color);
         #endif
         continue;
@@ -2037,7 +2040,10 @@ void TFT_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by
         drawPixel(clip, xp, yp, pcol);
         swin = swin;
       #else
-        if (swin) { setWindow(xp, yp, x1-xp+1, yp); swin = false; }
+        if (swin) {
+          setWindow(xp, yp, x1-xp+1, yp);
+          swin = false;
+        }
         pushColor(alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
       #endif
     }

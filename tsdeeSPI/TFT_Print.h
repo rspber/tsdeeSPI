@@ -119,8 +119,8 @@ class TFT_Print : public TFT_CHAR {
   int16_t  getCursorX(void),                                // Read current cursor x position (moves with tft.print())
            getCursorY(void);                                // Read current cursor y position
 
-  void     setTextColor(uint16_t color),                    // Set character (glyph) color only (background not over-written)
-           setTextColor(uint16_t fgcolor, uint16_t bgcolor, bool bgfill = false),  // Set character (glyph) foreground and background colour, optional background fill for smooth fonts
+  void     setTextColor(rgb_t color),                    // Set character (glyph) color only (background not over-written)
+           setTextColor(rgb_t fgcolor, rgb_t bgcolor, bool bgfill = false),  // Set character (glyph) foreground and background colour, optional background fill for smooth fonts
            setTextSize(uint8_t size);                       // Set character size multiplier (this increases pixel size)
 
   void     setTextWrap(bool wrapX, bool wrapY = false);     // Turn on/off wrapping of text in TFT width and/or height

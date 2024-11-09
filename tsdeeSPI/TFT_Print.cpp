@@ -98,11 +98,11 @@ void TFT_Print::setTextSize(uint8_t s)
 ** Function name:           setTextColor
 ** Description:             Set the font foreground colour (background is transparent)
 ***************************************************************************************/
-void TFT_Print::setTextColor(uint16_t c)
+void TFT_Print::setTextColor(rgb_t color)
 {
   // For 'transparent' background, we'll set the bg
   // to the same as fg instead of using a flag
-  _textcolor = _textbgcolor = c;
+  _textcolor = _textbgcolor = color;
 }
 
 
@@ -113,7 +113,7 @@ void TFT_Print::setTextColor(uint16_t c)
 // Smooth fonts use the background colour for anti-aliasing and by default the
 // background is not filled. If bgfill = true, then a smooth font background fill will
 // be used.
-void TFT_Print::setTextColor(uint16_t c, uint16_t b, bool bgfill)
+void TFT_Print::setTextColor(rgb_t c, rgb_t b, bool bgfill)
 {
   _textcolor   = c;
   _textbgcolor = b;
