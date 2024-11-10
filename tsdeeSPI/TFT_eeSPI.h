@@ -582,6 +582,19 @@ inline uint16_t color24to16(rgb_t color888)
   return (r | g | b);
 }
 
+/***************************************************************************************
+** Function name:           color24to16
+** Description:             convert 24-bit colour to a 16-bit 565 colour value
+***************************************************************************************/
+inline uint16_t color24to16swap(rgb_t color888)
+{
+  uint16_t b = (color888 << 8) & 0x00F800;
+  uint16_t g = (color888 >> 5) & 0x0007E0;
+  uint16_t r = (color888 >> 19) & 0x00001F;
+
+  return (b | g | r);
+}
+
 inline rgb_t color8to24(uint8_t color)
 {
   return color16to24(color8to16(color));
