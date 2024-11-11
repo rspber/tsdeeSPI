@@ -52,20 +52,20 @@
 
 class TSD_SCREEN : public TSD_CHAR {
 public:
-  TSD_SCREEN(const int16_t w, const int16_t h): TSD_CHAR()
+  TSD_SCREEN(const int32_t w, const int32_t h): TSD_CHAR()
   {
     _init_width = w;
     _init_height = h;
     _clip = {0, 0, w, h};
   }
 
-  const int16_t width() { return _clip.width(); }
-  const int16_t height() { return _clip.height(); }
+  int32_t width() { return _clip.width(); }
+  int32_t height() { return _clip.height(); }
 
-  const int16_t getWIDTH() { return _init_width; }
-  const int16_t getHEIGHT() { return _init_height; }
+  int32_t getWIDTH() { return _init_width; }
+  int32_t getHEIGHT() { return _init_height; }
 
-  void setSize(const int16_t w, const int16_t h)
+  void setSize(const int32_t w, const int32_t h)
   {
     _clip.x2 = _clip.x1 + w;
     _clip.y2 = _clip.y1 + h;
@@ -159,14 +159,14 @@ public:
   using TSD_GFX::pushImage;
 
   void setPivot(const int16_t x, const int16_t y) {
-    xPivotx = x;
-    yPivoty = y;
+    _xPivot = x;
+    _yPivot = y;
   }
 
-  const int16_t getPivotX() { return xPivotx; }
-  const int16_t getPivotY() { return yPivoty; }
+  const int16_t getPivotX() { return _xPivot; }
+  const int16_t getPivotY() { return _yPivot; }
 
-private:
-  int16_t xPivotx, yPivoty;
+public:
+  int16_t _xPivot, _yPivot;
 
 };

@@ -2,52 +2,52 @@
 #include "TSD_CHAR.h"
 #include "glcdfont.c.h"
 
+namespace {
 
-// TEXT- AND CHARACTER-HANDLING FUNCTIONS ----------------------------------
-
-bool ifdrawbgif(rgb_t color, rgb_t bg)
-{
-#ifdef OVERLAID
-  // see TSD_ILI9341.cpp for explanation
-  if ((color & 0xFF000000) != 0xFF000000) {
-    over_t* t = (over_t*)color;
-    return t->color != bg;
-  }
-  else
-#endif
+  bool ifdrawbgif(rgb_t color, rgb_t bg)
   {
-    return color != bg;
+  #ifdef OVERLAID
+    // see TSD_ILI9341.cpp for explanation
+    if ((color & 0xFF000000) != 0xFF000000) {
+      over_t* t = (over_t*)color;
+      return t->color != bg;
+    }
+    else
+  #endif
+    {
+      return color != bg;
+    }
   }
-}
 
-rgb_t alphaBlend(uint8_t alpha, rgb_t ch, rgb_t cl)
-{
-  // For speed use fixed point maths and rounding to permit a power of 2 division
-  uint16_t rh = ((ch >> 15) & 0x1FE) + 1;
-  uint16_t gh = ((ch >>  7) & 0x1FE) + 1;
-  uint16_t bh = ((ch <<  1) & 0x1FE) + 1;
+  rgb_t alphaBlend(uint8_t alpha, rgb_t ch, rgb_t cl)
+  {
+    // For speed use fixed point maths and rounding to permit a power of 2 division
+    uint16_t rh = ((ch >> 15) & 0x1FE) + 1;
+    uint16_t gh = ((ch >>  7) & 0x1FE) + 1;
+    uint16_t bh = ((ch <<  1) & 0x1FE) + 1;
 
-  uint16_t rl = ((cl >> 15) & 0x1FE) + 1;
-  uint16_t gl = ((cl >>  7) & 0x1FE) + 1;
-  uint16_t bl = ((cl <<  1) & 0x1FE) + 1;
+    uint16_t rl = ((cl >> 15) & 0x1FE) + 1;
+    uint16_t gl = ((cl >>  7) & 0x1FE) + 1;
+    uint16_t bl = ((cl <<  1) & 0x1FE) + 1;
 
-  // Shift right 1 to drop rounding bit and shift right 8 to divide by 256
-  uint8_t r = (rh * alpha + rl * (255 - alpha)) >> 9;
-  uint8_t g = (gh * alpha + gl * (255 - alpha)) >> 9;
-  uint8_t b = (bh * alpha + bl * (255 - alpha)) >> 9;
+    // Shift right 1 to drop rounding bit and shift right 8 to divide by 256
+    uint8_t r = (rh * alpha + rl * (255 - alpha)) >> 9;
+    uint8_t g = (gh * alpha + gl * (255 - alpha)) >> 9;
+    uint8_t b = (bh * alpha + bl * (255 - alpha)) >> 9;
 
-  // Combine RGB colours into 24 bits
-  return RGB(r,g,b);
-}
-
-rgb_t alphaBlend(uint8_t bpp, uint8_t bits, uint8_t b80, rgb_t colorh, rgb_t colorl)
-{
-  uint8_t alpha = (bits & b80) + (0x100 - b80 - 1);
-  if (bpp == 0 || colorh == colorl || alpha == 255) {
-    return colorh;
+    // Combine RGB colours into 24 bits
+    return RGB(r,g,b);
   }
-  return alphaBlend(alpha, colorh, colorl);
-}
+
+  rgb_t alphaBlend(uint8_t bpp, uint8_t bits, uint8_t b80, rgb_t colorh, rgb_t colorl)
+  {
+    uint8_t alpha = (bits & b80) + (0x100 - b80 - 1);
+    if (bpp == 0 || colorh == colorl || alpha == 255) {
+      return colorh;
+    }
+    return alphaBlend(alpha, colorh, colorl);
+  }
+};
 
 // utf-8
 
@@ -196,7 +196,7 @@ void TSD_CHAR::drawChar(clip_t& clip, cursor_t& cursor, tsd_font_t& font, char**
   @param    spacing extra horizontal spacing for letters
 */
 /**************************************************************************/
-const char*  TSD_CHAR::drawTextLine(clip_t& clip, cursor_t& cursor, tsd_font_t& font, const char* text, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing)
+const char* TSD_CHAR::drawTextLine(clip_t& clip, cursor_t& cursor, tsd_font_t& font, const char* text, rgb_t colorh, rgb_t bg, rgb_t colorl, const int8_t spacing)
 {
   if (text) {
     char* p = (char *)text;
@@ -235,5 +235,3 @@ const uint16_t* TSD_CHAR::drawTextLine(clip_t& clip, cursor_t& cursor, tsd_font_
   }
   return NULL;
 }
-
-

@@ -823,7 +823,7 @@ rgb_t grec_t_::RGB14toColor()
 //#endif
 }
 
-static void nextGradHue(int8_t prc, grec_t& cc, const grec_t c1, const grec_t c2, const int16_t j, const int16_t h)
+static void nextGradHue(int8_t prc, grec_t& cc, const grec_t c1, const grec_t c2, const int32_t j, const int32_t h)
 {
     int adj = prc - 50;
     if (adj > 45)
