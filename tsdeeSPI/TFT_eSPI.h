@@ -120,7 +120,7 @@
 #define TFT_SKYBLUE      SKYBLUE
 #define TFT_VIOLET       VIOLET
 
-#define TFT_TRANSPARENT DARK_GRAY
+#define TFT_TRANSPARENT DARK_GREEN
 
 /***************************************************************************************
 **                         Section 7: Diagnostic support

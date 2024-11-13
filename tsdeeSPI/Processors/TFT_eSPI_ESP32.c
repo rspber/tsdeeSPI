@@ -497,7 +497,7 @@ void TFT_eeSPI::pushPixels16(const void* data_in, uint32_t len){
   uint16_t *data = (uint16_t*)data_in;
   // ILI9488 write macro is not endianess dependant, hence !_swapBytes
   if(!_swapBytes) { while ( len-- ) {tft_Write_16S(*data); data++;} }
-Z  else { while ( len-- ) {tft_Write_16(*data); data++;} }
+  else { while ( len-- ) {tft_Write_16(*data); data++;} }
 }
 
 /***************************************************************************************

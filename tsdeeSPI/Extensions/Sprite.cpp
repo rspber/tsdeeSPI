@@ -524,8 +524,8 @@ bool TFT_eSprite::pushRotated(TFT_eSprite *spr, int16_t angle, rgb_t transp_)
         rp = _img[xp + yp * _iwidth];
       }
       else {
-        spr->setSwapBytes(true);
         rgb_t rgb = readPixel(_clip, xp, yp);
+        spr->setSwapBytes(true);
         rp = color24to16(rgb);
       }
       if (transp_ != 0x00FFFFFF && tpcolor == rp) {
@@ -794,7 +794,7 @@ bool TFT_eSprite::pushToSprite(TFT_eSprite *dspr, int32_t x, int32_t y, rgb_t tr
       }
       else {
         rgb_t rgb = readPixel(_clip, xs, ys);
-	rp = color24to16swap(rgb);
+        rp = color24to16swap(rgb);
       }
       //dspr->drawPixel(xs, ys, rp);
 
@@ -993,7 +993,7 @@ rgb_t TFT_eSprite::readPixel(clip_t& clip, int32_t x, int32_t y)
   if ((x < clip.x1) || (y < clip.y1) ||(x >= clip.x2) || (y >= clip.y2)) return TFT_WHITE;
 
   if (_bpp == 16) {
-    return color16to24(_img[x + y * _iwidth]);
+    return color16to24swap(_img[x + y * _iwidth]);
   }
 
   if (_bpp == 8) {
@@ -1717,7 +1717,7 @@ void TFT_eSprite::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, r
   if (h < 1) return;
 
   if (_bpp == 16) {
-    uint16_t c = color24to16(color);
+    uint16_t c = color24to16swap(color);
     int32_t yp = x + _iwidth * y;
     while (h--) {_img[yp] = c; yp += _iwidth;}
   }

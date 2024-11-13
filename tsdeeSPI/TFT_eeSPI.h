@@ -525,7 +525,7 @@ transpose(T& a, T& b) { T t = a; a = b; b = t; }
 ***************************************************************************************/
 inline uint16_t color565(uint8_t r, uint8_t g, uint8_t b)
 {
-  return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+  return ((uint16_t)(r & 0xF8) << 8) | ((uint16_t)(g & 0xFC) << 3) | (b >> 3);
 }
 
 
@@ -546,27 +546,27 @@ inline uint8_t color16to8(uint16_t c)
 inline uint16_t color8to16(uint8_t color)
 {
   uint8_t  blue[] = {0, 11, 21, 31}; // blue 2 to 5 bit colour lookup table
-  uint16_t color16 = 0;
 
-  //        =====Green=====     ===============Red==============
-  color16  = (color & 0x1C)<<6 | (color & 0xC0)<<5 | (color & 0xE0)<<8;
-  //        =====Green=====    =======Blue======
-  color16 |= (color & 0x1C)<<3 | blue[color & 0x03];
-
-  return color16;
+  return   (uint16_t)(color & 0x1C)<<6 | (uint16_t)(color & 0xC0)<<5 | (uint16_t)(color & 0xE0)<<8 |
+           (uint16_t)(color & 0x1C)<<3 | blue[color & 0x03];
 }
 
 /***************************************************************************************
 ** Function name:           color16to24
 ** Description:             convert 16-bit colour to a 24-bit 888 colour value
 ***************************************************************************************/
-inline rgb_t color16to24(uint16_t color565)
+inline rgb_t color16to24(const uint16_t c565)
 {
-  uint8_t r = (color565 >> 8) & 0xF8; r |= (r >> 5);
-  uint8_t g = (color565 >> 3) & 0xFC; g |= (g >> 6);
-  uint8_t b = (color565 << 3) & 0xF8; b |= (b >> 5);
+  return (rgb_t)(((uint32_t)(c565 & 0xF800) << 8) | ((c565 & 0x07E0) << 5) | (c565 & 0x001F) << 3);
+}
 
-  return ((uint32_t)r << 16) | ((uint32_t)g << 8) | ((uint32_t)b << 0);
+/***************************************************************************************
+** Function name:           color16to24swap
+** Description:             convert 16-bit colour to a 24-bit 888 colour value
+***************************************************************************************/
+inline rgb_t color16to24swap(uint16_t c565)
+{
+  return (rgb_t)(((c565 & 0xF800) >> 8) | ((c565 & 0x07E0) << 5) | ((uint32_t)(c565 & 0x001F) << 19));
 }
 
 /***************************************************************************************
@@ -583,14 +583,14 @@ inline uint16_t color24to16(rgb_t color888)
 }
 
 /***************************************************************************************
-** Function name:           color24to16
+** Function name:           color24to16swap
 ** Description:             convert 24-bit colour to a 16-bit 565 colour value
 ***************************************************************************************/
-inline uint16_t color24to16swap(rgb_t color888)
+inline uint16_t color24to16swap(const rgb_t color888)
 {
-  uint16_t b = (color888 << 8) & 0x00F800;
-  uint16_t g = (color888 >> 5) & 0x0007E0;
-  uint16_t r = (color888 >> 19) & 0x00001F;
+  uint16_t b = (color888 << 8) & 0xF800;
+  uint16_t g = (color888 >> 5) & 0x07E0;
+  uint16_t r = (color888 >> 19) & 0x001F;
 
   return (b | g | r);
 }
