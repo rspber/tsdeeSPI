@@ -131,8 +131,6 @@ public:
   void drawText(const int32_t x, const int32_t y, const uint16_t* utext, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
   void drawText(const int32_t x, const int32_t y, const uint16_t* utext, const TSD_GFXfont** gfxFont, const int8_t fontSize = 1, rgb_t colorh = WHITE, rgb_t bg = BLACK, rgb_t colorl = BLACK, const int8_t spacing = 0);
 
-#include "TSD_Smooth.h.hh"
-
 public:
  // using TSD_GFX::drawPixel;
   using TSD_GFX::drawFastVLine;

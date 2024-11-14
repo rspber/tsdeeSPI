@@ -421,5 +421,3 @@ void TSD_SCREEN::pushMDTBuffer(clip_t& window, const uint8_t* buffer, const rgb_
     }
   }
 }
-
-#include "TSD_Smooth.c.hh"

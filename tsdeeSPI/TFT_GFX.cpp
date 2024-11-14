@@ -690,6 +690,7 @@ void TFT_GFX::pushImage16(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t
   end_tft_write();
 }
 
+
 /***************************************************************************************
 ** Function name:           pushMaskedImage
 ** Description:             Render a 16-bit colour image to TFT with a 1bpp mask
@@ -1509,6 +1510,7 @@ void TFT_GFX::drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32
   inTransaction = lockTransaction;
   end_tft_write();
 }
+
 
 /***************************************************************************************
 ** Function name:           sqrt_fraction (private function)
