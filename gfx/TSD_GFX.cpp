@@ -60,8 +60,11 @@ void TSD_GFX::pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h
   endWrite();
 }
 
-
-void TSD_GFX::pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, uint16_t transp)
+/***************************************************************************************
+** Function name:           pushImage
+** Description:             plot 16-bit sprite or image with 1 colour being transparent
+***************************************************************************************/
+void TSD_GFX::pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data, rgb_t transp)
 {
   PI_CLIP;
 
@@ -117,215 +120,10 @@ void TSD_GFX::pushImage(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h
 }
 
 
-/**************************************************************************/
-
-void TSD_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color)
-{
-  if (IF_CLIP_X && IF_CLIP_Y) {
-    drawClippedPixel(x, y, color);
-  }
-}
-
-void TSD_GFX::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, rgb_t color)
-{
-  CLIP_X
-  if (IF_CLIP_Y && w > 0) {
-    drawClippedPixelRec(x, y, w, 1, color);
-  }
-}
-
-void TSD_GFX::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, rgb_t color)
-{
-  CLIP_Y
-  if (IF_CLIP_Y && h > 0) {
-    drawClippedPixelRec(x, y, 1, h, color);
-  }
-}
-
-void TSD_GFX::drawRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
-{
-  startWrite();
-
-  drawFastHLine(clip, x, y, w, color);
-  drawFastHLine(clip, x, y + h - 1, w, color);
-  // Avoid drawing corner pixels twice
-  drawFastVLine(clip, x, y+1, h-2, color);
-  drawFastVLine(clip, x + w - 1, y+1, h-2, color);
-
-  endWrite();
-}
-
-void TSD_GFX::fillRectHelper(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
-{
-  CLIP_X
-  CLIP_Y
-  if (w > 0 && h > 0) {
-    drawClippedPixelRec(x, y, w, h, color);
-  }
-}
-
-void TSD_GFX::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
-{
-  startWrite();
-  fillRectHelper(clip, x, y, w, h, color);
-  endWrite();
-}
-
-void TSD_GFX::drawRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color)
-{
-  startWrite();
-
-  // smarter version
-  drawFastHLine(clip, x + r  , y    , w - r - r, color); // Top
-  drawFastHLine(clip, x + r  , y + h - 1, w - r - r, color); // Bottom
-  drawFastVLine(clip, x    , y + r  , h - r - r, color); // Left
-  drawFastVLine(clip, x + w - 1, y + r  , h - r - r, color); // Right
-  // draw four corners
-  drawCircleHelper(clip, x + r    , y + r    , r, 1, color);
-  drawCircleHelper(clip, x + w - r - 1, y + r    , r, 2, color);
-  drawCircleHelper(clip, x + w - r - 1, y + h - r - 1, r, 4, color);
-  drawCircleHelper(clip, x + r    , y + h - r - 1, r, 8, color);
-
-  endWrite();
-}
-
-void TSD_GFX::fillRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color)
-{
-  startWrite();
-
-  // smarter version
-  fillRectHelper(clip, x, y + r, w, h - r - r, color);
-
-  // draw four corners
-  fillCircleHelper(clip, x + r, y + h - r - 1, r, 1, w - r - r - 1, color);
-  fillCircleHelper(clip, x + r    , y + r, r, 2, w - r - r - 1, color);
-
-  endWrite();
-}
-
-
-// Bresenham's algorithm - thx wikipedia - speed enhanced by Bodmer to use
-// an efficient FastH/V Line draw routine for line segments of 2 pixels or more
-void TSD_GFX::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, rgb_t color)
-{
-  startWrite();
-
-  bool steep = abs(y1 - y0) > abs(x1 - x0);
-  if (steep) {
-    SWAP_INT(x0, y0);
-    SWAP_INT(x1, y1);
-  }
-
-  if (x0 > x1) {
-    SWAP_INT(x0, x1);
-    SWAP_INT(y0, y1);
-  }
-
-  int32_t dx = x1 - x0;
-  int32_t dy = abs(y1 - y0);
-
-  int32_t err = dx >> 1;
-  int32_t xs = x0;
-  int32_t dlen = 0;
-  int32_t ystep = y0 < y1 ? 1 : -1;
-
-  // Split into steep and not steep for FastH/V separation
-  if (steep) {
-    for (; x0 <= x1; x0++) {
-      dlen++;
-      err -= dy;
-      if (err < 0) {
-        if (dlen == 1)
-          drawPixel(clip, y0, xs, color);
-        else
-          drawFastVLine(clip, y0, xs, dlen, color);
-        dlen = 0;
-        y0 += ystep; xs = x0 + 1;
-        err += dx;
-      }
-    }
-    if (dlen) drawFastVLine(clip, y0, xs, dlen, color);
-  }
-  else
-  {
-    for (; x0 <= x1; x0++) {
-      dlen++;
-      err -= dy;
-      if (err < 0) {
-        if (dlen == 1)
-          drawPixel(clip, xs, y0, color);
-        else
-          drawFastHLine(clip, xs, y0, dlen, color);
-        dlen = 0;
-        y0 += ystep; xs = x0 + 1;
-        err += dx;
-      }
-    }
-    if (dlen) drawFastHLine(clip, xs, y0, dlen, color);
-  }
-  endWrite();
-}
-
-void TSD_GFX::drawEllipse(clip_t& clip, int32_t x0, int32_t y0, int32_t rx, int32_t ry, rgb_t color)
-{
-  startWrite();
-
-  int a2 = rx * rx;
-  int b2 = ry * ry;
-  int a2b2 = a2 * b2;
-  int dx = 0;
-
-  drawPixel(clip, x0 - rx, y0, color);
-  drawPixel(clip, x0 + rx, y0, color);
-
-  int px = rx;
-  for (int x = rx, y = 1; y <= ry; y++) {
-    int x1 = x - (dx - 1);  // try slopes of dx - 1 or more
-    for ( ; x1 > 0; x1--)
-      if (x1*x1*b2 + a2*y*y <= a2b2)
-        break;
-    dx = x - x1;
-    x = x1;
-    if (y < ry) {
-      drawFastHLine(clip, x0 - px, y0 - y, px - x, color);
-      drawFastHLine(clip, x0 + x, y0 - y, px - x, color);
-      drawFastHLine(clip, x0 - px, y0 + y, px - x, color);
-      drawFastHLine(clip, x0 + x, y0 + y, px - x, color);
-    }
-    else {
-      drawFastHLine(clip, x0 - px, y0 - y, 2*(px-x), color);
-      drawFastHLine(clip, x0 - px, y0 + y, 2*(px-x), color);
-    }
-    px = x;
-  }
-  endWrite();
-}
-
-void TSD_GFX::fillEllipse(clip_t& clip, int32_t x0, int32_t y0, int32_t rx, int32_t ry, rgb_t color)
-{
-  startWrite();
-
-  int a2 = rx * rx;
-  int b2 = ry * ry;
-  int a2b2 = a2 * b2;
-  int x = rx;
-  int dx = 0;
-
-  drawFastHLine(clip, x0 - x, y0, 2*x, color);
-
-  for (int y = 1; y <= ry; y++) {
-    int x1 = x - (dx - 1);  // try slopes of dx - 1 or more
-    for ( ; x1 > 0; x1--)
-      if (x1*x1*b2 + a2*y*y <= a2b2)
-        break;
-    dx = x - x1;
-    x = x1;
-    drawFastHLine(clip, x0 - x, y0 - y, 2*x, color);
-    drawFastHLine(clip, x0 - x, y0 + y, 2*x, color);
-  }
-  endWrite();
-}
-
+/***************************************************************************************
+** Function name:           drawCircle
+** Description:             Draw a circle outline
+***************************************************************************************/
 // Optimised midpoint circle algorithm
 void TSD_GFX::drawCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, rgb_t color)
 {
@@ -388,6 +186,11 @@ void TSD_GFX::drawCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, rgb_t 
     endWrite();
 }
 
+
+/***************************************************************************************
+** Function name:           drawCircleHelper
+** Description:             Support function for drawRoundRect()
+***************************************************************************************/
 void TSD_GFX::drawCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t rr, uint8_t corners, rgb_t color)
 {
   if (rr <= 0) return;
@@ -455,6 +258,11 @@ void TSD_GFX::drawCircleFragment(clip_t& clip, int32_t x0, int32_t y0, int32_t r
   endWrite();
 }
 
+/***************************************************************************************
+** Function name:           fillCircle
+** Description:             draw a filled circle
+***************************************************************************************/
+// Optimised midpoint circle algorithm, changed to horizontal lines (faster in sprites)
 // Improved algorithm avoids repetition of lines
 void TSD_GFX::fillCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, rgb_t color)
 {
@@ -488,6 +296,11 @@ void TSD_GFX::fillCircle(clip_t& clip, int32_t x0, int32_t y0, int32_t r, rgb_t 
   endWrite();
 }
 
+/***************************************************************************************
+** Function name:           fillCircleHelper
+** Description:             Support function for fillRoundRect()
+***************************************************************************************/
+// Support drawing roundrects, changed to horizontal lines (faster in sprites)
 void TSD_GFX::fillCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t r, uint8_t corners, int32_t delta, rgb_t color)
 {
   int32_t f     = 1 - r;
@@ -515,6 +328,140 @@ void TSD_GFX::fillCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t r, 
   }
 }
 
+
+/***************************************************************************************
+** Function name:           drawEllipse
+** Description:             Draw a ellipse outline
+***************************************************************************************/
+void TSD_GFX::drawEllipse(clip_t& clip, int32_t x0, int32_t y0, int32_t rx, int32_t ry, rgb_t color)
+{
+  startWrite();
+
+  int a2 = rx * rx;
+  int b2 = ry * ry;
+  int a2b2 = a2 * b2;
+  int dx = 0;
+
+  drawPixel(clip, x0 - rx, y0, color);
+  drawPixel(clip, x0 + rx, y0, color);
+
+  int px = rx;
+  for (int x = rx, y = 1; y <= ry; y++) {
+    int x1 = x - (dx - 1);  // try slopes of dx - 1 or more
+    for ( ; x1 > 0; x1--)
+      if (x1*x1*b2 + a2*y*y <= a2b2)
+        break;
+    dx = x - x1;
+    x = x1;
+    if (y < ry) {
+      drawFastHLine(clip, x0 - px, y0 - y, px - x, color);
+      drawFastHLine(clip, x0 + x, y0 - y, px - x, color);
+      drawFastHLine(clip, x0 - px, y0 + y, px - x, color);
+      drawFastHLine(clip, x0 + x, y0 + y, px - x, color);
+    }
+    else {
+      drawFastHLine(clip, x0 - px, y0 - y, 2*(px-x), color);
+      drawFastHLine(clip, x0 - px, y0 + y, 2*(px-x), color);
+    }
+    px = x;
+  }
+  endWrite();
+}
+
+
+/***************************************************************************************
+** Function name:           fillEllipse
+** Description:             draw a filled ellipse
+***************************************************************************************/
+void TSD_GFX::fillEllipse(clip_t& clip, int32_t x0, int32_t y0, int32_t rx, int32_t ry, rgb_t color)
+{
+  startWrite();
+
+  int a2 = rx * rx;
+  int b2 = ry * ry;
+  int a2b2 = a2 * b2;
+  int x = rx;
+  int dx = 0;
+
+  drawFastHLine(clip, x0 - x, y0, 2*x, color);
+
+  for (int y = 1; y <= ry; y++) {
+    int x1 = x - (dx - 1);  // try slopes of dx - 1 or more
+    for ( ; x1 > 0; x1--)
+      if (x1*x1*b2 + a2*y*y <= a2b2)
+        break;
+    dx = x - x1;
+    x = x1;
+    drawFastHLine(clip, x0 - x, y0 - y, 2*x, color);
+    drawFastHLine(clip, x0 - x, y0 + y, 2*x, color);
+  }
+  endWrite();
+}
+
+
+/***************************************************************************************
+** Function name:           drawRect
+** Description:             Draw a rectangle outline
+***************************************************************************************/
+// Draw a rectangle
+void TSD_GFX::drawRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
+{
+  startWrite();
+
+  drawFastHLine(clip, x, y, w, color);
+  drawFastHLine(clip, x, y + h - 1, w, color);
+  // Avoid drawing corner pixels twice
+  drawFastVLine(clip, x, y+1, h-2, color);
+  drawFastVLine(clip, x + w - 1, y+1, h-2, color);
+
+  endWrite();
+}
+
+
+/***************************************************************************************
+** Function name:           drawRoundRect
+** Description:             Draw a rounded corner rectangle outline
+***************************************************************************************/
+// Draw a rounded rectangle
+void TSD_GFX::drawRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color)
+{
+  startWrite();
+
+  // smarter version
+  drawFastHLine(clip, x + r  , y    , w - r - r, color); // Top
+  drawFastHLine(clip, x + r  , y + h - 1, w - r - r, color); // Bottom
+  drawFastVLine(clip, x    , y + r  , h - r - r, color); // Left
+  drawFastVLine(clip, x + w - 1, y + r  , h - r - r, color); // Right
+  // draw four corners
+  drawCircleHelper(clip, x + r    , y + r    , r, 1, color);
+  drawCircleHelper(clip, x + w - r - 1, y + r    , r, 2, color);
+  drawCircleHelper(clip, x + w - r - 1, y + h - r - 1, r, 4, color);
+  drawCircleHelper(clip, x + r    , y + h - r - 1, r, 8, color);
+
+  endWrite();
+}
+
+
+/***************************************************************************************
+** Function name:           fillRoundRect
+** Description:             Draw a rounded corner filled rectangle
+***************************************************************************************/
+// Fill a rounded rectangle, changed to horizontal lines (faster in sprites)
+void TSD_GFX::fillRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color)
+{
+  startWrite();
+
+  // smarter version
+  fillRectHelper(clip, x, y + r, w, h - r - r, color);
+
+  // draw four corners
+  fillCircleHelper(clip, x + r, y + h - r - 1, r, 1, w - r - r - 1, color);
+  fillCircleHelper(clip, x + r    , y + r, r, 2, w - r - r - 1, color);
+
+  endWrite();
+}
+
+
 void TSD_GFX::fillCircleFragment(clip_t& clip, int32_t x0, int32_t y0, int32_t r, uint8_t corners, int32_t delta, rgb_t color)
 {
   startWrite();
@@ -522,6 +469,12 @@ void TSD_GFX::fillCircleFragment(clip_t& clip, int32_t x0, int32_t y0, int32_t r
   endWrite();
 }
 
+
+/***************************************************************************************
+** Function name:           drawTriangle
+** Description:             Draw a triangle outline using 3 arbitrary points
+***************************************************************************************/
+// Draw a triangle
 void TSD_GFX::drawTriangle(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, rgb_t color)
 {
   drawLine(clip, x0, y0, x1, y1, color);
@@ -529,6 +482,11 @@ void TSD_GFX::drawTriangle(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int
   drawLine(clip, x2, y2, x0, y0, color);
 }
 
+
+/***************************************************************************************
+** Function name:           fillTriangle
+** Description:             Draw a filled triangle using 3 arbitrary points
+***************************************************************************************/
 // Fill a triangle - original Adafruit function works well and code footprint is small
 void TSD_GFX::fillTriangle(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, rgb_t color)
 {
@@ -613,6 +571,269 @@ void TSD_GFX::fillTriangle(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int
 
 
 
+// BITMAP / XBITMAP / GRAYSCALE / RGB BITMAP FUNCTIONS ---------------------
+
+/***************************************************************************************
+** Function name:           drawBitmap
+** Description:             Draw an image stored in an array on the TFT
+***************************************************************************************/
+void TSD_GFX::drawBitmap(clip_t& clip, int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h, rgb_t color)
+{
+  startWrite();
+
+  int32_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
+  uint8_t b = 0;
+
+  for (int32_t j = 0; j < h; j++, y++) {
+    for (int32_t i = 0; i < w; i++) {
+      if (i & 7)
+        b <<= 1;
+      else
+        b = bitmap[j * byteWidth + i / 8];
+      if (b & 0x80)
+        drawPixel(clip, x + i, y, color);
+    }
+  }
+
+  endWrite();
+}
+
+
+/***************************************************************************************
+** Function name:           drawBitmap
+** Description:             Draw an image stored in an array on the TFT
+***************************************************************************************/
+void TSD_GFX::drawBitmap(clip_t& clip, int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h, rgb_t color, rgb_t bg)
+{
+  startWrite();
+
+  int32_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
+  uint8_t b = 0;
+
+  for (int32_t j = 0; j < h; j++, y++) {
+    for (int32_t i = 0; i < w; i++) {
+      if (i & 7)
+        b <<= 1;
+      else
+        b = bitmap[j * byteWidth + i / 8];
+      drawPixel(clip, x + i, y, (b & 0x80) ? color : bg);
+    }
+  }
+
+  endWrite();
+}
+
+/***************************************************************************************
+** Function name:           drawXBitmap
+** Description:             Draw an image stored in an XBM array onto the TFT
+***************************************************************************************/
+void TSD_GFX::drawGrayscaleBitmap(clip_t& clip, int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h)
+{
+  startWrite();
+
+  for (int32_t j = 0; j < h; j++, y++) {
+    for (int32_t i = 0; i < w; i++) {
+      drawPixel(clip, x + i, y, bitmap[j * w + i] ? WHITE : BLACK);
+    }
+  }
+  endWrite();
+}
+
+
+/***************************************************************************************
+** Function name:           drawXBitmap
+** Description:             Draw an XBM image with foreground and background colors
+***************************************************************************************/
+void TSD_GFX::drawGrayscaleBitmap(clip_t& clip, int32_t x, int32_t y, const uint8_t* bitmap, const uint8_t* mask, int32_t w, int32_t h)
+{
+  startWrite();
+
+  int32_t bw = (w + 7) / 8; // Bitmask scanline pad = whole byte
+  uint8_t b = 0;
+  for (int32_t j = 0; j < h; j++, y++) {
+    for (int32_t i = 0; i < w; i++) {
+      if (i & 7)
+        b <<= 1;
+      else
+        b = mask[j * bw + i / 8];
+      if (b & 0x80) {
+        drawPixel(clip, x + i, y, bitmap[j * w + i] ? WHITE : BLACK);
+      }
+    }
+  }
+  endWrite();
+}
+
+
+/***************************************************************************************
+** Function name:           setBitmapColor
+** Description:             Set the foreground foreground and background colour
+***************************************************************************************/
+void TSD_GFX::drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint16_t* bitmap, int32_t w, int32_t h)
+{
+  int dx, dy, dw, dh;
+
+  if (x >= clip.x1) {dx = 0; dw = w; } else { dx = clip.x1 - x; dw = w - dx; x = clip.x1; }
+  if (y >= clip.y1) {dy = 0; dh = h; } else { dy = clip.y1 - y; dh = h - dy; y = clip.y1; }
+
+  if (x + dw > clip.x2) { dw = clip.x2 - x; }
+  if (y + dh > clip.y2) { dh = clip.y2 - y; }
+
+  if (dw < 1 || dh < 1) return;
+
+  startWrite();
+
+  writeAddrWindow(x, y, dw, dh);
+
+  if (dx != 0) {
+    const uint16_t* p = bitmap + dw * dy + dx;
+    if (MDT_SIZE == 2) {
+      for (int j = 0; j < dh; ++j) {
+        writeMDTBuffer((const uint8_t*)p, dw);
+        p += w;
+      }
+    }
+    else {   // translate 565 to 666
+      const uint16_t* p = bitmap + dw * dy + dx;
+      const uint8_t* buff = (const uint8_t*)malloc(dw * MDT_SIZE + 3);
+      uint8_t* q = (uint8_t*)buff;
+      for (int j = 0; j < dh; ++j) {
+        for (int i = 0; i < dw; ++i) {
+          *(rgb_t*)q = rgb(*p++);
+          q += 3;
+        }
+        writeMDTBuffer((const uint8_t*)buff, dw);
+        p += w;
+      }
+      free((void*)buff);
+    }
+  }
+  else {
+    writeMDTBuffer((const uint8_t*)(bitmap + w * dy), w * dh);
+  }
+
+  endWrite();
+}
+
+void TSD_GFX::drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint16_t* bitmap, const uint8_t* mask, int32_t w, int32_t h)
+{
+  startWrite();
+
+  int32_t bw = (w + 7) / 8; // Bitmask scanline pad = whole byte
+  uint8_t b = 0;
+  for (int32_t j = 0; j < h; j++, y++) {
+    for (int32_t i = 0; i < w; i++) {
+      if (i & 7)
+        b <<= 1;
+      else
+        b = mask[j * bw + i / 8];
+      if (b & 0x80) {
+        drawPixel(clip, x + i, y, rgb(bitmap[j * w + i]));
+      }
+    }
+  }
+  endWrite();
+}
+
+void TSD_GFX::drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint32_t* bitmap, int32_t w, int32_t h)
+{
+  startWrite();
+
+  for (int32_t j = 0; j < h; j++, y++) {
+    for (int32_t i = 0; i < w; i++) {
+      drawPixel(clip, x + i, y, bitmap[j * w + i] | 0xFF000000);
+    }
+  }
+  endWrite();
+}
+
+void TSD_GFX::drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint32_t* bitmap, const uint8_t* mask, int32_t w, int32_t h)
+{
+  startWrite();
+
+  int32_t bw = (w + 7) / 8; // Bitmask scanline pad = whole byte
+  uint8_t b = 0;
+  for (int32_t j = 0; j < h; j++, y++) {
+    for (int32_t i = 0; i < w; i++) {
+      if (i & 7)
+        b <<= 1;
+      else
+        b = mask[j * bw + i / 8];
+      if (b & 0x80) {
+        drawPixel(clip, x + i, y, bitmap[j * w + i] | 0xFF000000);
+      }
+    }
+  }
+  endWrite();
+}
+
+
+/***************************************************************************************
+** Function name:           drawLine
+** Description:             draw a line between 2 arbitrary points
+***************************************************************************************/
+// Bresenham's algorithm - thx wikipedia - speed enhanced by Bodmer to use
+// an efficient FastH/V Line draw routine for line segments of 2 pixels or more
+void TSD_GFX::drawLine(clip_t& clip, int32_t x0, int32_t y0, int32_t x1, int32_t y1, rgb_t color)
+{
+  startWrite();
+
+  bool steep = abs(y1 - y0) > abs(x1 - x0);
+  if (steep) {
+    SWAP_INT(x0, y0);
+    SWAP_INT(x1, y1);
+  }
+
+  if (x0 > x1) {
+    SWAP_INT(x0, x1);
+    SWAP_INT(y0, y1);
+  }
+
+  int32_t dx = x1 - x0;
+  int32_t dy = abs(y1 - y0);
+
+  int32_t err = dx >> 1;
+  int32_t xs = x0;
+  int32_t dlen = 0;
+  int32_t ystep = y0 < y1 ? 1 : -1;
+
+  // Split into steep and not steep for FastH/V separation
+  if (steep) {
+    for (; x0 <= x1; x0++) {
+      dlen++;
+      err -= dy;
+      if (err < 0) {
+        if (dlen == 1)
+          drawPixel(clip, y0, xs, color);
+        else
+          drawFastVLine(clip, y0, xs, dlen, color);
+        dlen = 0;
+        y0 += ystep; xs = x0 + 1;
+        err += dx;
+      }
+    }
+    if (dlen) drawFastVLine(clip, y0, xs, dlen, color);
+  }
+  else
+  {
+    for (; x0 <= x1; x0++) {
+      dlen++;
+      err -= dy;
+      if (err < 0) {
+        if (dlen == 1)
+          drawPixel(clip, xs, y0, color);
+        else
+          drawFastHLine(clip, xs, y0, dlen, color);
+        dlen = 0;
+        y0 += ystep; xs = x0 + 1;
+        err += dx;
+      }
+    }
+    if (dlen) drawFastHLine(clip, xs, y0, dlen, color);
+  }
+  endWrite();
+}
+
 
 /***************************************************************************************
 ** Description:  Constants for anti-aliased line drawing on TFT and in Sprites
@@ -627,7 +848,7 @@ constexpr float deg2rad      = 3.14159265359/180.0;
 ** Function name:           drawPixel (alpha blended)
 ** Description:             Draw a pixel blended with the screen or bg pixel colour
 ***************************************************************************************/
-uint16_t TSD_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color, uint8_t alpha, uint32_t bg_color)
+uint16_t TSD_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color, uint8_t alpha, rgb_t bg_color)
 {
   if (bg_color == 0x00FFFFFF) bg_color = readPixel(clip, x, y);
   color = alphaBlend(alpha, color, bg_color);
@@ -640,7 +861,7 @@ uint16_t TSD_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, uint32_t color, 
 ** Function name:           drawSmoothArc
 ** Description:             Draw a smooth arc clockwise from 6 o'clock
 ***************************************************************************************/
-void TSD_GFX::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds)
+void TSD_GFX::drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, uint32_t fg_color, uint32_t bg_color, bool roundEnds)
 // Centre at x,y
 // r = arc outer radius, ir = arc inner radius. Inclusive so arc thickness = r - ir + 1
 // Angles in range 0-360
@@ -662,11 +883,11 @@ void TSD_GFX::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_
     { // Round ends
       sx = sx * (r + ir)/2.0 + x;
       sy = sy * (r + ir)/2.0 + y;
-      drawSpot(sx, sy, (r - ir)/2.0, fg_color, bg_color);
+      drawSpot(clip, sx, sy, (r - ir)/2.0, fg_color, bg_color);
 
       ex = ex * (r + ir)/2.0 + x;
       ey = ey * (r + ir)/2.0 + y;
-      drawSpot(ex, ey, (r - ir)/2.0, fg_color, bg_color);
+      drawSpot(clip, ex, ey, (r - ir)/2.0, fg_color, bg_color);
     }
     else
     { // Square ends
@@ -674,22 +895,22 @@ void TSD_GFX::drawSmoothArc(int32_t x, int32_t y, int32_t r, int32_t ir, uint32_
       float asy = sy * ir + y;
       float aex = sx *  r + x;
       float aey = sy *  r + y;
-      drawWedgeLine(asx, asy, aex, aey, 0.3, 0.3, fg_color, bg_color);
+      drawWedgeLine(clip, asx, asy, aex, aey, 0.3, 0.3, fg_color, bg_color);
 
       asx = ex * ir + x;
       asy = ey * ir + y;
       aex = ex *  r + x;
       aey = ey *  r + y;
-      drawWedgeLine(asx, asy, aex, aey, 0.3, 0.3, fg_color, bg_color);
+      drawWedgeLine(clip, asx, asy, aex, aey, 0.3, 0.3, fg_color, bg_color);
     }
 
     // Draw arc
-    drawArc(x, y, r, ir, startAngle, endAngle, fg_color, bg_color);
+    drawArc(clip, x, y, r, ir, startAngle, endAngle, fg_color, bg_color);
 
   }
   else // Draw full 360
   {
-    drawArc(x, y, r, ir, 0, 360, fg_color, bg_color);
+    drawArc(clip, x, y, r, ir, 0, 360, fg_color, bg_color);
   }
 
 //???  inTransaction = lockTransaction;
@@ -737,9 +958,9 @@ inline uint8_t TSD_GFX::sqrt_fraction(uint32_t num) {
 // Arc foreground fg_color anti-aliased with background colour along sides
 // smooth is optional, default is true, smooth=false means no antialiasing
 // Note: Arc ends are not anti-aliased (use drawSmoothArc instead for that)
-void TSD_GFX::drawArc(int32_t x, int32_t y, int32_t r, int32_t ir,
+void TSD_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
                        uint32_t startAngle, uint32_t endAngle,
-                       uint32_t fg_color, uint32_t bg_color,
+                       rgb_t fg_color, rgb_t bg_color,
                        bool smooth)
 {
   if (endAngle   > 360)   endAngle = 360;
@@ -750,7 +971,7 @@ void TSD_GFX::drawArc(int32_t x, int32_t y, int32_t r, int32_t ir,
 
   if (endAngle < startAngle) {
     // Arc sweeps through 6 o'clock so draw in two parts
-    if (startAngle < 360) drawArc(x, y, r, ir, startAngle, 360, fg_color, bg_color, smooth);
+    if (startAngle < 360) drawArc(clip, x, y, r, ir, startAngle, 360, fg_color, bg_color, smooth);
     if (endAngle == 0) return;
     startAngle = 0;
   }
@@ -879,26 +1100,26 @@ void TSD_GFX::drawArc(int32_t x, int32_t y, int32_t r, int32_t ir,
       // Check if an AA pixels need to be drawn
       slope = ((r - cy)<<16)/(r - cx);
       if (slope <= startSlope[0] && slope >= endSlope[0]) // BL
-        drawPixel(_clip, x + cx - r, y - cy + r, pcol);
+        drawPixel(clip, x + cx - r, y - cy + r, pcol);
       if (slope >= startSlope[1] && slope <= endSlope[1]) // TL
-        drawPixel(_clip, x + cx - r, y + cy - r, pcol);
+        drawPixel(clip, x + cx - r, y + cy - r, pcol);
       if (slope <= startSlope[2] && slope >= endSlope[2]) // TR
-        drawPixel(_clip, x - cx + r, y + cy - r, pcol);
+        drawPixel(clip, x - cx + r, y + cy - r, pcol);
       if (slope <= endSlope[3] && slope >= startSlope[3]) // BR
-        drawPixel(_clip, x - cx + r, y - cy + r, pcol);
+        drawPixel(clip, x - cx + r, y - cy + r, pcol);
     }
     // Add line in inner zone
-    if (len[0]) drawFastHLine(_clip, x + xst[0] - len[0] + 1 - r, y - cy + r, len[0], fg_color); // BL
-    if (len[1]) drawFastHLine(_clip, x + xst[1] - len[1] + 1 - r, y + cy - r, len[1], fg_color); // TL
-    if (len[2]) drawFastHLine(_clip, x - xst[2] + r, y + cy - r, len[2], fg_color); // TR
-    if (len[3]) drawFastHLine(_clip, x - xst[3] + r, y - cy + r, len[3], fg_color); // BR
+    if (len[0]) drawFastHLine(clip, x + xst[0] - len[0] + 1 - r, y - cy + r, len[0], fg_color); // BL
+    if (len[1]) drawFastHLine(clip, x + xst[1] - len[1] + 1 - r, y + cy - r, len[1], fg_color); // TL
+    if (len[2]) drawFastHLine(clip, x - xst[2] + r, y + cy - r, len[2], fg_color); // TR
+    if (len[3]) drawFastHLine(clip, x - xst[3] + r, y - cy + r, len[3], fg_color); // BR
   }
 
   // Fill in centre lines
-  if (startAngle ==   0 || endAngle == 360) drawFastVLine(_clip, x, y + r - w, w, fg_color); // Bottom
-  if (startAngle <=  90 && endAngle >=  90) drawFastHLine(_clip, x - r + 1, y, w, fg_color); // Left
-  if (startAngle <= 180 && endAngle >= 180) drawFastVLine(_clip, x, y - r + 1, w, fg_color); // Top
-  if (startAngle <= 270 && endAngle >= 270) drawFastHLine(_clip, x + r - w, y, w, fg_color); // Right
+  if (startAngle ==   0 || endAngle == 360) drawFastVLine(clip, x, y + r - w, w, fg_color); // Bottom
+  if (startAngle <=  90 && endAngle >=  90) drawFastHLine(clip, x - r + 1, y, w, fg_color); // Left
+  if (startAngle <= 180 && endAngle >= 180) drawFastVLine(clip, x, y - r + 1, w, fg_color); // Top
+  if (startAngle <= 270 && endAngle >= 270) drawFastHLine(clip, x + r - w, y, w, fg_color); // Right
 
 //???  inTransaction = lockTransaction;
 //???  end_tft_write();
@@ -919,14 +1140,14 @@ void TSD_GFX::drawSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t fg_colo
 ** Function name:           fillSmoothCircle
 ** Description:             Draw a filled anti-aliased circle
 ***************************************************************************************/
-void TSD_GFX::fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color, uint32_t bg_color)
+void TSD_GFX::fillSmoothCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, rgb_t color, rgb_t bg_color)
 {
   if (r <= 0) return;
 
 //  inTransaction = true;
   startWrite();
 
-  drawFastHLine(_clip, x - r, y, 2 * r + 1, color);
+  drawFastHLine(clip, x - r, y, 2 * r + 1, color);
   int32_t xs = 1;
   int32_t cx = 0;
 
@@ -949,20 +1170,20 @@ void TSD_GFX::fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color, 
       if (alpha < 9) continue;
 
       if (bg_color == 0x00FFFFFF) {
-        drawPixel(_clip, x + cx - r, y + cy - r, color, alpha, bg_color);
-        drawPixel(_clip, x - cx + r, y + cy - r, color, alpha, bg_color);
-        drawPixel(_clip, x - cx + r, y - cy + r, color, alpha, bg_color);
-        drawPixel(_clip, x + cx - r, y - cy + r, color, alpha, bg_color);
+        drawPixel(clip, x + cx - r, y + cy - r, color, alpha, bg_color);
+        drawPixel(clip, x - cx + r, y + cy - r, color, alpha, bg_color);
+        drawPixel(clip, x - cx + r, y - cy + r, color, alpha, bg_color);
+        drawPixel(clip, x + cx - r, y - cy + r, color, alpha, bg_color);
       }
       else {
-        uint16_t pcol = drawPixel(_clip, x + cx - r, y + cy - r, color, alpha, bg_color);
-        drawPixel(_clip, x - cx + r, y + cy - r, pcol);
-        drawPixel(_clip, x - cx + r, y - cy + r, pcol);
-        drawPixel(_clip, x + cx - r, y - cy + r, pcol);
+        uint16_t pcol = drawPixel(clip, x + cx - r, y + cy - r, color, alpha, bg_color);
+        drawPixel(clip, x - cx + r, y + cy - r, pcol);
+        drawPixel(clip, x - cx + r, y - cy + r, pcol);
+        drawPixel(clip, x + cx - r, y - cy + r, pcol);
       }
     }
-    drawFastHLine(_clip, x + cx - r, y + cy - r, 2 * (r - cx) + 1, color);
-    drawFastHLine(_clip, x + cx - r, y - cy + r, 2 * (r - cx) + 1, color);
+    drawFastHLine(clip, x + cx - r, y + cy - r, 2 * (r - cx) + 1, color);
+    drawFastHLine(clip, x + cx - r, y - cy + r, 2 * (r - cx) + 1, color);
   }
 //???  inTransaction = lockTransaction;
 //???  end_tft_write();
@@ -984,7 +1205,7 @@ void TSD_GFX::fillSmoothCircle(int32_t x, int32_t y, int32_t r, uint32_t color, 
 //   0x1 | 0x2
 //    ---¦---    Arc quadrant mask select bits (as in drawCircleHelper fn)
 //   0x8 | 0x4
-void TSD_GFX::drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, uint32_t fg_color, uint32_t bg_color, uint8_t quadrants)
+void TSD_GFX::drawSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t w, int32_t h, rgb_t fg_color, rgb_t bg_color, uint8_t quadrants)
 {
   if (r < ir) transpose(r, ir); // Required that r > ir
   if (r <= 0 || ir < 0) return; // Invalid
@@ -1050,24 +1271,24 @@ void TSD_GFX::drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, i
 
       // If background is read it must be done in each quadrant - TODO
       uint16_t pcol = alphaBlend(alpha, fg_color, bg_color);
-      if (quadrants & 0x8) drawPixel(_clip, x + cx - r, y - cy + r + h, pcol);     // BL
-      if (quadrants & 0x1) drawPixel(_clip, x + cx - r, y + cy - r, pcol);         // TL
-      if (quadrants & 0x2) drawPixel(_clip, x - cx + r + w, y + cy - r, pcol);     // TR
-      if (quadrants & 0x4) drawPixel(_clip, x - cx + r + w, y - cy + r + h, pcol); // BR
+      if (quadrants & 0x8) drawPixel(clip, x + cx - r, y - cy + r + h, pcol);     // BL
+      if (quadrants & 0x1) drawPixel(clip, x + cx - r, y + cy - r, pcol);         // TL
+      if (quadrants & 0x2) drawPixel(clip, x - cx + r + w, y + cy - r, pcol);     // TR
+      if (quadrants & 0x4) drawPixel(clip, x - cx + r + w, y - cy + r + h, pcol); // BR
     }
     // Fill arc inner zone in each quadrant
     lxst = rxst - len + 1; // Calculate line segment start for left side
-    if (quadrants & 0x8) drawFastHLine(_clip, x + lxst - r, y - cy + r + h, len, fg_color);     // BL
-    if (quadrants & 0x1) drawFastHLine(_clip, x + lxst - r, y + cy - r, len, fg_color);         // TL
-    if (quadrants & 0x2) drawFastHLine(_clip, x - rxst + r + w, y + cy - r, len, fg_color);     // TR
-    if (quadrants & 0x4) drawFastHLine(_clip, x - rxst + r + w, y - cy + r + h, len, fg_color); // BR
+    if (quadrants & 0x8) drawFastHLine(clip, x + lxst - r, y - cy + r + h, len, fg_color);     // BL
+    if (quadrants & 0x1) drawFastHLine(clip, x + lxst - r, y + cy - r, len, fg_color);         // TL
+    if (quadrants & 0x2) drawFastHLine(clip, x - rxst + r + w, y + cy - r, len, fg_color);     // TR
+    if (quadrants & 0x4) drawFastHLine(clip, x - rxst + r + w, y - cy + r + h, len, fg_color); // BR
   }
 
   // Draw sides
-  if ((quadrants & 0xC) == 0xC) fillRect(_clip, x, y + r - t + h, w + 1, t, fg_color); // Bottom
-  if ((quadrants & 0x9) == 0x9) fillRect(_clip, x - r + 1, y, t, h + 1, fg_color);     // Left
-  if ((quadrants & 0x3) == 0x3) fillRect(_clip, x, y - r + 1, w + 1, t, fg_color);     // Top
-  if ((quadrants & 0x6) == 0x6) fillRect(_clip, x + r - t + w, y, t, h + 1, fg_color); // Right
+  if ((quadrants & 0xC) == 0xC) fillRect(clip, x, y + r - t + h, w + 1, t, fg_color); // Bottom
+  if ((quadrants & 0x9) == 0x9) fillRect(clip, x - r + 1, y, t, h + 1, fg_color);     // Left
+  if ((quadrants & 0x3) == 0x3) fillRect(clip, x, y - r + 1, w + 1, t, fg_color);     // Top
+  if ((quadrants & 0x6) == 0x6) fillRect(clip, x + r - t + w, y, t, h + 1, fg_color); // Right
 
 //  inTransaction = lockTransaction;
 //  end_tft_write();
@@ -1078,7 +1299,7 @@ void TSD_GFX::drawSmoothRoundRect(int32_t x, int32_t y, int32_t r, int32_t ir, i
 ** Function name:           fillSmoothRoundRect
 ** Description:             Draw a filled anti-aliased rounded corner rectangle
 ***************************************************************************************/
-void TSD_GFX::fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color, uint32_t bg_color)
+void TSD_GFX::fillSmoothRoundRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, rgb_t color, rgb_t bg_color)
 {
 //  inTransaction = true;
   startWrite();
@@ -1093,7 +1314,7 @@ void TSD_GFX::fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, in
 
   y += r;
   h -= 2*r;
-  fillRect(_clip, x, y, w, h, color);
+  fillRect(clip, x, y, w, h, color);
 
   h--;
   x += r;
@@ -1117,24 +1338,25 @@ void TSD_GFX::fillSmoothRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, in
       xs = cx;
       if (alpha < 9) continue;
 
-      drawPixel(_clip, x + cx - r, y + cy - r, color, alpha, bg_color);
-      drawPixel(_clip, x - cx + r + w, y + cy - r, color, alpha, bg_color);
-      drawPixel(_clip, x - cx + r + w, y - cy + r + h, color, alpha, bg_color);
-      drawPixel(_clip, x + cx - r, y - cy + r + h, color, alpha, bg_color);
+      drawPixel(clip, x + cx - r, y + cy - r, color, alpha, bg_color);
+      drawPixel(clip, x - cx + r + w, y + cy - r, color, alpha, bg_color);
+      drawPixel(clip, x - cx + r + w, y - cy + r + h, color, alpha, bg_color);
+      drawPixel(clip, x + cx - r, y - cy + r + h, color, alpha, bg_color);
     }
-    drawFastHLine(_clip, x + cx - r, y + cy - r, 2 * (r - cx) + 1 + w, color);
-    drawFastHLine(_clip, x + cx - r, y - cy + r + h, 2 * (r - cx) + 1 + w, color);
+    drawFastHLine(clip, x + cx - r, y + cy - r, 2 * (r - cx) + 1 + w, color);
+    drawFastHLine(clip, x + cx - r, y - cy + r + h, 2 * (r - cx) + 1 + w, color);
   }
 //???  inTransaction = lockTransaction;
 //???  end_tft_write();
   endWrite();
 }
 
+
 /***************************************************************************************
 ** Function name:           drawWedgeLine - background colour specified or pixel read
 ** Description:             draw an anti-aliased line with different width radiused ends
 ***************************************************************************************/
-void TSD_GFX::drawWedgeLine(float ax, float ay, float bx, float by, float ar, float br, uint32_t fg_color, uint32_t bg_color)
+void TSD_GFX::drawWedgeLine(clip_t& clip, float ax, float ay, float bx, float by, float ar, float br, rgb_t fg_color, rgb_t bg_color)
 {
   if ( (ar < 0.0) || (br < 0.0) )return;
   if ( (fabsf(ax - bx) < 0.01f) && (fabsf(ay - by) < 0.01f) ) bx += 0.01f;  // Avoid divide by zero
@@ -1188,7 +1410,7 @@ void TSD_GFX::drawWedgeLine(float ax, float ay, float bx, float by, float ar, fl
       }
       //Blend color with background and plot
       if (bg_color == 0x00FFFFFF) {
-        bg = readPixel(_clip, xp, yp); swin = true;
+        bg = readPixel(clip, xp, yp); swin = true;
       }
       #ifdef GC9A01_DRIVER
         uint16_t pcol = alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg);
@@ -1222,7 +1444,7 @@ void TSD_GFX::drawWedgeLine(float ax, float ay, float bx, float by, float ar, fl
           drawPixel(_clip, xp, yp, fg_color);
         #else
 //???          if (swin) { setWindow(xp, yp, x1-xp+1, yp); swin = false; }
-          if (swin) { writeAddrWindow(xp, yp, x1-xp+1, yp); swin = false; }
+          if (swin) { writeAddrWindow(xp, yp, x1-xp+1, 1); swin = false; }
 //???          pushColor(fg_color);
           sendMDTColor1(fg_color);
         #endif
@@ -1230,7 +1452,7 @@ void TSD_GFX::drawWedgeLine(float ax, float ay, float bx, float by, float ar, fl
       }
       //Blend colour with background and plot
       if (bg_color == 0x00FFFFFF) {
-        bg = readPixel(_clip, xp, yp); swin = true;
+        bg = readPixel(clip, xp, yp); swin = true;
       }
       #ifdef GC9A01_DRIVER
         uint16_t pcol = alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg);
@@ -1238,7 +1460,7 @@ void TSD_GFX::drawWedgeLine(float ax, float ay, float bx, float by, float ar, fl
         swin = swin;
       #else
 //???        if (swin) { setWindow(xp, yp, x1-xp+1, yp); swin = false; }
-        if (swin) { writeAddrWindow(xp, yp, x1-xp+1, yp); swin = false; }
+        if (swin) { writeAddrWindow(xp, yp, x1-xp+1, 1); swin = false; }
 //???        pushColor(alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
         sendMDTColor1(alphaBlend((uint8_t)(alpha * PixelAlphaGain), fg_color, bg));
       #endif
@@ -1281,180 +1503,58 @@ void TSD_GFX::drawWedgeLine(float ax, float ay, float bx, float by, float ar, fl
 */
 
 
-
-
-
-
-// BITMAP / XBITMAP / GRAYSCALE / RGB BITMAP FUNCTIONS ---------------------
-
-void TSD_GFX::drawBitmap(clip_t& clip, int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h, rgb_t color)
+void TSD_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color)
 {
-  startWrite();
-
-  int32_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
-  uint8_t b = 0;
-
-  for (int32_t j = 0; j < h; j++, y++) {
-    for (int32_t i = 0; i < w; i++) {
-      if (i & 7)
-        b <<= 1;
-      else
-        b = bitmap[j * byteWidth + i / 8];
-      if (b & 0x80)
-        drawPixel(clip, x + i, y, color);
-    }
+  if (IF_CLIP_X && IF_CLIP_Y) {
+    drawClippedPixel(x, y, color);
   }
-
-  endWrite();
 }
 
-void TSD_GFX::drawBitmap(clip_t& clip, int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h, rgb_t color, rgb_t bg)
+
+/***************************************************************************************
+** Function name:           drawFastVLine
+** Description:             draw a vertical line
+***************************************************************************************/
+void TSD_GFX::drawFastVLine(clip_t& clip, int32_t x, int32_t y, int32_t h, rgb_t color)
 {
-  startWrite();
-
-  int32_t byteWidth = (w + 7) / 8; // Bitmap scanline pad = whole byte
-  uint8_t b = 0;
-
-  for (int32_t j = 0; j < h; j++, y++) {
-    for (int32_t i = 0; i < w; i++) {
-      if (i & 7)
-        b <<= 1;
-      else
-        b = bitmap[j * byteWidth + i / 8];
-      drawPixel(clip, x + i, y, (b & 0x80) ? color : bg);
-    }
+  CLIP_Y
+  if (IF_CLIP_Y && h > 0) {
+    drawClippedPixelRec(x, y, 1, h, color);
   }
-
-  endWrite();
 }
 
-void TSD_GFX::drawGrayscaleBitmap(clip_t& clip, int32_t x, int32_t y, const uint8_t* bitmap, int32_t w, int32_t h)
-{
-  startWrite();
 
-  for (int32_t j = 0; j < h; j++, y++) {
-    for (int32_t i = 0; i < w; i++) {
-      drawPixel(clip, x + i, y, bitmap[j * w + i] ? WHITE : BLACK);
-    }
+/***************************************************************************************
+** Function name:           drawFastHLine
+** Description:             draw a horizontal line
+***************************************************************************************/
+void TSD_GFX::drawFastHLine(clip_t& clip, int32_t x, int32_t y, int32_t w, rgb_t color)
+{
+  CLIP_X
+  if (IF_CLIP_Y && w > 0) {
+    drawClippedPixelRec(x, y, w, 1, color);
   }
-  endWrite();
 }
 
-void TSD_GFX::drawGrayscaleBitmap(clip_t& clip, int32_t x, int32_t y, const uint8_t* bitmap, const uint8_t* mask, int32_t w, int32_t h)
-{
-  startWrite();
 
-  int32_t bw = (w + 7) / 8; // Bitmask scanline pad = whole byte
-  uint8_t b = 0;
-  for (int32_t j = 0; j < h; j++, y++) {
-    for (int32_t i = 0; i < w; i++) {
-      if (i & 7)
-        b <<= 1;
-      else
-        b = mask[j * bw + i / 8];
-      if (b & 0x80) {
-        drawPixel(clip, x + i, y, bitmap[j * w + i] ? WHITE : BLACK);
-      }
-    }
+void TSD_GFX::fillRectHelper(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
+{
+  CLIP_X
+  CLIP_Y
+  if (w > 0 && h > 0) {
+    drawClippedPixelRec(x, y, w, h, color);
   }
-  endWrite();
 }
 
-void TSD_GFX::drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint16_t* bitmap, int32_t w, int32_t h)
-{
-  int dx, dy, dw, dh;
 
-  if (x >= clip.x1) {dx = 0; dw = w; } else { dx = clip.x1 - x; dw = w - dx; x = clip.x1; }
-  if (y >= clip.y1) {dy = 0; dh = h; } else { dy = clip.y1 - y; dh = h - dy; y = clip.y1; }
-
-  if (x + dw > clip.x2) { dw = clip.x2 - x; }
-  if (y + dh > clip.y2) { dh = clip.y2 - y; }
-
-  if (dw < 1 || dh < 1) return;
-
-  startWrite();
-
-  writeAddrWindow(x, y, dw, dh);
-
-  if (dx != 0) {
-    const uint16_t* p = bitmap + dw * dy + dx;
-    if (MDT_SIZE == 2) {
-      for (int j = 0; j < dh; ++j) {
-        writeMDTBuffer((const uint8_t*)p, dw);
-        p += w;
-      }
-    }
-    else {   // translate 565 to 666
-      const uint16_t* p = bitmap + dw * dy + dx;
-      const uint8_t* buff = (const uint8_t*)malloc(dw * MDT_SIZE + 3);
-      uint8_t* q = (uint8_t*)buff;
-      for (int j = 0; j < dh; ++j) {
-        for (int i = 0; i < dw; ++i) {
-          *(rgb_t*)q = rgb(*p++);
-          q += 3;
-        }
-        writeMDTBuffer((const uint8_t*)buff, dw);
-        p += w;
-      }
-      free((void*)buff);
-    }
-  }
-  else {
-    writeMDTBuffer((const uint8_t*)(bitmap + w * dy), w * dh);
-  }
-
-  endWrite();
-}
-
-void TSD_GFX::drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint16_t* bitmap, const uint8_t* mask, int32_t w, int32_t h)
+/***************************************************************************************
+** Function name:           fillRect
+** Description:             draw a filled rectangle
+***************************************************************************************/
+void TSD_GFX::fillRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, rgb_t color)
 {
   startWrite();
-
-  int32_t bw = (w + 7) / 8; // Bitmask scanline pad = whole byte
-  uint8_t b = 0;
-  for (int32_t j = 0; j < h; j++, y++) {
-    for (int32_t i = 0; i < w; i++) {
-      if (i & 7)
-        b <<= 1;
-      else
-        b = mask[j * bw + i / 8];
-      if (b & 0x80) {
-        drawPixel(clip, x + i, y, rgb(bitmap[j * w + i]));
-      }
-    }
-  }
-  endWrite();
-}
-
-void TSD_GFX::drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint32_t* bitmap, int32_t w, int32_t h)
-{
-  startWrite();
-
-  for (int32_t j = 0; j < h; j++, y++) {
-    for (int32_t i = 0; i < w; i++) {
-      drawPixel(clip, x + i, y, bitmap[j * w + i] | 0xFF000000);
-    }
-  }
-  endWrite();
-}
-
-void TSD_GFX::drawRGBBitmap(clip_t& clip, int32_t x, int32_t y, const uint32_t* bitmap, const uint8_t* mask, int32_t w, int32_t h)
-{
-  startWrite();
-
-  int32_t bw = (w + 7) / 8; // Bitmask scanline pad = whole byte
-  uint8_t b = 0;
-  for (int32_t j = 0; j < h; j++, y++) {
-    for (int32_t i = 0; i < w; i++) {
-      if (i & 7)
-        b <<= 1;
-      else
-        b = mask[j * bw + i / 8];
-      if (b & 0x80) {
-        drawPixel(clip, x + i, y, bitmap[j * w + i] | 0xFF000000);
-      }
-    }
-  }
+  fillRectHelper(clip, x, y, w, h, color);
   endWrite();
 }
 
@@ -1586,7 +1686,7 @@ void TSD_GFX::fillRectGradient(clip_t& clip, const int32_t x, const int32_t y, c
 ** Function name:           alphaBlend
 ** Description:             Blend 16bit foreground and background
 *************************************************************************************x*/
-uint16_t TSD_SCREEN::alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc)
+uint16_t alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc)
 {
   // Split out and blend 5-bit red and blue channels
   uint32_t rxb = bgc & 0xF81F;
@@ -1602,7 +1702,7 @@ uint16_t TSD_SCREEN::alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc)
 ** Function name:           alphaBlend
 ** Description:             Blend 16bit foreground and background with dither
 *************************************************************************************x*/
-uint16_t TSD_SCREEN::alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc, uint8_t dither)
+uint16_t alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc, uint8_t dither)
 {
   if (dither) {
     int16_t alphaDither = (int16_t)alpha - dither + random() % (2*dither+1); // +/-4 randomised
@@ -1618,7 +1718,7 @@ uint16_t TSD_SCREEN::alphaBlend(uint8_t alpha, uint16_t fgc, uint16_t bgc, uint8
 ** Function name:           alphaBlend
 ** Description:             Blend 24bit foreground and background with optional dither
 *************************************************************************************x*/
-uint32_t TSD_SCREEN::alphaBlend24(uint8_t alpha, uint32_t fgc, uint32_t bgc, uint8_t dither)
+uint32_t alphaBlend24(uint8_t alpha, uint32_t fgc, uint32_t bgc, uint8_t dither)
 {
 
   if (dither) {
