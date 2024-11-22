@@ -527,7 +527,7 @@ void TFT_eeSPI::pushImageDMA16(clip_t& clip, int32_t x, int32_t y, int32_t w, in
     }
   }
 
-  setWindow(x, y, dw, dh);
+  setWindow(x, y, x + dw - 1, y + dh - 1);
 
   // DMA byte count for transmit is only 16 bits maximum, so to avoid this constraint
   // small transfers are performed using a blocking call until DMA capacity is reached.

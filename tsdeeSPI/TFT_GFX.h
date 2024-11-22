@@ -96,8 +96,8 @@ public:
            fillCircle(clip_t& clip, int32_t x, int32_t y, int32_t r, rgb_t color),
            fillCircleHelper(clip_t& clip, int32_t x, int32_t y, int32_t r, uint8_t cornername, int32_t delta, rgb_t color),
 
-           drawEllipse(clip_t& clip, int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color),
-           fillEllipse(clip_t& clip, int16_t x, int16_t y, int32_t rx, int32_t ry, uint16_t color),
+           drawEllipse(clip_t& clip, int16_t x, int16_t y, int32_t rx, int32_t ry, rgb_t color),
+           fillEllipse(clip_t& clip, int16_t x, int16_t y, int32_t rx, int32_t ry, rgb_t color),
 
            //                 Corner 1               Corner 2               Corner 3
            drawTriangle(clip_t& clip, int32_t x1,int32_t y1, int32_t x2,int32_t y2, int32_t x3,int32_t y3, rgb_t color),
@@ -115,11 +115,11 @@ public:
            // By default the arc is drawn with square ends unless the "roundEnds" parameter is included and set true
            // Angle = 0 is at 6 o'clock position, 90 at 9 o'clock etc. The angles must be in range 0-360 or they will be clipped to these limits
            // The start angle may be larger than the end angle. Arcs are always drawn clockwise from the start angle.
-  void     drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, rgb_t fg_color, rgb_t bg_color, bool roundEnds = false);
+  void     drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t startAngle, int32_t endAngle, rgb_t fg_color, rgb_t bg_color, bool roundEnds = false);
            // As per "drawSmoothArc" except the ends of the arc are NOT anti-aliased, this facilitates dynamic arc length changes with
            // arc segments and ensures clean segment joints.
            // The sides of the arc are anti-aliased by default. If smoothArc is false sides will NOT be anti-aliased
-  void     drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, rgb_t fg_color, rgb_t bg_color, bool smoothArc = true);
+  void     drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t startAngle, int32_t endAngle, rgb_t fg_color, rgb_t bg_color, bool smoothArc = true);
 
            // Draw an anti-aliased filled circle at x, y with radius r
            // Note: The thickness of line is 3 pixels to reduce the visible "braiding" effect of anti-aliasing narrow lines
@@ -157,7 +157,7 @@ public:
            drawBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t fgcolor, rgb_t bgcolor),
            drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t fgcolor),
            drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, rgb_t fgcolor, rgb_t bgcolor),
-           setBitmapColor(uint16_t fgcolor, uint16_t bgcolor); // Define the 2 colours for 1bpp sprites
+           setBitmapColor(rgb_t fgcolor, rgb_t bgcolor); // Define the 2 colours for 1bpp sprites
 
            // Write a block of pixels to the screen which have been read by readRect()
   void     pushRect(clip_t& clip, int32_t x, int32_t y, int32_t w, int32_t h, uint16_t *data);

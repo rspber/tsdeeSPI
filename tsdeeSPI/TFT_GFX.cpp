@@ -993,7 +993,7 @@ void TFT_GFX::fillCircleHelper(clip_t& clip, int32_t x0, int32_t y0, int32_t r, 
 ** Function name:           drawEllipse
 ** Description:             Draw a ellipse outline
 ***************************************************************************************/
-void TFT_GFX::drawEllipse(clip_t& clip, int16_t x0, int16_t y0, int32_t rx, int32_t ry, uint16_t color)
+void TFT_GFX::drawEllipse(clip_t& clip, int16_t x0, int16_t y0, int32_t rx, int32_t ry, rgb_t color)
 {
   if (rx<2) return;
   if (ry<2) return;
@@ -1045,7 +1045,7 @@ void TFT_GFX::drawEllipse(clip_t& clip, int16_t x0, int16_t y0, int32_t rx, int3
 ** Function name:           fillEllipse
 ** Description:             draw a filled ellipse
 ***************************************************************************************/
-void TFT_GFX::fillEllipse(clip_t& clip, int16_t x0, int16_t y0, int32_t rx, int32_t ry, uint16_t color)
+void TFT_GFX::fillEllipse(clip_t& clip, int16_t x0, int16_t y0, int32_t rx, int32_t ry, rgb_t color)
 {
   if (rx<2) return;
   if (ry<2) return;
@@ -1354,7 +1354,7 @@ void TFT_GFX::drawXBitmap(clip_t& clip, int16_t x, int16_t y, const uint8_t *bit
 ** Function name:           setBitmapColor
 ** Description:             Set the foreground foreground and background colour
 ***************************************************************************************/
-void TFT_GFX::setBitmapColor(uint16_t c, uint16_t b)
+void TFT_GFX::setBitmapColor(rgb_t c, rgb_t b)
 {
   if (c == b) b = ~c;
   _bitmap_fg = c;
@@ -1456,7 +1456,7 @@ uint16_t TFT_GFX::drawPixel(clip_t& clip, int32_t x, int32_t y, rgb_t color, uin
 ** Function name:           drawSmoothArc
 ** Description:             Draw a smooth arc clockwise from 6 o'clock
 ***************************************************************************************/
-void TFT_GFX::drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, uint32_t startAngle, uint32_t endAngle, rgb_t fg_color, rgb_t bg_color, bool roundEnds)
+void TFT_GFX::drawSmoothArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir, int32_t startAngle, int32_t endAngle, rgb_t fg_color, rgb_t bg_color, bool roundEnds)
 // Centre at x,y
 // r = arc outer radius, ir = arc inner radius. Inclusive so arc thickness = r - ir + 1
 // Angles in range 0-360
@@ -1552,7 +1552,7 @@ inline uint8_t TFT_GFX::sqrt_fraction(uint32_t num) {
 // smooth is optional, default is true, smooth=false means no antialiasing
 // Note: Arc ends are not anti-aliased (use drawSmoothArc instead for that)
 void TFT_GFX::drawArc(clip_t& clip, int32_t x, int32_t y, int32_t r, int32_t ir,
-                       uint32_t startAngle, uint32_t endAngle,
+                       int32_t startAngle, int32_t endAngle,
                        rgb_t fg_color, rgb_t bg_color,
                        bool smooth)
 {
